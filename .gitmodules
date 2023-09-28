@@ -1,0 +1,3 @@
+[submodule "external/buddy"]
+	path = external/buddy
+	url = https://github.com/SSoelvsten/buddy
