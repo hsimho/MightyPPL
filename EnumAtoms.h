@@ -1,6 +1,6 @@
 #pragma once
 
-namespace antlrcpptest {
+namespace mightylcpp {
 
 enum enum_atoms {
 
@@ -11,4 +11,4 @@ enum enum_atoms {
 
 };
 
-}  // namespace antlrcpptest
+}  // namespace mightylcpp

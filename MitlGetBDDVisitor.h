@@ -9,7 +9,7 @@
 #include "MitlVisitor.h"
 
 
-namespace antlrcpptest {
+namespace mightylcpp {
 
 class  MitlGetBDDVisitor : public MitlVisitor {
 
@@ -56,4 +56,4 @@ public:
 
 };
 
-}  // namespace antlrcpptest
+}  // namespace mightylcpp

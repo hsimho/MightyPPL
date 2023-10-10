@@ -2,15 +2,14 @@
 // Generated from Mitl.g4 by ANTLR 4.13.0
 //
 
-#include "antlr4-runtime.h"
 #include "MitlCheckNNFVisitor.h"
 
 
-namespace antlrcpptest {
+namespace mightylcpp {
 
-    void MitlCheckNNFVisitor::loadParser(MitlParser *parser) {  //get parser
-        ruleNames = parser->getRuleNames(); //load parser rules from parser
-    }
+//    void MitlCheckNNFVisitor::loadParser(const MitlParser& parser) {  //get parser
+//        ruleNames = parser.getRuleNames(); //load parser rules from parser
+//    }
 
     std::any MitlCheckNNFVisitor::visitMain(MitlParser::MainContext *ctx) {
         return visit(ctx->formula());
@@ -42,9 +41,9 @@ namespace antlrcpptest {
 
         antlr4::RuleContext* child = (antlr4::RuleContext*)ctx->formula()->children[0];
 
-        assert(ruleNames[child->getRuleIndex()] == "atom");
+        // assert(ruleNames[child->getRuleIndex()] == "atom");
 
-        if (child->children.size() == 1) {
+        if (child->children.size() == 1) {      // AtomTrue, AtomFalse, or AtomIdfr
             return true;
         } else {
             return false;   
@@ -98,5 +97,5 @@ namespace antlrcpptest {
 
 
 
-}  // namespace antlrcpptest
+}  // namespace mightylcpp
 

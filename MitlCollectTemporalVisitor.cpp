@@ -1,11 +1,10 @@
 
 // Generated from Mitl.g4 by ANTLR 4.13.0
 
-#include "antlr4-runtime.h"
 #include "MitlCollectTemporalVisitor.h"
 
 
-namespace antlrcpptest {
+namespace mightylcpp {
 
 
     std::any MitlCollectTemporalVisitor::visitMain(MitlParser::MainContext *ctx) {
@@ -128,5 +127,5 @@ namespace antlrcpptest {
     }
 
 
-}  // namespace antlrcpptest
+}  // namespace mightylcpp
 

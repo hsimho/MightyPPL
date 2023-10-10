@@ -1,11 +1,10 @@
 
 // Generated from Mitl.g4 by ANTLR 4.13.0
 
-#include "antlr4-runtime.h"
 #include "MitlAtomNumberingVisitor.h"
 
 
-namespace antlrcpptest {
+namespace mightylcpp {
 
     std::any MitlAtomNumberingVisitor::visitMain(MitlParser::MainContext *ctx) {
 
@@ -135,5 +134,5 @@ namespace antlrcpptest {
     }
 
 
-}  // namespace antlrcpptest
+}  // namespace mightylcpp
 

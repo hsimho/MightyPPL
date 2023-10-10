@@ -3,13 +3,10 @@
 
 #pragma once
 
-#include <vector>
-#include <string>
-
 #include "antlr4-runtime.h"
+#include "bdd.h"
 
 #include "MitlVisitor.h"
-
 
 namespace mightylcpp {
 
@@ -17,15 +14,9 @@ namespace mightylcpp {
  * This class provides an empty implementation of MitlVisitor, which can be
  * extended to create a visitor which only needs to handle a subset of the available methods.
  */
-class  MitlCheckNNFVisitor : public MitlVisitor {
-
-//private:
-//
-//    std::vector<std::string> ruleNames;
-
+class  MitlBuildTAVisitor : public MitlVisitor {
 public:
 
-//    void loadParser(const MitlParser& parser);
 
     std::any visitMain(MitlParser::MainContext *ctx) override;
 

@@ -35,17 +35,24 @@ find_package(ANTLR REQUIRED)
 
 # Call macro to add lexer and grammar to your build dependencies.
 antlr_target(MitlGrammar Mitl.g4 VISITOR
-             PACKAGE antlrcpptest)
+            PACKAGE mightylcpp)
+         #antlr_target(SampleGrammarParser TParser.g4 PARSER
+         #             PACKAGE antlrcpptest
+         #             DEPENDS_ANTLR SampleGrammarLexer
+         #             COMPILE_FLAGS -lib ${ANTLR_SampleGrammarLexer_OUTPUT_DIR})
 
 # include generated files in project environment
 include_directories(${ANTLR_MitlGrammar_OUTPUT_DIR})
+#include_directories(${ANTLR_SampleGrammarParser_OUTPUT_DIR})
 
 set(EXTERNAL_INSTALL_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/external")
 
-add_subdirectory(external/buddy buddy)
+add_subdirectory (${EXTERNAL_INSTALL_LOCATION}/buddy buddy)
+
+#file(MAKE_DIRECTORY ${EXTERNAL_INSTALL_LOCATION}/monitaal)
 
 ExternalProject_add(monitaal
-    GIT_REPOSITORY git@github.com:DEIS-Tools/MoniTAal.git
+    GIT_REPOSITORY git@github.com:hsimho/MoniTAal-symbolic-transitions.git
     GIT_TAG main
     CMAKE_ARGS (
         -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
@@ -60,17 +67,26 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/build/monitaal-prefix/src/monita
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/build/monitaal-prefix/src/monitaal-build/external/lib)
 
 
-# add generated grammar to binary target
-add_executable(mightyl main.cpp
+#add_subdirectory(${EXTERNAL_INSTALL_LOCATION}/monitaal monitaal)
+
+#target_include_directories(MoniTAal INTERFACE ${EXTERNAL_INSTALL_LOCATION}/monitaal)
+
+
+# add generated grammar to demo binary target
+add_executable(demo main.cpp
                MitlCheckNNFVisitor.cpp
                MitlToNNFVisitor.cpp
                MitlAtomNumberingVisitor.cpp
                MitlCollectTemporalVisitor.cpp
                MitlGetBDDVisitor.cpp
+               StatewithBDDEdges.cpp
+               TAwithBDDEdges.cpp
+               FixpointwithBDDEdges.cpp
+               MightyL.cpp
                ${ANTLR_MitlGrammar_CXX_OUTPUTS})
 
 
-target_link_libraries(mightyl antlr4_static buddy MoniTAal pugixml pardibaal)
+target_link_libraries(demo antlr4_static buddy MoniTAal pugixml pardibaal)
 
 
 if (CMAKE_HOST_UNIX)
@@ -80,8 +96,9 @@ if (CMAKE_HOST_UNIX)
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
 
-  if (TARGET mightyl)
-    target_link_libraries(mightyl Threads::Threads)
+  if (TARGET demo)
+    target_link_libraries(demo Threads::Threads)
+    message(STATUS "demo Linked with Threads!")
   endif()
 
 endif()

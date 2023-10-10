@@ -1,11 +1,10 @@
 
 // Generated from Mitl.g4 by ANTLR 4.13.0
 
-#include "antlr4-runtime.h"
 #include "MitlGetBDDVisitor.h"
 
 
-namespace antlrcpptest {
+namespace mightylcpp {
 
 
     std::any MitlGetBDDVisitor::visitMain(MitlParser::MainContext *ctx) {
@@ -206,5 +205,5 @@ namespace antlrcpptest {
     }
 
 
-}  // namespace antlrcpptest
+}  // namespace mightylcpp
 

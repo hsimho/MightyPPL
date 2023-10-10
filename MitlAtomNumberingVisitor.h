@@ -10,7 +10,7 @@
 #include "MitlVisitor.h"
 
 
-namespace antlrcpptest {
+namespace mightylcpp {
 
 /**
  * This class provides an empty implementation of MitlVisitor, which can be
@@ -62,4 +62,4 @@ public:
 
 };
 
-}  // namespace antlrcpptest
+}  // namespace mightylcpp
