@@ -1,5 +1,6 @@
 # MightyPPL
 
+
 The tool is meant to be used with [TChecker](https://github.com/ticktac-project/tchecker). 
 The current version supports only *unilateral* constraints, so things such as ```G (p -> F [0, 20) q && F (30, infty) r)``` are allowed
 but not ```F [10, 20] r```. Notably, it adopts the *strict-future* semantics for the until and release (and since and trigger) operators, so we don't need the "next" operator ```X``` or the "yesterday" operator ```Y```.
