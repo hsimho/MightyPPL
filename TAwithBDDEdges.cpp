@@ -374,63 +374,16 @@ namespace monitaal {
                                 if (id_src == components.size() - 1) {
 
                                     new_bdd_edges.push_back(bdd_edge_t(new_loc_indir.at(location_ids).at(id_src), new_loc_indir.at(dest_location_ids).at(0), guard, reset, new_bdd_label));
-                                    // reachable_locations.insert(new_loc_indir.at(dest_location_ids).at(0));
-
-                                    // std::cout << "Adding edge from" << std::endl;
-                                    // for (int i = 0; i < components.size(); ++i) {
-                                    //     std::cout << location_ids[i] << " ";
-                                    // }
-                                    // std::cout << "(" << new_loc_indir.at(location_ids).at(id_src) << ")" << std::endl;
-
-                                    // std::cout << "\nto" << std::endl;
-                                    // for (int i = 0; i < components.size(); ++i) {
-                                    //     std::cout << dest_location_ids[i] << " ";
-                                    // }
-                                    // std::cout << "(" << new_loc_indir.at(dest_location_ids).at(0) << ")" << std::endl;
-
-                                    // std::cout << "\n(" << id_src << " -> " << 0 << ")" << std::endl;
 
                                 } else {
 
                                     new_bdd_edges.push_back(bdd_edge_t(new_loc_indir.at(location_ids).at(id_src), new_loc_indir.at(dest_location_ids).at(id_src + 1), guard, reset, new_bdd_label));
-                                    // reachable_locations.insert(new_loc_indir.at(dest_location_ids).at(id_src + 1));
-
-                                    // std::cout << "Adding edge from" << std::endl;
-                                    // for (int i = 0; i < components.size(); ++i) {
-                                    //     std::cout << location_ids[i] << " ";
-                                    // }
-                                    // std::cout << "(" << new_loc_indir.at(location_ids).at(id_src) << ")" << std::endl;
-
-                                    // std::cout << "\nto" << std::endl;
-                                    // for (int i = 0; i < components.size(); ++i) {
-                                    //     std::cout << dest_location_ids[i] << " ";
-                                    // }
-                                    // std::cout << "(" << new_loc_indir.at(dest_location_ids).at(id_src + 1) << ")" << std::endl;
-
-                                    // std::cout << "\n(" << id_src << " -> " << id_src + 1 << ")" << std::endl;
 
                                 }
 
                             } else {
 
                                 new_bdd_edges.push_back(bdd_edge_t(new_loc_indir.at(location_ids).at(id_src), new_loc_indir.at(dest_location_ids).at(id_src), guard, reset, new_bdd_label));
-                                // reachable_locations.insert(new_loc_indir.at(dest_location_ids).at(id_src));
-
-                                // std::cout << "Adding edge from" << std::endl;
-                                // for (int i = 0; i < components.size(); ++i) {
-                                //     std::cout << location_ids[i] << " ";
-                                // }
-                                // std::cout << "(" << new_loc_indir.at(location_ids).at(id_src) << ")" << std::endl;
-
-                                // std::cout << "\nto" << std::endl;
-                                // for (int i = 0; i < components.size(); ++i) {
-                                //     std::cout << dest_location_ids[i] << " ";
-                                // }
-                                // std::cout << "(" << new_loc_indir.at(dest_location_ids).at(id_src) << ")" << std::endl;
-
-                                // std::cout << "\n(" << id_src << " -> " << id_src << ")" << std::endl;
-
-
 
                             }
 
@@ -519,25 +472,38 @@ namespace monitaal {
         locations_t new_locations_reachable;
         bdd_edges_t new_bdd_edges_reachable;
         
+        location_map_t new_loc_map;
+        bdd_edge_map_t new_bdd_edge_map;
+
         for (const auto &l : new_locations) {
-            if (l.id() == new_loc_indir.at(location_ids).at(0)) {
-                new_location_ids_reachable.insert(l.id());
-            }
+            new_loc_map.insert({l.id(), l});
         }
 
         for (const auto &e : new_bdd_edges) {
-
-            new_location_ids_reachable.insert(e.to());
-
+            new_bdd_edge_map[e.from()].push_back(e);
         }
 
-        for (const auto &e : new_bdd_edges) {
+        std::set<location_id_t> fringe;
+        fringe.insert(new_loc_indir.at(location_ids).at(0));
 
-            if (new_location_ids_reachable.count(e.from()) + new_location_ids_reachable.count(e.to()) >= 2) {
+        while (!fringe.empty()) {
+
+            auto lid = fringe.begin();
+            fringe.erase(lid);
+
+            new_location_ids_reachable.insert(*lid);
+
+            for (const auto& e : new_bdd_edge_map.at(*lid)) {
+                
                 new_bdd_edges_reachable.push_back(e);
+                if (!new_location_ids_reachable.count(e.to())) {
+                    fringe.insert(e.to());
+                }
+
             }
 
         }
+
 
         for (const auto &l : new_locations) {
             if (new_location_ids_reachable.count(l.id()) >= 1) {
@@ -562,6 +528,7 @@ namespace monitaal {
             new_props = new_props & bdd_ithvar(i);
         }
             
+        std::string s;
         for (const auto& [id, l] : this->locations()) {
 
             for (const auto& e : this->bdd_edges_from(id)) {
@@ -576,9 +543,20 @@ namespace monitaal {
                 std::cout << "After projection: " << projected_e << std::endl;
 
                 bdd_allsat(projected_e, *mightylcpp::allsat_print_handler);
-                mightylcpp::sat_paths.clear();
 
-                edges.push_back(monitaal::edge_t(e.from(), e.to(), e.guard(), e.reset(), "some_bdd"));     // from, to, guard, reset, label
+                for (const auto& p : mightylcpp::sat_paths) {
+
+                    if (!s.empty()) {
+                        s += " || ";
+                    }
+
+                    s += p;
+
+                }
+
+                edges.push_back(monitaal::edge_t(e.from(), e.to(), e.guard(), e.reset(), s));     // from, to, guard, reset, label
+                mightylcpp::sat_paths.clear();
+                s.clear();
 
                 // std::set<std::string> labels_set;
 
