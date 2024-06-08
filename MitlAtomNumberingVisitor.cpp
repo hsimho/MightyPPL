@@ -66,6 +66,24 @@ namespace mightylcpp {
 
     }
 
+
+
+    std::any MitlAtomNumberingVisitor::visitAtomF(MitlParser::AtomFContext *ctx) {
+
+        ctx->id = ++current_id;
+        ctx->type = FINALLY;
+        return std::any_cast<int>(visit(ctx->atom())) + 1;
+
+    }
+
+    std::any MitlAtomNumberingVisitor::visitAtomO(MitlParser::AtomOContext *ctx) {
+
+        ctx->id = ++current_id;
+        ctx->type = ONCE;
+        return std::any_cast<int>(visit(ctx->atom())) + 1;
+
+    }
+
     std::any MitlAtomNumberingVisitor::visitAtomG(MitlParser::AtomGContext *ctx) {
 
         ctx->id = ++current_id;
@@ -74,11 +92,27 @@ namespace mightylcpp {
 
     }
 
-    std::any MitlAtomNumberingVisitor::visitAtomF(MitlParser::AtomFContext *ctx) {
+    std::any MitlAtomNumberingVisitor::visitAtomH(MitlParser::AtomHContext *ctx) {
 
         ctx->id = ++current_id;
-        ctx->type = FINALLY;
+        ctx->type = HISTORICALLY;
         return std::any_cast<int>(visit(ctx->atom())) + 1;
+
+    }
+
+    std::any MitlAtomNumberingVisitor::visitAtomU(MitlParser::AtomUContext *ctx) {
+
+        ctx->id = ++current_id;
+        ctx->type = UNTIL;
+        return std::any_cast<int>(visit(ctx->atom(0))) + std::any_cast<int>(visit(ctx->atom(1))) + 1;
+
+    }
+
+    std::any MitlAtomNumberingVisitor::visitAtomS(MitlParser::AtomSContext *ctx) {
+
+        ctx->id = ++current_id;
+        ctx->type = SINCE;
+        return std::any_cast<int>(visit(ctx->atom(0))) + std::any_cast<int>(visit(ctx->atom(1))) + 1;
 
     }
 
@@ -90,13 +124,66 @@ namespace mightylcpp {
 
     }
 
-    std::any MitlAtomNumberingVisitor::visitAtomU(MitlParser::AtomUContext *ctx) {
+    std::any MitlAtomNumberingVisitor::visitAtomT(MitlParser::AtomTContext *ctx) {
 
         ctx->id = ++current_id;
-        ctx->type = UNTIL;
+        ctx->type = TRIGGER;
         return std::any_cast<int>(visit(ctx->atom(0))) + std::any_cast<int>(visit(ctx->atom(1))) + 1;
 
     }
+
+    std::any MitlAtomNumberingVisitor::visitAtomFn(MitlParser::AtomFnContext *ctx) {
+
+        ctx->id = ++current_id;
+        current_id = current_id + ctx->atoms.size() - 1;
+        ctx->type = PNUELIFN;
+        size_t ret = 0;
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ret = ret + std::any_cast<int>(visit(ctx->atoms[i]));
+        }
+        return (int)(ret + ctx->atoms.size());
+
+    }
+    
+    std::any MitlAtomNumberingVisitor::visitAtomOn(MitlParser::AtomOnContext *ctx) {
+
+        ctx->id = ++current_id;
+        current_id = current_id + ctx->atoms.size() - 1;
+        ctx->type = PNUELION;
+        size_t ret = 0;
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ret = ret + std::any_cast<int>(visit(ctx->atoms[i]));
+        }
+        return (int)(ret + ctx->atoms.size());
+
+    }
+    
+    std::any MitlAtomNumberingVisitor::visitAtomFnDual(MitlParser::AtomFnDualContext *ctx) {
+
+        ctx->id = ++current_id;
+        current_id = current_id + ctx->atoms.size() - 1;
+        ctx->type = PNUELIFNDUAL;
+        size_t ret = 0;
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ret = ret + std::any_cast<int>(visit(ctx->atoms[i]));
+        }
+        return (int)(ret + ctx->atoms.size());
+
+    }
+    
+    std::any MitlAtomNumberingVisitor::visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) {
+
+        ctx->id = ++current_id;
+        current_id = current_id + ctx->atoms.size() - 1;
+        ctx->type = PNUELIONDUAL;
+        size_t ret = 0;
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ret = ret + std::any_cast<int>(visit(ctx->atoms[i]));
+        }
+        return (int)(ret + ctx->atoms.size());
+
+    }
+
 
     std::any MitlAtomNumberingVisitor::visitAtomParen(MitlParser::AtomParenContext *ctx) {
 

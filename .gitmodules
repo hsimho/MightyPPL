@@ -1,3 +1,6 @@
 [submodule "external/buddy"]
 	path = external/buddy
 	url = https://github.com/SSoelvsten/buddy
+[submodule "external/monitaal"]
+	path = external/monitaal
+	url = https://github.com/DEIS-Tools/MoniTAal

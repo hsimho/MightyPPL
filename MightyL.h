@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sstream>
 #include <map>
 #include <set>
 #include <string>
@@ -27,7 +28,7 @@
 
 namespace mightylcpp {
 
-    extern int num_all_props;
+    extern size_t num_all_props;
 
     extern std::vector<std::string> sat_paths;
 
@@ -35,7 +36,7 @@ namespace mightylcpp {
 
     extern void allsat_print_handler(char*, int); 
 
-    extern monitaal::TAwithBDDEdges build_ta_from_atom(const mightylcpp::MitlParser::AtomContext*);
+    extern std::vector<monitaal::TAwithBDDEdges> build_ta_from_atom(const mightylcpp::MitlParser::AtomContext*);
 
     extern monitaal::TA build_ta_from_main(mightylcpp::MitlParser::MainContext*);
 

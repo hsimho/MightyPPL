@@ -45,13 +45,29 @@ public:
 
     std::any visitInterval(MitlParser::IntervalContext *ctx) override;
 
+    std::any visitAtomF(MitlParser::AtomFContext *ctx) override;
+
+    std::any visitAtomO(MitlParser::AtomOContext *ctx) override;
+
     std::any visitAtomG(MitlParser::AtomGContext *ctx) override;
 
-    std::any visitAtomF(MitlParser::AtomFContext *ctx) override;
+    std::any visitAtomH(MitlParser::AtomHContext *ctx) override;
+
+    std::any visitAtomU(MitlParser::AtomUContext *ctx) override;
+
+    std::any visitAtomS(MitlParser::AtomSContext *ctx) override;
 
     std::any visitAtomR(MitlParser::AtomRContext *ctx) override;
 
-    std::any visitAtomU(MitlParser::AtomUContext *ctx) override;
+    std::any visitAtomT(MitlParser::AtomTContext *ctx) override;
+
+    std::any visitAtomFn(MitlParser::AtomFnContext *ctx) override;
+
+    std::any visitAtomOn(MitlParser::AtomOnContext *ctx) override;
+
+    std::any visitAtomFnDual(MitlParser::AtomFnDualContext *ctx) override;
+
+    std::any visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) override;
 
     std::any visitAtomParen(MitlParser::AtomParenContext *ctx) override;
 

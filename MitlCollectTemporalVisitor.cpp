@@ -68,28 +68,35 @@ namespace mightylcpp {
 
     }
 
-    std::any MitlCollectTemporalVisitor::visitAtomG(MitlParser::AtomGContext *ctx) {
-
-        temporal_atoms.insert(ctx);
-        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom())));
-        return temporal_atoms; 
-
-    }
-
     std::any MitlCollectTemporalVisitor::visitAtomF(MitlParser::AtomFContext *ctx) {
 
         temporal_atoms.insert(ctx);
         temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom())));
-        return temporal_atoms; 
+        return temporal_atoms;
 
     }
 
-    std::any MitlCollectTemporalVisitor::visitAtomR(MitlParser::AtomRContext *ctx) {
+    std::any MitlCollectTemporalVisitor::visitAtomO(MitlParser::AtomOContext *ctx) {
 
         temporal_atoms.insert(ctx);
-        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(0))));
-        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(1))));
-        return temporal_atoms; 
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom())));
+        return temporal_atoms;
+
+    }
+
+    std::any MitlCollectTemporalVisitor::visitAtomG(MitlParser::AtomGContext *ctx) {
+
+        temporal_atoms.insert(ctx);
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom())));
+        return temporal_atoms;
+
+    }
+
+    std::any MitlCollectTemporalVisitor::visitAtomH(MitlParser::AtomHContext *ctx) {
+
+        temporal_atoms.insert(ctx);
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom())));
+        return temporal_atoms;
 
     }
 
@@ -98,7 +105,74 @@ namespace mightylcpp {
         temporal_atoms.insert(ctx);
         temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(0))));
         temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(1))));
-        return temporal_atoms; 
+        return temporal_atoms;
+
+    }
+
+    std::any MitlCollectTemporalVisitor::visitAtomS(MitlParser::AtomSContext *ctx) {
+
+        temporal_atoms.insert(ctx);
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(0))));
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(1))));
+        return temporal_atoms;
+
+    }
+
+    std::any MitlCollectTemporalVisitor::visitAtomR(MitlParser::AtomRContext *ctx) {
+
+        temporal_atoms.insert(ctx);
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(0))));
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(1))));
+        return temporal_atoms;
+
+    }
+
+    std::any MitlCollectTemporalVisitor::visitAtomT(MitlParser::AtomTContext *ctx) {
+
+        temporal_atoms.insert(ctx);
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(0))));
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(1))));
+        return temporal_atoms;
+
+    }
+
+    std::any MitlCollectTemporalVisitor::visitAtomFn(MitlParser::AtomFnContext *ctx) {
+
+        temporal_atoms.insert(ctx);
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atoms[i])));
+        }
+        return temporal_atoms;
+
+    }
+
+    std::any MitlCollectTemporalVisitor::visitAtomOn(MitlParser::AtomOnContext *ctx) {
+
+        temporal_atoms.insert(ctx);
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atoms[i])));
+        }
+        return temporal_atoms;
+
+    }
+
+    std::any MitlCollectTemporalVisitor::visitAtomFnDual(MitlParser::AtomFnDualContext *ctx) {
+
+        temporal_atoms.insert(ctx);
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atoms[i])));
+        }
+        return temporal_atoms;
+
+    }
+
+    std::any MitlCollectTemporalVisitor::visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) {
+
+        temporal_atoms.insert(ctx);
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atoms[i])));
+        }
+        return temporal_atoms;
 
     }
 

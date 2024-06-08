@@ -35,6 +35,8 @@ namespace mightylcpp {
     
     std::any MitlCheckNNFVisitor::visitFormulaNot(MitlParser::FormulaNotContext *ctx) {
 
+        // TODO: less hacky way to identify the type of rule?
+
         if (ctx->formula()->children.size() != 1) {     // Check if ctx is FormulaAtom
             return false;
         }
@@ -43,11 +45,15 @@ namespace mightylcpp {
 
         // assert(ruleNames[child->getRuleIndex()] == "atom");
 
-        if (child->children.size() == 1) {      // AtomTrue, AtomFalse, or AtomIdfr
-            return true;
-        } else {
-            return false;   
+        if (child->children.size() != 1) {
+            return false;
+        } else {      // AtomTrue, AtomFalse, or AtomIdfr
+            if (child->children[0]->getText() == "true" || child->children[0]->getText() == "false") {
+                return false;
+            }
         }
+
+        return true;
 
     }
     
@@ -62,21 +68,77 @@ namespace mightylcpp {
     std::any MitlCheckNNFVisitor::visitInterval(MitlParser::IntervalContext *ctx) {
         return true;
     }
+
+    std::any MitlCheckNNFVisitor::visitAtomF(MitlParser::AtomFContext *ctx) {
+        return visit(ctx->atom());
+    }
+
+    std::any MitlCheckNNFVisitor::visitAtomO(MitlParser::AtomOContext *ctx) {
+        return visit(ctx->atom());
+    }
     
     std::any MitlCheckNNFVisitor::visitAtomG(MitlParser::AtomGContext *ctx) {
         return visit(ctx->atom());
     }
-    
-    std::any MitlCheckNNFVisitor::visitAtomF(MitlParser::AtomFContext *ctx) {
+
+    std::any MitlCheckNNFVisitor::visitAtomH(MitlParser::AtomHContext *ctx) {
         return visit(ctx->atom());
+    }
+
+    std::any MitlCheckNNFVisitor::visitAtomU(MitlParser::AtomUContext *ctx) {
+        return std::any_cast<bool>(visit(ctx->atom(0))) && std::any_cast<bool>(visit(ctx->atom(1)));
+    }
+
+    std::any MitlCheckNNFVisitor::visitAtomS(MitlParser::AtomSContext *ctx) {
+        return std::any_cast<bool>(visit(ctx->atom(0))) && std::any_cast<bool>(visit(ctx->atom(1)));
     }
     
     std::any MitlCheckNNFVisitor::visitAtomR(MitlParser::AtomRContext *ctx) {
         return std::any_cast<bool>(visit(ctx->atom(0))) && std::any_cast<bool>(visit(ctx->atom(1)));
     }
     
-    std::any MitlCheckNNFVisitor::visitAtomU(MitlParser::AtomUContext *ctx) {
+    std::any MitlCheckNNFVisitor::visitAtomT(MitlParser::AtomTContext *ctx) {
         return std::any_cast<bool>(visit(ctx->atom(0))) && std::any_cast<bool>(visit(ctx->atom(1)));
+    }
+
+    std::any MitlCheckNNFVisitor::visitAtomFn(MitlParser::AtomFnContext *ctx) {
+
+        bool ret = true;
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ret = ret && std::any_cast<bool>(visit(ctx->atoms[i]));
+        }
+        return ret;
+
+    }
+    
+    std::any MitlCheckNNFVisitor::visitAtomOn(MitlParser::AtomOnContext *ctx) {
+
+        bool ret = true;
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ret = ret && std::any_cast<bool>(visit(ctx->atoms[i]));
+        }
+        return ret;
+
+    }
+    
+    std::any MitlCheckNNFVisitor::visitAtomFnDual(MitlParser::AtomFnDualContext *ctx) {
+
+        bool ret = true;
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ret = ret && std::any_cast<bool>(visit(ctx->atoms[i]));
+        }
+        return ret;
+
+    }
+    
+    std::any MitlCheckNNFVisitor::visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) {
+
+        bool ret = true;
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ret = ret && std::any_cast<bool>(visit(ctx->atoms[i]));
+        }
+        return ret;
+
     }
     
     std::any MitlCheckNNFVisitor::visitAtomParen(MitlParser::AtomParenContext *ctx) {

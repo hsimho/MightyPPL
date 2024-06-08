@@ -102,6 +102,35 @@ namespace mightylcpp {
 
     }
 
+
+    std::any MitlGetBDDVisitor::visitAtomF(MitlParser::AtomFContext *ctx) {
+        
+
+        visit(ctx->atom());
+
+        ctx->overline = bdd_ithvar(ctx->id);
+        ctx->star = !bdd_ithvar(ctx->id);
+        ctx->tilde = !ctx->overline & ctx->star;
+        ctx->hat = bdd_ithvar(ctx->id);
+
+        return nullptr;
+
+    }
+
+    std::any MitlGetBDDVisitor::visitAtomO(MitlParser::AtomOContext *ctx) {
+        
+
+        visit(ctx->atom());
+
+        ctx->overline = bdd_ithvar(ctx->id);
+        ctx->star = !bdd_ithvar(ctx->id);
+        ctx->tilde = !ctx->overline & ctx->star;
+        ctx->hat = bdd_ithvar(ctx->id);
+
+        return nullptr;
+
+    }
+
     std::any MitlGetBDDVisitor::visitAtomG(MitlParser::AtomGContext *ctx) {
         
 
@@ -116,10 +145,38 @@ namespace mightylcpp {
 
     }
 
-    std::any MitlGetBDDVisitor::visitAtomF(MitlParser::AtomFContext *ctx) {
+    std::any MitlGetBDDVisitor::visitAtomH(MitlParser::AtomHContext *ctx) {
         
 
         visit(ctx->atom());
+
+        ctx->overline = bdd_ithvar(ctx->id);
+        ctx->star = !bdd_ithvar(ctx->id);
+        ctx->tilde = !ctx->overline & ctx->star;
+        ctx->hat = bdd_ithvar(ctx->id);
+
+        return nullptr;
+
+    }
+
+    std::any MitlGetBDDVisitor::visitAtomU(MitlParser::AtomUContext *ctx) {
+
+        visit(ctx->atom(0));
+        visit(ctx->atom(1));
+
+        ctx->overline = bdd_ithvar(ctx->id);
+        ctx->star = !bdd_ithvar(ctx->id);
+        ctx->tilde = !ctx->overline & ctx->star;
+        ctx->hat = bdd_ithvar(ctx->id);
+
+        return nullptr;
+
+    }
+
+    std::any MitlGetBDDVisitor::visitAtomS(MitlParser::AtomSContext *ctx) {
+
+        visit(ctx->atom(0));
+        visit(ctx->atom(1));
 
         ctx->overline = bdd_ithvar(ctx->id);
         ctx->star = !bdd_ithvar(ctx->id);
@@ -144,8 +201,8 @@ namespace mightylcpp {
 
     }
 
-    std::any MitlGetBDDVisitor::visitAtomU(MitlParser::AtomUContext *ctx) {
-
+    std::any MitlGetBDDVisitor::visitAtomT(MitlParser::AtomTContext *ctx) {
+        
         visit(ctx->atom(0));
         visit(ctx->atom(1));
 
@@ -153,6 +210,133 @@ namespace mightylcpp {
         ctx->star = !bdd_ithvar(ctx->id);
         ctx->tilde = !ctx->overline & ctx->star;
         ctx->hat = bdd_ithvar(ctx->id);
+
+        return nullptr;
+
+    }
+
+    std::any MitlGetBDDVisitor::visitAtomFn(MitlParser::AtomFnContext *ctx) {
+
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            visit(ctx->atoms[i]);
+        }
+
+
+
+
+        ctx->overline = bdd_false(); 
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ctx->overline = ctx->overline | bdd_ithvar(ctx->id + i);
+        }
+
+        ctx->star = bdd_true();
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ctx->star = ctx->star & !bdd_ithvar(ctx->id + i);
+        }
+
+        ctx->tilde = !ctx->overline & ctx->star;
+
+        ctx->hat = bdd_false();
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            bdd disjunct = bdd_true();
+            for (auto j = 0; j < ctx->atoms.size(); ++j) {
+                disjunct = disjunct & (j == i ? bdd_ithvar(ctx->id + j) : !bdd_ithvar(ctx->id + j));
+            }
+            ctx->hat = ctx->hat | disjunct;
+        }
+
+        return nullptr;
+
+    }
+    
+    std::any MitlGetBDDVisitor::visitAtomOn(MitlParser::AtomOnContext *ctx) {
+
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            visit(ctx->atoms[i]);
+        }
+
+        ctx->overline = bdd_false(); 
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ctx->overline = ctx->overline | bdd_ithvar(ctx->id + i);
+        }
+
+        ctx->star = bdd_true();
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ctx->star = ctx->star & !bdd_ithvar(ctx->id + i);
+        }
+
+        ctx->tilde = !ctx->overline & ctx->star;
+
+        ctx->hat = bdd_false();
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            bdd disjunct = bdd_true();
+            for (auto j = 0; j < ctx->atoms.size(); ++j) {
+                disjunct = disjunct & (j == i ? bdd_ithvar(ctx->id + j) : !bdd_ithvar(ctx->id + j));
+            }
+            ctx->hat = ctx->hat | disjunct;
+        }
+
+        return nullptr;
+
+    }
+    
+    std::any MitlGetBDDVisitor::visitAtomFnDual(MitlParser::AtomFnDualContext *ctx) {
+
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            visit(ctx->atoms[i]);
+        }
+
+        ctx->overline = bdd_false(); 
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ctx->overline = ctx->overline | bdd_ithvar(ctx->id + i);
+        }
+
+        ctx->star = bdd_true();
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ctx->star = ctx->star & !bdd_ithvar(ctx->id + i);
+        }
+
+        ctx->tilde = !ctx->overline & ctx->star;
+
+        ctx->hat = bdd_false();
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            bdd disjunct = bdd_true();
+            for (auto j = 0; j < ctx->atoms.size(); ++j) {
+                disjunct = disjunct & (j == i ? bdd_ithvar(ctx->id + j) : !bdd_ithvar(ctx->id + j));
+            }
+            ctx->hat = ctx->hat | disjunct;
+        }
+
+        return nullptr;
+
+    }
+    
+    std::any MitlGetBDDVisitor::visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) {
+
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            visit(ctx->atoms[i]);
+        }
+
+        ctx->overline = bdd_false(); 
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ctx->overline = ctx->overline | bdd_ithvar(ctx->id + i);
+        }
+
+        ctx->star = bdd_true();
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            ctx->star = ctx->star & !bdd_ithvar(ctx->id + i);
+        }
+
+        ctx->tilde = !ctx->overline & ctx->star;
+
+        ctx->hat = bdd_false();
+        for (auto i = 0; i < ctx->atoms.size(); ++i) {
+            bdd disjunct = bdd_true();
+            for (auto j = 0; j < ctx->atoms.size(); ++j) {
+                disjunct = disjunct & (j == i ? bdd_ithvar(ctx->id + j) : !bdd_ithvar(ctx->id + j));
+            }
+            ctx->hat = ctx->hat | disjunct;
+        }
 
         return nullptr;
 

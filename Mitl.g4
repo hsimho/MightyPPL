@@ -35,20 +35,22 @@ interval
 
 atom locals [bool negated = false; int id = 0; enum_atoms type; bdd overline; bdd star; bdd tilde; bdd hat]
     : Finally interval? atom                                                #AtomF
+    | Once interval? atom                                                   #AtomO
     
     | Globally interval? atom                                               #AtomG
+    | Historically interval? atom                                           #AtomH
     
     | atom Until interval? atom                                             #AtomU       
+    | atom Since interval? atom                                             #AtomS
     
     | atom Release interval? atom                                           #AtomR   
+    | atom Trigger interval? atom                                           #AtomT
 
-/*    
-    | Next atom
-    | Next LBrack bound Comma bound RBrack atom
-    | Next LParen bound Comma bound RBrack atom
-    | Next LBrack bound Comma bound RParen atom
-    | Next LParen bound Comma bound RParen atom
-*/
+    | PnueliFn interval LParen atoms+=atom (Comma atoms+=atom)+ RParen      #AtomFn
+    | PnueliOn interval LParen atoms+=atom (Comma atoms+=atom)+ RParen      #AtomOn
+
+    | PnueliFnDual interval LParen atoms+=atom (Comma atoms+=atom)+ RParen  #AtomFnDual
+    | PnueliOnDual interval LParen atoms+=atom (Comma atoms+=atom)+ RParen  #AtomOnDual
     
     | 'true'                                                                #AtomTrue
     | 'false'                                                               #AtomFalse
@@ -70,10 +72,17 @@ Iff : '<->';
 Implies : '->' ;
 
 Finally : 'F' ;
+Once : 'O' ;
 Globally : 'G' ;
+Historically : 'H' ;
 Until : 'U' ;
+Since : 'S' ;
 Release : 'R' ;
-Next : 'X' ;
+Trigger : 'T' ;
+PnueliFn : 'Fn' ;
+PnueliOn : 'On' ;
+PnueliFnDual : 'Gn' ;
+PnueliOnDual : 'Hn' ;
 
 IntLit : '0' | ([1-9][0-9]*) ;
 Infty : 'infty' ;

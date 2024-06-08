@@ -280,39 +280,6 @@ namespace mightylcpp {
 
     }
     
-    std::any MitlToNNFVisitor::visitAtomG(MitlParser::AtomGContext *ctx) {
-
-        std::string output;
-
-        if (ctx->negated) {
-
-            ctx->atom()->negated = true;
-
-            output += std::string(ctx->depth() * 1, ' ') + "F ";
-            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
-
-            ctx->atom()->negated = false;
-
-            return output;
-
-
-        } else {
-
-            output += std::string(ctx->depth() * 1, ' ') + "G ";
-            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
-
-            return output;
-
-        }
-
-    }
-    
     std::any MitlToNNFVisitor::visitAtomF(MitlParser::AtomFContext *ctx) {
 
         std::string output;
@@ -345,7 +312,181 @@ namespace mightylcpp {
         }
 
     }
-    
+
+    std::any MitlToNNFVisitor::visitAtomO(MitlParser::AtomOContext *ctx) {
+
+        std::string output;
+
+        if (ctx->negated) {
+
+            ctx->atom()->negated = true;
+
+            output += std::string(ctx->depth() * 1, ' ') + "H ";
+            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
+            output += std::string(" (") + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            ctx->atom()->negated = false;
+
+            return output;
+
+
+        } else {
+
+            output += std::string(ctx->depth() * 1, ' ') + "O ";
+            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
+            output += std::string(" (") + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            return output;
+
+        }
+
+    }
+
+    std::any MitlToNNFVisitor::visitAtomG(MitlParser::AtomGContext *ctx) {
+
+        std::string output;
+
+        if (ctx->negated) {
+
+            ctx->atom()->negated = true;
+
+            output += std::string(ctx->depth() * 1, ' ') + "F ";
+            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
+            output += std::string(" (") + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            ctx->atom()->negated = false;
+
+            return output;
+
+
+        } else {
+
+            output += std::string(ctx->depth() * 1, ' ') + "G ";
+            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
+            output += std::string(" (") + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            return output;
+
+        }
+
+    }
+
+    std::any MitlToNNFVisitor::visitAtomH(MitlParser::AtomHContext *ctx) {
+
+        std::string output;
+
+        if (ctx->negated) {
+
+            ctx->atom()->negated = true;
+
+            output += std::string(ctx->depth() * 1, ' ') + "O ";
+            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
+            output += std::string(" (") + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            ctx->atom()->negated = false;
+
+            return output;
+
+
+        } else {
+
+            output += std::string(ctx->depth() * 1, ' ') + "H ";
+            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
+            output += std::string(" (") + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            return output;
+
+        }
+
+    }
+
+    std::any MitlToNNFVisitor::visitAtomU(MitlParser::AtomUContext *ctx) {
+
+        std::string output;
+
+        if (ctx->negated) {
+
+            ctx->atom(0)->negated = true;
+            ctx->atom(1)->negated = true;
+
+            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom(0))) + "\n";
+            output += std::string(ctx->depth() * 1 + 4, ' ') + "R "
+                        + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "") + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom(1))) + "\n";
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            ctx->atom(0)->negated = false;
+            ctx->atom(1)->negated = false;
+
+            return output;
+
+
+        } else {
+
+            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom(0))) + "\n";
+            output += std::string(ctx->depth() * 1 + 4, ' ') + "U "
+                        + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "") + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom(1))) + "\n";
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+
+            return output;
+
+        }
+    }
+
+    std::any MitlToNNFVisitor::visitAtomS(MitlParser::AtomSContext *ctx) {
+
+
+        std::string output;
+
+        if (ctx->negated) {
+
+            ctx->atom(0)->negated = true;
+            ctx->atom(1)->negated = true;
+
+            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom(0))) + "\n";
+            output += std::string(ctx->depth() * 1 + 4, ' ') + "T "
+                        + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "") + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom(1))) + "\n";
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            ctx->atom(0)->negated = false;
+            ctx->atom(1)->negated = false;
+
+            return output;
+
+
+        } else {
+
+            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom(0))) + "\n";
+            output += std::string(ctx->depth() * 1 + 4, ' ') + "S "
+                        + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "") + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom(1))) + "\n";
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+
+            return output;
+
+        }
+    }
+
     std::any MitlToNNFVisitor::visitAtomR(MitlParser::AtomRContext *ctx) {
 
         std::string output;
@@ -383,8 +524,8 @@ namespace mightylcpp {
         }
 
     }
-    
-    std::any MitlToNNFVisitor::visitAtomU(MitlParser::AtomUContext *ctx) {
+
+    std::any MitlToNNFVisitor::visitAtomT(MitlParser::AtomTContext *ctx) {
 
         std::string output;
 
@@ -395,7 +536,7 @@ namespace mightylcpp {
 
             output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
             output += std::any_cast<std::string>(visit(ctx->atom(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "R "
+            output += std::string(ctx->depth() * 1 + 4, ' ') + "S "
                         + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "") + "\n";
             output += std::any_cast<std::string>(visit(ctx->atom(1))) + "\n";
             output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
@@ -410,7 +551,7 @@ namespace mightylcpp {
 
             output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
             output += std::any_cast<std::string>(visit(ctx->atom(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "U "
+            output += std::string(ctx->depth() * 1 + 4, ' ') + "T "
                         + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "") + "\n";
             output += std::any_cast<std::string>(visit(ctx->atom(1))) + "\n";
             output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
@@ -419,7 +560,173 @@ namespace mightylcpp {
             return output;
 
         }
+
     }
+
+    std::any MitlToNNFVisitor::visitAtomFn(MitlParser::AtomFnContext *ctx) {
+
+        std::string output;
+
+        if (ctx->negated) {
+
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                ctx->atoms[i]->negated = true;
+            }
+
+            output += std::string(ctx->depth() * 1, ' ') + "Gn ";
+            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
+            output += std::string(" (") + "\n";
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+            }
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                ctx->atoms[i]->negated = false;
+            }
+
+            return output;
+
+
+        } else {
+
+            output += std::string(ctx->depth() * 1, ' ') + "Fn ";
+            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
+            output += std::string(" (") + "\n";
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+            }
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            return output;
+
+        }
+
+    }
+
+    std::any MitlToNNFVisitor::visitAtomOn(MitlParser::AtomOnContext *ctx) {
+
+        std::string output;
+
+        if (ctx->negated) {
+
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                ctx->atoms[i]->negated = true;
+            }
+
+            output += std::string(ctx->depth() * 1, ' ') + "Hn ";
+            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
+            output += std::string(" (") + "\n";
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+            }
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                ctx->atoms[i]->negated = false;
+            }
+
+            return output;
+
+
+        } else {
+
+            output += std::string(ctx->depth() * 1, ' ') + "On ";
+            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
+            output += std::string(" (") + "\n";
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+            }
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            return output;
+
+        }
+
+    }
+
+    std::any MitlToNNFVisitor::visitAtomFnDual(MitlParser::AtomFnDualContext *ctx) {
+
+        std::string output;
+
+        if (ctx->negated) {
+
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                ctx->atoms[i]->negated = true;
+            }
+
+            output += std::string(ctx->depth() * 1, ' ') + "Fn ";
+            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
+            output += std::string(" (") + "\n";
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+            }
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                ctx->atoms[i]->negated = false;
+            }
+
+            return output;
+
+
+        } else {
+
+            output += std::string(ctx->depth() * 1, ' ') + "Gn ";
+            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
+            output += std::string(" (") + "\n";
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+            }
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            return output;
+
+        }
+
+    }
+
+    std::any MitlToNNFVisitor::visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) {
+
+        std::string output;
+
+        if (ctx->negated) {
+
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                ctx->atoms[i]->negated = true;
+            }
+
+            output += std::string(ctx->depth() * 1, ' ') + "On ";
+            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
+            output += std::string(" (") + "\n";
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+            }
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                ctx->atoms[i]->negated = false;
+            }
+
+            return output;
+
+
+        } else {
+
+            output += std::string(ctx->depth() * 1, ' ') + "Hn ";
+            output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
+            output += std::string(" (") + "\n";
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+            }
+            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+
+            return output;
+
+        }
+
+    }
+
     
     std::any MitlToNNFVisitor::visitAtomParen(MitlParser::AtomParenContext *ctx) {
 

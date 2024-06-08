@@ -5,9 +5,17 @@ namespace mightylcpp {
 enum enum_atoms {
 
     FINALLY,
+    ONCE,
     GLOBALLY,
+    HISTORICALLY,
     UNTIL,
-    RELEASE
+    SINCE,
+    RELEASE,
+    TRIGGER,
+    PNUELIFN,
+    PNUELION,
+    PNUELIFNDUAL,
+    PNUELIONDUAL
 
 };
 

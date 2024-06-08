@@ -124,17 +124,17 @@ namespace monitaal {
         std::cout << "Doing intersection for " << components.size() << " components..." << std::endl;
 
         clock_map_t new_clocks;
-        std::vector<int> clock_offsets(components.size(), 0);
+        std::vector<size_t> clock_offsets(components.size(), 0);
 
-        int index = 0;
+        size_t index = 0;
         new_clocks.insert({0, "x0"});
 
-        for (int i = 0; i < components.size(); ++i) {
+        for (size_t i = 0; i < components.size(); ++i) {
 
             // TODO: This is a temporary adjustment in response to the off-by-one error
             // introduced by https://github.com/DEIS-Tools/MoniTAal/commit/2207cb9
 
-            for (int j = 0; j < components[i].number_of_clocks() - 1; ++j) {
+            for (size_t j = 0; j < components[i].number_of_clocks() - 1; ++j) {
                 if (j == 0) {
                     clock_offsets[i] = index;
                 } else {
@@ -145,162 +145,75 @@ namespace monitaal {
 
         // std::cout << "Total: " << new_clocks.size() << " clocks." << std::endl;
         
-
-        std::vector<size_t> location_indices(components.size(), 0);
         std::vector<location_id_t> location_ids(components.size(), 0);
+        for (size_t i = 0; i < components.size(); ++i) {
 
-        std::map<std::vector<location_id_t>, std::vector<location_id_t>> new_loc_indir;
+            location_ids[i] = components[i].initial_location();
+
+        }
 
         location_id_t tmp_id = 0;
 
-        bool incremented = false;
+        std::map<std::vector<location_id_t>, std::map<size_t, location_id_t>> new_loc_indir;
+        std::map<location_id_t, std::vector<location_id_t>> id_location_ids_map;
+        std::map<location_id_t, size_t> id_i_map;
 
-        do {
+        locations_t new_locations_reachable;
+        bdd_edges_t new_bdd_edges_reachable;
 
-            for (int i = 0; i < components.size(); ++i) {
-
-                assert(components[i].locations().size() > 0);
-
-                auto it = components[i].locations().begin();
-                std::advance(it, location_indices[i]);
-                location_ids[i] = it->first;
-
-            }
-            
-            // std::cout << "location_indices:" << std::endl;
-            // for (int i = 0; i < components.size(); ++i) {
-            //     std::cout << location_indices[i] << " ";
-            // }
-            // std::cout << std::endl;
-
-            // std::cout << "location_ids:" << std::endl;
-            // for (int i = 0; i < components.size(); ++i) {
-            //     std::cout << location_ids[i] << " ";
-            // }
-            // std::cout << std::endl;
-
-            std::vector<location_id_t> tmp_ids;
-
-            for (const auto& c : components) {
-                tmp_ids.push_back(tmp_id++);
-            }
-            new_loc_indir.insert({location_ids, tmp_ids});
-
-            // std::cout << "tmp_ids:" << std::endl;
-            // for (int i = 0; i < components.size(); ++i) {
-            //     std::cout << tmp_ids[i] << " ";
-            // }
-            // std::cout << std::endl;
-
-            incremented = false;
-            for (int i = components.size() - 1; !incremented && i >= 0; --i) {
-
-                if (location_indices[i] < components[i].locations().size() - 1) {
-
-                    ++location_indices[i];
-                    incremented = true;
-
-                } else {
-
-                    location_indices[i] = 0;
-
-                }
-
-            }
-
-        } while (incremented);
-
-        // At this point location_indices should be all 0 again
-
-        locations_t new_locations;
-
-        incremented = false;
-
-        do {
-
-            for (int i = 0; i < components.size(); ++i) {
-
-                assert(components[i].locations().size() > 0);
-
-                auto it = components[i].locations().begin();
-                std::advance(it, location_indices[i]);
-                location_ids[i] = it->first;
-
-            }
-
-            constraints_t constr;
-            for (int i = 0; i < components.size(); ++i) {
-
-                for (const auto& c : components[i].locations().at(location_ids[i]).invariant()) {
-                    constr.push_back(constraint_t((c._i == 0 ? 0 : c._i + clock_offsets[i]),
-                                                  (c._j == 0 ? 0 : c._j + clock_offsets[i]), c._bound));
-                }
-
-            }
-
-            std::string name;
-            for (int i = 0; i < components.size(); ++i) {
-                name += components[i].locations().at(location_ids[i]).name() + "_";
-            }
-
-            for (int i = 0; i < components.size(); ++i) {
-
-                new_locations.push_back(location_t(components[i].locations().at(location_ids[i]).is_accept(), new_loc_indir.at(location_ids).at(i), name + std::to_string(i), constr));
-
-            }
-
-            incremented = false;
-            for (int i = components.size() - 1; !incremented && i >= 0; --i) {
-
-
-                if (location_indices[i] < components[i].locations().size() - 1) {
-
-                    ++location_indices[i];
-                    incremented = true;
-
-                } else {
-
-                    location_indices[i] = 0;
-
-                }
-
-            }
-
-        } while (incremented);
-
+        std::set<location_id_t> new_location_ids_expanded;
         
-        // std::cout << "Synchronising transitions..." << std::endl;
-        
-        // TODO: Maybe untimed reachability analysis first
+        // location_map_t new_loc_map;
+        // bdd_edge_map_t new_bdd_edge_map;
 
-        // std::set<location_id_t> reachable_locations;
+        // for (const auto &l : new_locations) {
+        //     new_loc_map.insert({l.id(), l});
+        // }
 
-        bdd_edges_t new_bdd_edges;
+        // for (const auto &e : new_bdd_edges) {
+        //     new_bdd_edge_map[e.from()].push_back(e);
+        // }
 
-        incremented = false;
+        constraints_t constr;
+        for (size_t i = 0; i < components.size(); ++i) {
 
-        do {
-
-            for (int i = 0; i < components.size(); ++i) {
-
-                assert(components[i].locations().size() > 0);
-
-                auto it = components[i].locations().begin();
-                std::advance(it, location_indices[i]);
-                location_ids[i] = it->first;
-
+            for (const auto& c : components[i].locations().at(location_ids[i]).invariant()) {
+                constr.push_back(constraint_t((c._i == 0 ? 0 : c._i + clock_offsets[i]),
+                                              (c._j == 0 ? 0 : c._j + clock_offsets[i]), c._bound));
             }
 
-            // std::cout << "Sync transitions from:" << std::endl;
-            // for (int i = 0; i < components.size(); ++i) {
-            //     std::cout << location_ids[i] << " ";
-            // }
-            // std::cout << std::endl;
+        }
 
-            std::vector<size_t> bdd_edge_indices(components.size(), 0);
+        std::string name;
+        for (size_t i = 0; i < components.size(); ++i) {
+            name += components[i].locations().at(location_ids[i]).name() + (components[i].locations().at(location_ids[i]).is_accept() ? "*" : "") + "_";
+        }
+
+        new_locations_reachable.push_back(location_t(components[0].locations().at(location_ids[0]).is_accept(), tmp_id, name + std::to_string(0), constr));
+        std::cout << "Adding location " << tmp_id << (components[0].locations().at(location_ids[0]).is_accept() ?  " *ACCEPTING*" : std::string{}) << std::endl;
+
+        new_loc_indir.insert({location_ids, {}});
+        new_loc_indir.at(location_ids).insert({0, tmp_id});
+        id_location_ids_map.insert({tmp_id, location_ids});
+        id_i_map.insert({tmp_id++, 0});
+
+        std::set<location_id_t> fringe;
+
+        fringe.insert(new_loc_indir.at(location_ids).at(0));
+
+        size_t curr_i;
+
+        while (!fringe.empty()) {
+
+            auto lid = fringe.begin();
+            fringe.erase(lid);
+
+            location_ids = id_location_ids_map.at(*lid);
+            curr_i = id_i_map.at(*lid);
+            new_location_ids_expanded.insert(*lid);
 
             bool stucked = false;
-            for (int i = 0; i < components.size(); ++i) {
+            for (size_t i = 0; i < components.size(); ++i) {
 
                 if (components[i].bdd_edges_from(location_ids[i]).size() == 0) {
                     stucked = true;
@@ -308,24 +221,21 @@ namespace monitaal {
 
             }
 
-            if (stucked) {
-                std::cout << "Stucked!" << std::endl;
-            }
+            // We don't currently remove "dead-end" locations
 
             if (!stucked) {
-                
-                do {
 
-                    // std::cout << "bdd_edge_indices:" << std::endl;
-                    // for (int i = 0; i < components.size(); ++i) {
-                    //     std::cout << bdd_edge_indices[i] << " ";
-                    // }
-                    // std::cout << std::endl;
+                std::vector<size_t> bdd_edge_indices(components.size(), 0);
+                std::vector<location_id_t> dest_location_ids(components.size(), 0);
+
+                bool incremented = false;
+
+                do {
 
                     bdd new_bdd_label = bdd_true();
                     bool contradiction = false;
-                    int last_index; 
-                    for (int i = 0; i < components.size() && !contradiction; ++i) {
+                    size_t last_index; 
+                    for (size_t i = 0; i < components.size() && !contradiction; ++i) {
                         new_bdd_label = new_bdd_label & components[i].bdd_edges_from(location_ids[i]).at(bdd_edge_indices[i]).bdd_label();
                         if (new_bdd_label == bdd_false()) {
                             contradiction = true;
@@ -333,10 +243,17 @@ namespace monitaal {
                         }
                     }
 
+
                     if (!contradiction) {
 
+                        for (size_t i = 0; i < components.size(); ++i) {
+
+                            dest_location_ids[i] = components[i].bdd_edges_from(location_ids[i]).at(bdd_edge_indices[i]).to();
+
+                        }
+
                         constraints_t guard;
-                        for (int i = 0; i < components.size(); ++i) {
+                        for (size_t i = 0; i < components.size(); ++i) {
 
                             for (const auto& c : components[i].bdd_edges_from(location_ids[i]).at(bdd_edge_indices[i]).guard()) {
                                 guard.push_back(constraint_t((c._i == 0 ? 0 : c._i + clock_offsets[i]),
@@ -347,7 +264,7 @@ namespace monitaal {
 
 
                         clocks_t reset;
-                        for (int i = 0; i < components.size(); ++i) {
+                        for (size_t i = 0; i < components.size(); ++i) {
 
                             for (const auto& r : components[i].bdd_edges_from(location_ids[i]).at(bdd_edge_indices[i]).reset()) {
 
@@ -358,36 +275,85 @@ namespace monitaal {
 
                         }
 
-                        std::vector<location_id_t> dest_location_ids(components.size(), 0);
+                        constraints_t constr;
+                        for (size_t i = 0; i < components.size(); ++i) {
 
-                        for (int i = 0; i < components.size(); ++i) {
-
-                            dest_location_ids[i] = components[i].bdd_edges_from(location_ids[i]).at(bdd_edge_indices[i]).to();
+                            for (const auto& c : components[i].locations().at(dest_location_ids[i]).invariant()) {
+                                constr.push_back(constraint_t((c._i == 0 ? 0 : c._i + clock_offsets[i]),
+                                                              (c._j == 0 ? 0 : c._j + clock_offsets[i]), c._bound));
+                            }
 
                         }
 
-                        for (int id_src = 0; id_src < components.size(); ++id_src) {
+                        std::string name;
+                        for (size_t i = 0; i < components.size(); ++i) {
+                            name += components[i].locations().at(dest_location_ids[i]).name() + (components[i].locations().at(dest_location_ids[i]).is_accept() ? "*" : "") + "_";
+                        }
 
+                        // "Jumping" over counter values
+                        // Here we already enforced that components.size >= 2
+                        //
+                        int new_i = curr_i;
+                        
+                        if (components[curr_i].locations().at(location_ids[curr_i]).is_accept()) {
 
-                            if (components[id_src].locations().at(location_ids[id_src]).is_accept()) {
+                            bool full_circle = false;
+                            while (!full_circle && components[new_i].locations().at(location_ids[new_i]).is_accept()) { 
 
-                                if (id_src == components.size() - 1) {
-
-                                    new_bdd_edges.push_back(bdd_edge_t(new_loc_indir.at(location_ids).at(id_src), new_loc_indir.at(dest_location_ids).at(0), guard, reset, new_bdd_label));
-
+                                if (new_i == components.size() - 1) {
+                                    new_i = 0;
+                                    full_circle = true;
                                 } else {
-
-                                    new_bdd_edges.push_back(bdd_edge_t(new_loc_indir.at(location_ids).at(id_src), new_loc_indir.at(dest_location_ids).at(id_src + 1), guard, reset, new_bdd_label));
-
+                                    ++new_i; 
                                 }
-
-                            } else {
-
-                                new_bdd_edges.push_back(bdd_edge_t(new_loc_indir.at(location_ids).at(id_src), new_loc_indir.at(dest_location_ids).at(id_src), guard, reset, new_bdd_label));
 
                             }
 
+                        }
 
+
+                        if (new_loc_indir.count(dest_location_ids)) {
+                            
+                            if (!new_loc_indir.at(dest_location_ids).count(new_i)) {
+
+                                new_locations_reachable.push_back(location_t((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false), tmp_id, name + std::to_string(new_i), constr));
+                                std::cout << "Adding location " << tmp_id << ((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false) ?  " *ACCEPTING*" : std::string{}) << std::endl;
+                                new_loc_indir.at(dest_location_ids).insert({new_i, tmp_id});
+                                id_location_ids_map.insert({tmp_id, dest_location_ids});
+                                id_i_map.insert({tmp_id++, new_i});
+
+                            }
+
+                        } else {
+
+                            new_locations_reachable.push_back(location_t((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false), tmp_id, name + std::to_string(new_i), constr));
+                            std::cout << "Adding location " << tmp_id << ((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false) ?  " *ACCEPTING*" : std::string{}) << std::endl;
+                            new_loc_indir.insert({dest_location_ids, {}});
+                            new_loc_indir.at(dest_location_ids).insert({new_i, tmp_id});
+                            id_location_ids_map.insert({tmp_id, dest_location_ids});
+                            id_i_map.insert({tmp_id++, new_i});
+
+                        }
+
+
+
+                        std::vector<location_id_t> old_location_ids = id_location_ids_map.at(new_loc_indir.at(location_ids).at(curr_i));
+
+                        std::string old_name;
+                        for (size_t i = 0; i < components.size(); ++i) {
+                            old_name += components[i].locations().at(old_location_ids[i]).name() + (components[i].locations().at(old_location_ids[i]).is_accept() ? "*" : "") + "_";
+                        }
+
+                        new_bdd_edges_reachable.push_back(bdd_edge_t(new_loc_indir.at(location_ids).at(curr_i), new_loc_indir.at(dest_location_ids).at(new_i), guard, reset, new_bdd_label));
+                        std::cout << "Adding edge from " << new_loc_indir.at(location_ids).at(curr_i) << " (" << old_name + std::to_string(curr_i) << ")" << " -> "  << new_loc_indir.at(dest_location_ids).at(new_i) << " (" << name + std::to_string(new_i) << ")" << std::endl;
+
+
+                        size_t dest_id;
+
+                        dest_id = new_loc_indir.at(dest_location_ids).at(new_i);
+
+                        if (!new_location_ids_expanded.count(dest_id)) {
+                            fringe.insert(dest_id);
                         }
 
                     }
@@ -428,94 +394,26 @@ namespace monitaal {
 
                         }
 
-
                     }
 
                 } while (incremented);
                 
             }
 
-            incremented = false;
-            for (int i = components.size() - 1; !incremented && i >= 0; --i) {
-
-                if (location_indices[i] < components[i].locations().size() - 1) {
-
-                    ++location_indices[i];
-                    incremented = true;
-
-                } else {
-
-                    location_indices[i] = 0;
-
-                }
-
-            }
-
-        } while (incremented);
+        }
 
 
-        for (int i = 0; i < components.size(); ++i) {
+        std::cout << "new_clocks.size() == " << new_clocks.size() << std::endl;
+        std::cout << "new_locations_reachable.size() == " << new_locations_reachable.size() << std::endl;
+        std::cout << "new_bdd_edges_reachable.size() == " << new_bdd_edges_reachable.size() << std::endl;
+
+        for (size_t i = 0; i < components.size(); ++i) {
 
             location_ids[i] = components[i].initial_location();
 
         }
 
-        std::cout << "new_clocks.size() == " << new_clocks.size() << std::endl;
-        std::cout << "new_locations.size() == " << new_locations.size() << std::endl;
-        std::cout << "new_bdd_edges.size() == " << new_bdd_edges.size() << std::endl;
-
-        // std::cout << "reachable_locations.size() == " << reachable_locations.size() << std::endl;
-        std::cout << "Removing the unreachable locations and edges..." << std::endl;
-
-
-        std::set<location_id_t> new_location_ids_reachable;
-        locations_t new_locations_reachable;
-        bdd_edges_t new_bdd_edges_reachable;
-        
-        location_map_t new_loc_map;
-        bdd_edge_map_t new_bdd_edge_map;
-
-        for (const auto &l : new_locations) {
-            new_loc_map.insert({l.id(), l});
-        }
-
-        for (const auto &e : new_bdd_edges) {
-            new_bdd_edge_map[e.from()].push_back(e);
-        }
-
-        std::set<location_id_t> fringe;
-        fringe.insert(new_loc_indir.at(location_ids).at(0));
-
-        while (!fringe.empty()) {
-
-            auto lid = fringe.begin();
-            fringe.erase(lid);
-
-            new_location_ids_reachable.insert(*lid);
-
-            for (const auto& e : new_bdd_edge_map.at(*lid)) {
-                
-                new_bdd_edges_reachable.push_back(e);
-                if (!new_location_ids_reachable.count(e.to())) {
-                    fringe.insert(e.to());
-                }
-
-            }
-
-        }
-
-
-        for (const auto &l : new_locations) {
-            if (new_location_ids_reachable.count(l.id()) >= 1) {
-                new_locations_reachable.push_back(l);
-            }
-        }
-
-        std::cout << "new_locations_reachable.size() == " << new_locations_reachable.size() << std::endl;
-        std::cout << "new_bdd_edges_reachable.size() == " << new_bdd_edges_reachable.size() << std::endl;
-
         return TAwithBDDEdges("product", new_clocks, new_locations_reachable, new_bdd_edges_reachable, new_loc_indir.at(location_ids).at(0));
-
 
     }
 
@@ -533,14 +431,14 @@ namespace monitaal {
 
             for (const auto& e : this->bdd_edges_from(id)) {
 
-                std::cout << "Before projection: " << e.bdd_label() << std::endl;
+                // std::cout << "Before projection: " << e.bdd_label() << std::endl;
 
                 bdd_allsat(e.bdd_label(), *mightylcpp::allsat_print_handler);
                 mightylcpp::sat_paths.clear();
 
                 projected_e = bdd_exist(e.bdd_label(), new_props);
 
-                std::cout << "After projection: " << projected_e << std::endl;
+                // std::cout << "After projection: " << projected_e << std::endl;
 
                 bdd_allsat(projected_e, *mightylcpp::allsat_print_handler);
 
@@ -594,7 +492,7 @@ namespace monitaal {
             locations.push_back(l);
         }
 
-        std::cout << "Projected TA: " << std::endl;
+        std::cout << "\nProjected TA: " << std::endl;
         std::cout << "clocks.size() == " << clocks.size() << std::endl;
         std::cout << "locations.size() == " << locations.size() << std::endl;
         std::cout << "bdd_edges.size() == " << edges.size() << std::endl;

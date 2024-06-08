@@ -52,8 +52,8 @@ add_subdirectory (${EXTERNAL_INSTALL_LOCATION}/buddy buddy)
 #file(MAKE_DIRECTORY ${EXTERNAL_INSTALL_LOCATION}/monitaal)
 
 ExternalProject_add(monitaal
-    GIT_REPOSITORY git@github.com:hsimho/MoniTAal-symbolic-transitions.git
-    GIT_TAG main
+    GIT_REPOSITORY git@github.com:DEIS-Tools/MoniTAal.git
+    GIT_TAG 4bbf3cc
     CMAKE_ARGS (
         -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
@@ -79,9 +79,7 @@ add_executable(demo main.cpp
                MitlAtomNumberingVisitor.cpp
                MitlCollectTemporalVisitor.cpp
                MitlGetBDDVisitor.cpp
-               StatewithBDDEdges.cpp
                TAwithBDDEdges.cpp
-               FixpointwithBDDEdges.cpp
                MightyL.cpp
                ${ANTLR_MitlGrammar_CXX_OUTPUTS})
 
