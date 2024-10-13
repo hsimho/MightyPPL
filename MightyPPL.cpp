@@ -2628,7 +2628,7 @@ namespace mightypplcpp {
             }
         }
 
-        std::cout << "accept_0,accept_M,accept_div out.tck" << std::endl << std::endl;
+        std::cout << "accept_0,accept_M,accept_div out.tck" << std::endl;
         
         return tck.str();
 
