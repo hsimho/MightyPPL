@@ -15,8 +15,8 @@ using namespace antlr4;
 
 int main(int argc, const char ** argv) {
 
-    const char* spec_file;
-    const char* tck_file;
+    const char* spec_file = NULL;
+    const char* tck_file = NULL;
 
     if (argc >= 3) {
 
