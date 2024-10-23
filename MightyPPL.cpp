@@ -721,29 +721,33 @@ namespace mightypplcpp {
 
                     tck << build_edge(phi->id, "2", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "> " : ">= ") + right->children[0]->getText(), true, bdd_ithvar(phi->id) & bdd_true() & phi->atom()->star);
 
+                    // 1 -> 2, r && ~p && ^q, x <= a
+
+                    tck << build_edge(phi->id, "1", "2", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), false, bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
+
+                    // 1 -> 1, r && ~p && ^q, x <= a
+
+                    tck << build_edge(phi->id, "1", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), false, bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
+
+                    // 2 -> 2, r && ~p && ^q, x > a
+
+                    tck << build_edge(phi->id, "2", "2", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "> " : ">= ") + right->children[0]->getText(), false, bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
+                    
                     // 1 -> 1, !r && ~p && ^q
 
                     tck << build_edge(phi->id, "1", "1", std::string{}, false, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
-
-                    // // 2 -> 1, !r && ~p && ^q
-
-                    // tck << build_edge(phi->id, "2", "1", std::string{}, false, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
-
-                    // // 1 -> 2, !r && ~p && ^q
-
-                    // tck << build_edge(phi->id, "1", "2", std::string{}, false, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
 
                     // 2 -> 2, !r && ~p && ^q
 
                     tck << build_edge(phi->id, "2", "2", std::string{}, false, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
 
-                    // 1 -> 1, r && *p && ^q, x := 0, x <= a
+                    // 1 -> 1, r && ^p && ^q, x := 0, x <= a
 
-                    tck << build_edge(phi->id, "1", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), true, bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
+                    tck << build_edge(phi->id, "1", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), true, bdd_ithvar(phi->id) & bdd_false() & phi->atom()->hat);
 
-                    // 2 -> 1, r && *p && ^q, x := 0, x > a
+                    // 2 -> 1, r && ^p && ^q, x := 0, x > a
 
-                    tck << build_edge(phi->id, "2", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "> " : ">= ") + right->children[0]->getText(), true, bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
+                    tck << build_edge(phi->id, "2", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "> " : ">= ") + right->children[0]->getText(), true, bdd_ithvar(phi->id) & bdd_false() & phi->atom()->hat);
 
                     // 1 -> 2, r && *p && *q, x := 0, x <= a
 
@@ -784,29 +788,13 @@ namespace mightypplcpp {
 
                     tck << build_edge(phi->id, "2", "0", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), true, bdd_ithvar(phi->id) & bdd_true() & phi->atom()->star);
 
-                    // 1 -> 2, !r && ~p && *q, x := 0
+                    // 1 -> 1, ~p && ^q
 
-                    tck << build_edge(phi->id, "1", "2", std::string{}, true, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->star);
+                    tck << build_edge(phi->id, "1", "1", std::string{}, false, bdd_true() & phi->atom()->hat);
 
-                    // 2 -> 2, !r && ~p && *q
+                    // 2 -> 2, ~p && *q, x < a
 
-                    tck << build_edge(phi->id, "2", "2", std::string{}, false, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->star);
-
-                    // 1 -> 1, !r && ~p && ^q, x := 0
-
-                    tck << build_edge(phi->id, "1", "1", std::string{}, true, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
-
-                    // // 2 -> 1, !r && ~p && ^q, x := 0
-
-                    // tck << build_edge(phi->id, "2", "1", std::string{}, true, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
-
-                    // 1 -> 2, r && ~p && *q, x := 0
-
-                    tck << build_edge(phi->id, "1", "2", std::string{}, true, bdd_ithvar(phi->id) & bdd_true() & phi->atom()->star);
-
-                    // 2 -> 2, r && ~p && *q
-
-                    tck << build_edge(phi->id, "2", "2", std::string{}, false, bdd_ithvar(phi->id) & bdd_true() & phi->atom()->star);
+                    tck << build_edge(phi->id, "2", "2", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), false, bdd_true() & phi->atom()->star);
 
                     // 1 -> 2, r && ^p && *q, x := 0, x >= a
 
@@ -815,14 +803,6 @@ namespace mightypplcpp {
                     // 2 -> 2, r && ^p && *q, x := 0, x < a
 
                     tck << build_edge(phi->id, "2", "2", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), true, bdd_ithvar(phi->id) & bdd_false() & phi->atom()->star);
-
-                    // 1 -> 1, r && ~p && ^q, x := 0
-
-                    tck << build_edge(phi->id, "1", "1", std::string{}, true, bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
-
-                    // // 2 -> 1, r && ~p && ^q, x := 0
-
-                    // tck << build_edge(phi->id, "1", "1", std::string{}, true, bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
 
                     // 1 -> 1, r && ^p && ^q, x := 0, x >= a
 
@@ -1455,29 +1435,33 @@ namespace mightypplcpp {
 
                     tck << build_edge(phi->id, "2", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "> " : ">= ") + right->children[0]->getText(), true, bdd_ithvar(phi->id) & phi->atom(0)->star & phi->atom(1)->star);
 
+                    // 1 -> 2, r && ~p && ^q, x <= a
+
+                    tck << build_edge(phi->id, "1", "2", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), false, bdd_ithvar(phi->id) & phi->atom(0)->tilde & phi->atom(1)->hat);
+
+                    // 1 -> 1, r && ~p && ^q, x <= a
+
+                    tck << build_edge(phi->id, "1", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), false, bdd_ithvar(phi->id) & phi->atom(0)->tilde & phi->atom(1)->hat);
+                    
+                    // 2 -> 2, r && ~p && ^q, x > a
+
+                    tck << build_edge(phi->id, "2", "2", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "> " : ">= ") + right->children[0]->getText(), false, bdd_ithvar(phi->id) & phi->atom(0)->tilde & phi->atom(1)->hat);                    
+
                     // 1 -> 1, !r && ~p && ^q
 
                     tck << build_edge(phi->id, "1", "1", std::string{}, false, !bdd_ithvar(phi->id) & phi->atom(0)->tilde & phi->atom(1)->hat);
-
-                    // // 2 -> 1, !r && ~p && ^q
-
-                    // tck << build_edge(phi->id, "2", "1", std::string{}, false, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
-
-                    // // 1 -> 2, !r && ~p && ^q
-
-                    // tck << build_edge(phi->id, "1", "2", std::string{}, false, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
 
                     // 2 -> 2, !r && ~p && ^q
 
                     tck << build_edge(phi->id, "2", "2", std::string{}, false, !bdd_ithvar(phi->id) & phi->atom(0)->tilde & phi->atom(1)->hat);
 
-                    // 1 -> 1, r && *p && ^q, x := 0, x <= a
+                    // 1 -> 1, r && ^p && ^q, x := 0, x <= a
 
-                    tck << build_edge(phi->id, "1", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), true, bdd_ithvar(phi->id) & phi->atom(0)->star & phi->atom(1)->hat);
+                    tck << build_edge(phi->id, "1", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), true, bdd_ithvar(phi->id) & phi->atom(0)->hat & phi->atom(1)->hat);
 
-                    // 2 -> 1, r && *p && ^q, x := 0, x > a
+                    // 2 -> 1, r && ^p && ^q, x := 0, x > a
 
-                    tck << build_edge(phi->id, "2", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "> " : ">= ") + right->children[0]->getText(), true, bdd_ithvar(phi->id) & phi->atom(0)->star & phi->atom(1)->hat);
+                    tck << build_edge(phi->id, "2", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "> " : ">= ") + right->children[0]->getText(), true, bdd_ithvar(phi->id) & phi->atom(0)->hat & phi->atom(1)->hat);
 
                     // 1 -> 2, r && *p && *q, x := 0, x <= a
 
@@ -1518,29 +1502,13 @@ namespace mightypplcpp {
 
                     tck << build_edge(phi->id, "2", "0", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), true, bdd_ithvar(phi->id) & phi->atom(0)->star & phi->atom(1)->star);
 
-                    // 1 -> 2, !r && ~p && *q, x := 0
+                    // 1 -> 1, ~p && ^q
 
-                    tck << build_edge(phi->id, "1", "2", std::string{}, true, !bdd_ithvar(phi->id) & phi->atom(0)->tilde & phi->atom(1)->star);
+                    tck << build_edge(phi->id, "1", "1", std::string{}, false, phi->atom(0)->tilde & phi->atom(1)->hat);
 
-                    // 2 -> 2, !r && ~p && *q
+                    // 2 -> 2, ~p && *q, x < a
 
-                    tck << build_edge(phi->id, "2", "2", std::string{}, false, !bdd_ithvar(phi->id) & phi->atom(0)->tilde & phi->atom(1)->star);
-
-                    // 1 -> 1, !r && ~p && ^q, x := 0
-
-                    tck << build_edge(phi->id, "1", "1", std::string{}, true, !bdd_ithvar(phi->id) & phi->atom(0)->tilde & phi->atom(1)->hat);
-
-                    // // 2 -> 1, !r && ~p && ^q, x := 0
-
-                    // tck << build_edge(phi->id, "2", "1", std::string{}, true, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
-
-                    // 1 -> 2, r && ~p && *q, x := 0
-
-                    tck << build_edge(phi->id, "1", "2", std::string{}, true, bdd_ithvar(phi->id) & phi->atom(0)->tilde & phi->atom(1)->star);
-
-                    // 2 -> 2, r && ~p && *q
-
-                    tck << build_edge(phi->id, "2", "2", std::string{}, false, bdd_ithvar(phi->id) & phi->atom(0)->tilde & phi->atom(1)->star);
+                    tck << build_edge(phi->id, "2", "2", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), false, phi->atom(0)->tilde & phi->atom(1)->star);
 
                     // 1 -> 2, r && ^p && *q, x := 0, x >= a
 
@@ -1549,14 +1517,6 @@ namespace mightypplcpp {
                     // 2 -> 2, r && ^p && *q, x := 0, x < a
 
                     tck << build_edge(phi->id, "2", "2", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), true, bdd_ithvar(phi->id) & phi->atom(0)->hat & phi->atom(1)->star);
-
-                    // 1 -> 1, r && ~p && ^q, x := 0
-
-                    tck << build_edge(phi->id, "1", "1", std::string{}, true, bdd_ithvar(phi->id) & phi->atom(0)->tilde & phi->atom(1)->hat);
-
-                    // // 2 -> 1, r && ~p && ^q, x := 0
-
-                    // tck << build_edge(phi->id, "1", "1", std::string{}, true, bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
 
                     // 1 -> 1, r && ^p && ^q, x := 0, x >= a
 
