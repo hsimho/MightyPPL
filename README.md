@@ -25,3 +25,8 @@ $ mkdir build ; cd build
 $ cmake ..
 $ make
 ```
+
+## License
+
+LGPL-3.0. The MIT License applies to CMake scripts from "[Getting started with ANTLR in C++](https://github.com/gabriele-tomassetti/antlr-cpp)".
+
