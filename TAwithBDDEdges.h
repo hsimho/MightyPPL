@@ -4,21 +4,34 @@
 #include <set>
 #include <vector>
 #include <cassert>
+#include <optional>
 
 #include "types.h"
 #include "TA.h"
 
 #include "bdd.h"
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
     extern void allsat_print_handler(char*, int);
     extern std::vector<std::string> sat_paths;
     extern std::vector<std::string> get_letters(const std::string&);
 
+    extern bool out_fin;
+    extern bool debug;
+    extern bool back;
+
 }
 
 namespace monitaal {
+
+//    struct location_cmp {
+//
+//        bool operator() (location_t lhs, location_t rhs) const {
+//            return lhs.id() < rhs.id();
+//        }
+//
+//    };
     
     using bdd_label_t = bdd;
 
@@ -45,13 +58,17 @@ namespace monitaal {
 
     private:
 
+        std::string __name;
         bdd_edge_map_t _backward_bdd_edges;
         bdd_edge_map_t _forward_bdd_edges;
+
 
     public:
 
 
         TAwithBDDEdges(std::string name, clock_map_t clocks, const locations_t &locations, const bdd_edges_t &bdd_edges, location_id_t initial);
+
+        [[nodiscard]] std::string name() const;
 
         [[nodiscard]] const bdd_edges_t &bdd_edges_to(location_id_t id) const;
 

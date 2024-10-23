@@ -4,17 +4,16 @@
 #pragma once
 
 #include "antlr4-runtime.h"
-#include "bdd.h"
 
 #include "MitlVisitor.h"
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
 /**
  * This class provides an empty implementation of MitlVisitor, which can be
  * extended to create a visitor which only needs to handle a subset of the available methods.
  */
-class  MitlBuildTAVisitor : public MitlVisitor {
+class  MitlTypingVisitor : public MitlVisitor {
 public:
 
 
@@ -36,13 +35,37 @@ public:
 
     std::any visitInterval(MitlParser::IntervalContext *ctx) override;
 
+    std::any visitAtomF(MitlParser::AtomFContext *ctx) override;
+
+    std::any visitAtomO(MitlParser::AtomOContext *ctx) override;
+
     std::any visitAtomG(MitlParser::AtomGContext *ctx) override;
 
-    std::any visitAtomF(MitlParser::AtomFContext *ctx) override;
+    std::any visitAtomH(MitlParser::AtomHContext *ctx) override;
+
+    std::any visitAtomU(MitlParser::AtomUContext *ctx) override;
+
+    std::any visitAtomS(MitlParser::AtomSContext *ctx) override;
 
     std::any visitAtomR(MitlParser::AtomRContext *ctx) override;
 
-    std::any visitAtomU(MitlParser::AtomUContext *ctx) override;
+    std::any visitAtomT(MitlParser::AtomTContext *ctx) override;
+
+    std::any visitAtomFn(MitlParser::AtomFnContext *ctx) override;
+
+    std::any visitAtomOn(MitlParser::AtomOnContext *ctx) override;
+
+    std::any visitAtomGn(MitlParser::AtomGnContext *ctx) override;
+
+    std::any visitAtomHn(MitlParser::AtomHnContext *ctx) override;
+
+    std::any visitAtomCFn(MitlParser::AtomCFnContext *ctx) override;
+
+    std::any visitAtomCOn(MitlParser::AtomCOnContext *ctx) override;
+
+    std::any visitAtomCGn(MitlParser::AtomCGnContext *ctx) override;
+
+    std::any visitAtomCHn(MitlParser::AtomCHnContext *ctx) override;
 
     std::any visitAtomParen(MitlParser::AtomParenContext *ctx) override;
 
@@ -55,4 +78,4 @@ public:
 
 };
 
-}  // namespace mightylcpp
+}  // namespace mightypplcpp

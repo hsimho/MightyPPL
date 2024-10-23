@@ -1,6 +1,6 @@
 # minimum required CMAKE version
 CMAKE_MINIMUM_REQUIRED(VERSION 3.7 FATAL_ERROR)
-project(MightyL)
+project(MightyPPL)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -35,7 +35,7 @@ find_package(ANTLR REQUIRED)
 
 # Call macro to add lexer and grammar to your build dependencies.
 antlr_target(MitlGrammar Mitl.g4 VISITOR
-            PACKAGE mightylcpp)
+            PACKAGE mightypplcpp)
          #antlr_target(SampleGrammarParser TParser.g4 PARSER
          #             PACKAGE antlrcpptest
          #             DEPENDS_ANTLR SampleGrammarLexer
@@ -73,18 +73,36 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/build/monitaal-prefix/src/monitaal-
 
 
 # add generated grammar to demo binary target
-add_executable(demo main.cpp
+add_executable(mitppl main.cpp
+               MitlFormulaVisitor.cpp
+               MitlTypingVisitor.cpp
                MitlCheckNNFVisitor.cpp
                MitlToNNFVisitor.cpp
                MitlAtomNumberingVisitor.cpp
                MitlCollectTemporalVisitor.cpp
                MitlGetBDDVisitor.cpp
                TAwithBDDEdges.cpp
-               MightyL.cpp
+               Finally.cpp
+               Once.cpp
+               Globally.cpp
+               Historically.cpp
+               Until.cpp
+               Since.cpp
+               Release.cpp
+               Trigger.cpp
+               PnueliFn.cpp
+               PnueliOn.cpp
+               PnueliGn.cpp
+               PnueliHn.cpp
+               CountFn.cpp
+               CountOn.cpp
+               CountGn.cpp
+               CountHn.cpp
+               MightyPPL.cpp
                ${ANTLR_MitlGrammar_CXX_OUTPUTS})
 
 
-target_link_libraries(demo antlr4_static buddy MoniTAal pugixml pardibaal)
+target_link_libraries(mitppl antlr4_static buddy MoniTAal pugixml pardibaal)
 
 
 if (CMAKE_HOST_UNIX)
@@ -94,9 +112,9 @@ if (CMAKE_HOST_UNIX)
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
 
-  if (TARGET demo)
-    target_link_libraries(demo Threads::Threads)
-    message(STATUS "demo Linked with Threads!")
+  if (TARGET mitppl)
+    target_link_libraries(mitppl Threads::Threads)
+    message(STATUS "mitppl Linked with Threads!")
   endif()
 
 endif()

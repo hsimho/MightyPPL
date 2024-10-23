@@ -4,7 +4,7 @@
 #include "MitlFormulaVisitor.h"
 
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
 
   std::any MitlFormulaVisitor::visitMain(MitlParser::MainContext *ctx) {
@@ -75,20 +75,36 @@ namespace mightylcpp {
       return std::string("Test");
   }
 
-  std::any visitAtomFn(MitlParser::AtomFnContext *ctx) {
+  std::any MitlFormulaVisitor::visitAtomFn(MitlParser::AtomFnContext *ctx) {
       return std::string("Test");
   }
 
-  std::any visitAtomOn(MitlParser::AtomOnContext *ctx) {
+  std::any MitlFormulaVisitor::visitAtomOn(MitlParser::AtomOnContext *ctx) {
       return std::string("Test");
   }
 
-  std::any visitAtomFnDual(MitlParser::AtomFnDualContext *ctx) {
+  std::any MitlFormulaVisitor::visitAtomGn(MitlParser::AtomGnContext *ctx) {
       return std::string("Test");
   }
 
-  std::any visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) {
+  std::any MitlFormulaVisitor::visitAtomHn(MitlParser::AtomHnContext *ctx) {
       return std::string("Test");
+  }
+
+  std::any MitlFormulaVisitor::visitAtomCFn(MitlParser::AtomCFnContext *ctx) {
+    return std::string("Test");
+  }
+  
+  std::any MitlFormulaVisitor::visitAtomCOn(MitlParser::AtomCOnContext *ctx) {
+    return std::string("Test");
+  }
+  
+  std::any MitlFormulaVisitor::visitAtomCGn(MitlParser::AtomCGnContext *ctx) {
+    return std::string("Test");
+  }
+  
+  std::any MitlFormulaVisitor::visitAtomCHn(MitlParser::AtomCHnContext *ctx) {
+    return std::string("Test");
   }
 
   std::any MitlFormulaVisitor::visitAtomParen(MitlParser::AtomParenContext *ctx) {
@@ -108,5 +124,5 @@ namespace mightylcpp {
   }
 
 
-}  // namespace mightylcpp
+}  // namespace mightypplcpp
 

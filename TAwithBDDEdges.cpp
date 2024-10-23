@@ -1,5 +1,8 @@
 #include "TAwithBDDEdges.h"
 
+#include "types.h"
+#include "Fixpoint.h"
+
 namespace monitaal {
 
     bdd_edge_t::bdd_edge_t(location_id_t from, location_id_t to, const constraints_t& guard, const clocks_t& reset, const bdd_label_t& bdd_label) :
@@ -8,7 +11,7 @@ namespace monitaal {
     bdd_label_t bdd_edge_t::bdd_label() const { return _bdd_label; }
 
     TAwithBDDEdges::TAwithBDDEdges(std::string name, clock_map_t clocks, const locations_t &locations, const bdd_edges_t &bdd_edges, location_id_t initial) :
-            TA(name, clocks, locations, edges_t{}, initial) {
+            TA(name, clocks, locations, edges_t{}, initial), __name(std::move(name)) {
 
         bdd_edge_map_t backward_bdd_edges, forward_bdd_edges;
 
@@ -30,6 +33,8 @@ namespace monitaal {
         _forward_bdd_edges = std::move(forward_bdd_edges);
     }
 
+    std::string TAwithBDDEdges::name() const { return __name; }
+
     const bdd_edges_t& TAwithBDDEdges::bdd_edges_to(location_id_t id) const { return _backward_bdd_edges.at(id); }
 
     const bdd_edges_t& TAwithBDDEdges::bdd_edges_from(location_id_t id) const { return _forward_bdd_edges.at(id); }
@@ -39,7 +44,10 @@ namespace monitaal {
 
         // TODO: This is a temporary adjustment in response to the off-by-one error
         // introduced by https://github.com/DEIS-Tools/MoniTAal/commit/2207cb9
-        
+
+        assert(("Does not currently support finite-word product", false));
+        assert(("Also note that there's a bug (fixed in a later commit in MoniTAal) in TA::intersection", false));
+
         auto clock_size = this->number_of_clocks() - 2;
 
         std::map<std::pair<location_id_t, location_id_t>, std::pair<location_id_t, location_id_t>> new_loc_indir;
@@ -123,6 +131,12 @@ namespace monitaal {
 
         std::cout << "Doing intersection for " << components.size() << " components..." << std::endl;
 
+        std::string product_name;
+
+        for (size_t i = 0; i < components.size(); ++i) {
+            product_name = product_name + (i > 0 ? " x " : "") + components[i].name();
+        }
+
         clock_map_t new_clocks;
         std::vector<size_t> clock_offsets(components.size(), 0);
 
@@ -158,8 +172,12 @@ namespace monitaal {
         std::map<location_id_t, std::vector<location_id_t>> id_location_ids_map;
         std::map<location_id_t, size_t> id_i_map;
 
-        locations_t new_locations_reachable;
-        bdd_edges_t new_bdd_edges_reachable;
+        std::map<location_id_t, location_t> reachable_locations;
+        std::map<location_id_t, std::vector<bdd_edge_t>> reachable_edges_to;
+        std::map<location_id_t, std::vector<bdd_edge_t>> reachable_edges_from;
+
+        locations_t locations_reachable;
+        bdd_edges_t bdd_edges_reachable;
 
         std::set<location_id_t> new_location_ids_expanded;
         
@@ -186,11 +204,32 @@ namespace monitaal {
 
         std::string name;
         for (size_t i = 0; i < components.size(); ++i) {
-            name += components[i].locations().at(location_ids[i]).name() + (components[i].locations().at(location_ids[i]).is_accept() ? "*" : "") + "_";
+            name += components[i].locations().at(location_ids[i]).name() + (components[i].locations().at(location_ids[i]).is_accept() ? "*" : "") + (i < components.size() - 1 ? "_" : "");
         }
 
-        new_locations_reachable.push_back(location_t(components[0].locations().at(location_ids[0]).is_accept(), tmp_id, name + std::to_string(0), constr));
-        std::cout << "Adding location " << tmp_id << (components[0].locations().at(location_ids[0]).is_accept() ?  " *ACCEPTING*" : std::string{}) << std::endl;
+
+        if (mightypplcpp::out_fin) {
+
+            bool acc = true;
+            for (size_t i = 0; i < components.size(); ++i) {
+
+                acc = acc && components[i].locations().at(location_ids[i]).is_accept();
+
+            }
+
+            locations_reachable.push_back(location_t(acc, tmp_id, name + std::to_string(0), constr));
+            assert(!reachable_locations.count(tmp_id));
+            reachable_locations.insert({tmp_id, location_t(acc, tmp_id, name + std::to_string(0), constr)});
+            std::cout << "Adding location " << tmp_id << (acc ?  " *ACCEPTING*" : std::string{}) << std::endl;
+
+        } else {
+
+            locations_reachable.push_back(location_t(components[0].locations().at(location_ids[0]).is_accept(), tmp_id, name + std::to_string(0), constr));
+            assert(!reachable_locations.count(tmp_id));
+            reachable_locations.insert({tmp_id, location_t(components[0].locations().at(location_ids[0]).is_accept(), tmp_id, name + std::to_string(0), constr)});
+            std::cout << "Adding location " << tmp_id << (components[0].locations().at(location_ids[0]).is_accept() ?  " *ACCEPTING*" : std::string{}) << std::endl;
+
+        }
 
         new_loc_indir.insert({location_ids, {}});
         new_loc_indir.at(location_ids).insert({0, tmp_id});
@@ -221,7 +260,8 @@ namespace monitaal {
 
             }
 
-            // We don't currently remove "dead-end" locations
+            // We don't currently remove "dead-end" locations (they are needed for finite-word
+            // acceptance?)
 
             if (!stucked) {
 
@@ -295,19 +335,31 @@ namespace monitaal {
                         //
                         int new_i = curr_i;
                         
-                        if (components[curr_i].locations().at(location_ids[curr_i]).is_accept()) {
+                        if (!mightypplcpp::out_fin) {
 
-                            bool full_circle = false;
-                            while (!full_circle && components[new_i].locations().at(location_ids[new_i]).is_accept()) { 
+                            if (components[curr_i].locations().at(location_ids[curr_i]).is_accept()) {
 
-                                if (new_i == components.size() - 1) {
-                                    new_i = 0;
-                                    full_circle = true;
-                                } else {
-                                    ++new_i; 
+                                bool full_circle = false;
+                                while (!full_circle && components[new_i].locations().at(location_ids[new_i]).is_accept()) { 
+
+                                    if (new_i == components.size() - 1) {
+                                        new_i = 0;
+                                        full_circle = true;
+                                    } else {
+                                        ++new_i; 
+                                    }
+
                                 }
 
                             }
+
+                        }
+
+
+                        bool dest_acc = true;
+                        for (size_t i = 0; i < components.size(); ++i) {
+
+                            dest_acc = dest_acc && components[i].locations().at(dest_location_ids[i]).is_accept();
 
                         }
 
@@ -316,8 +368,17 @@ namespace monitaal {
                             
                             if (!new_loc_indir.at(dest_location_ids).count(new_i)) {
 
-                                new_locations_reachable.push_back(location_t((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false), tmp_id, name + std::to_string(new_i), constr));
-                                std::cout << "Adding location " << tmp_id << ((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false) ?  " *ACCEPTING*" : std::string{}) << std::endl;
+                                if (mightypplcpp::out_fin) {
+                                    locations_reachable.push_back(location_t(dest_acc, tmp_id, name + std::to_string(new_i), constr));
+                                    assert(!reachable_locations.count(tmp_id));
+                                    reachable_locations.insert({tmp_id, location_t(dest_acc, tmp_id, name + std::to_string(new_i), constr)});
+                                    std::cout << "Adding location " << tmp_id << (dest_acc ?  " *ACCEPTING*" : std::string{}) << std::endl;
+                                } else {
+                                    locations_reachable.push_back(location_t((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false), tmp_id, name + std::to_string(new_i), constr));
+                                    assert(!reachable_locations.count(tmp_id));
+                                    reachable_locations.insert({tmp_id, location_t((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false), tmp_id, name + std::to_string(new_i), constr)});
+                                    std::cout << "Adding location " << tmp_id << ((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false) ?  " *ACCEPTING*" : std::string{}) << std::endl;
+                                }
                                 new_loc_indir.at(dest_location_ids).insert({new_i, tmp_id});
                                 id_location_ids_map.insert({tmp_id, dest_location_ids});
                                 id_i_map.insert({tmp_id++, new_i});
@@ -326,8 +387,17 @@ namespace monitaal {
 
                         } else {
 
-                            new_locations_reachable.push_back(location_t((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false), tmp_id, name + std::to_string(new_i), constr));
-                            std::cout << "Adding location " << tmp_id << ((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false) ?  " *ACCEPTING*" : std::string{}) << std::endl;
+                            if (mightypplcpp::out_fin) {
+                                locations_reachable.push_back(location_t(dest_acc, tmp_id, name + std::to_string(new_i), constr));
+                                assert(!reachable_locations.count(tmp_id));
+                                reachable_locations.insert({tmp_id, location_t(dest_acc, tmp_id, name + std::to_string(new_i), constr)});
+                                std::cout << "Adding location " << tmp_id << (dest_acc ?  " *ACCEPTING*" : std::string{}) << std::endl;
+                            } else {
+                                locations_reachable.push_back(location_t((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false), tmp_id, name + std::to_string(new_i), constr));
+                                assert(!reachable_locations.count(tmp_id));
+                                reachable_locations.insert({tmp_id, location_t((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false), tmp_id, name + std::to_string(new_i), constr)});
+                                std::cout << "Adding location " << tmp_id << ((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false) ?  " *ACCEPTING*" : std::string{}) << std::endl;
+                            }
                             new_loc_indir.insert({dest_location_ids, {}});
                             new_loc_indir.at(dest_location_ids).insert({new_i, tmp_id});
                             id_location_ids_map.insert({tmp_id, dest_location_ids});
@@ -344,7 +414,30 @@ namespace monitaal {
                             old_name += components[i].locations().at(old_location_ids[i]).name() + (components[i].locations().at(old_location_ids[i]).is_accept() ? "*" : "") + "_";
                         }
 
-                        new_bdd_edges_reachable.push_back(bdd_edge_t(new_loc_indir.at(location_ids).at(curr_i), new_loc_indir.at(dest_location_ids).at(new_i), guard, reset, new_bdd_label));
+                        bdd_edges_reachable.push_back(bdd_edge_t(new_loc_indir.at(location_ids).at(curr_i), new_loc_indir.at(dest_location_ids).at(new_i), guard, reset, new_bdd_label));
+
+                        if (reachable_edges_from.count(new_loc_indir.at(location_ids).at(curr_i))) {
+
+                            reachable_edges_from.at(new_loc_indir.at(location_ids).at(curr_i)).push_back(bdd_edge_t(new_loc_indir.at(location_ids).at(curr_i), new_loc_indir.at(dest_location_ids).at(new_i), guard, reset, new_bdd_label));
+
+                        } else {
+
+                            reachable_edges_from.insert({new_loc_indir.at(location_ids).at(curr_i), {}});
+                            reachable_edges_from.at(new_loc_indir.at(location_ids).at(curr_i)).push_back(bdd_edge_t(new_loc_indir.at(location_ids).at(curr_i), new_loc_indir.at(dest_location_ids).at(new_i), guard, reset, new_bdd_label));
+
+                        }
+
+                        if (reachable_edges_to.count(new_loc_indir.at(dest_location_ids).at(new_i))) {
+
+                            reachable_edges_to.at(new_loc_indir.at(dest_location_ids).at(new_i)).push_back(bdd_edge_t(new_loc_indir.at(location_ids).at(curr_i), new_loc_indir.at(dest_location_ids).at(new_i), guard, reset, new_bdd_label));
+
+                        } else {
+
+                            reachable_edges_to.insert({new_loc_indir.at(dest_location_ids).at(new_i), {}});
+                            reachable_edges_to.at(new_loc_indir.at(dest_location_ids).at(new_i)).push_back(bdd_edge_t(new_loc_indir.at(location_ids).at(curr_i), new_loc_indir.at(dest_location_ids).at(new_i), guard, reset, new_bdd_label));
+
+                        }
+
                         std::cout << "Adding edge from " << new_loc_indir.at(location_ids).at(curr_i) << " (" << old_name + std::to_string(curr_i) << ")" << " -> "  << new_loc_indir.at(dest_location_ids).at(new_i) << " (" << name + std::to_string(new_i) << ")" << std::endl;
 
 
@@ -402,10 +495,12 @@ namespace monitaal {
 
         }
 
+        std::cout << "Constructed product: " << product_name << std::endl;
 
         std::cout << "new_clocks.size() == " << new_clocks.size() << std::endl;
-        std::cout << "new_locations_reachable.size() == " << new_locations_reachable.size() << std::endl;
-        std::cout << "new_bdd_edges_reachable.size() == " << new_bdd_edges_reachable.size() << std::endl;
+        std::cout << "locations_reachable.size() == " << locations_reachable.size() << std::endl;
+        std::cout << "bdd_edges_reachable.size() == " << bdd_edges_reachable.size() << std::endl;
+
 
         for (size_t i = 0; i < components.size(); ++i) {
 
@@ -413,9 +508,100 @@ namespace monitaal {
 
         }
 
-        return TAwithBDDEdges("product", new_clocks, new_locations_reachable, new_bdd_edges_reachable, new_loc_indir.at(location_ids).at(0));
+        TAwithBDDEdges product = TAwithBDDEdges(product_name, new_clocks, locations_reachable, bdd_edges_reachable, new_loc_indir.at(location_ids).at(0));
+
+        if (mightypplcpp::back) {
+
+            std::set<int> props_to_remove;
+
+            for (int j = 1; j < bdd_varnum(); ++j) {
+
+                props_to_remove.insert(j);
+
+            }
+
+            TA projected = product.projection(props_to_remove);
+
+            auto initial_state = monitaal::symbolic_state_t(projected.initial_location(), monitaal::Federation::zero(projected.number_of_clocks()));
+            monitaal::symbolic_state_map_t reachable_state_space;
+            if (mightypplcpp::out_fin) {
+
+                // Note that we assume the finite timed word accepted is of length >= 1 (as enforced by the acc. condition of TA_0)
+                reachable_state_space = monitaal::Fixpoint::reach(monitaal::Fixpoint::accept_states(projected), projected); 
+
+                if (initial_state.is_included_in(reachable_state_space)) {
+
+                    std::cout << "# of reachable locations == " << reachable_state_space.size() << std::endl;
+
+                } else {
+
+                    assert(("This component is already empty", false));
+
+                }
+
+            } else {
+
+                reachable_state_space = monitaal::Fixpoint::buchi_accept_fixpoint(projected);
+                if (initial_state.is_included_in(reachable_state_space)) {
+
+                    std::cout << "# of reachable locations == " << reachable_state_space.size() << std::endl;
+
+                } else {
+
+                    assert(("This component is already empty", false));
+
+                }
+
+            }
+            
+            if (mightypplcpp::debug) {
+
+                std::cout << "\nPress any key to continue . . .\n";
+                std::cin.get();
+
+            }
+
+            locations_t locations_reachable_timed;
+            std::map<location_id_t, location_t> reachable_locations_timed;
+            bdd_edges_t bdd_edges_reachable_timed;
+
+            for (const auto& [id, s] : reachable_state_space) {
+
+                locations_reachable_timed.push_back(reachable_locations.at(id));
+                assert(!reachable_locations_timed.count(id));
+                reachable_locations_timed.insert({id, reachable_locations.at(id)});
+
+            }
+
+
+            for (const auto& [id, s] : reachable_locations_timed) {
+
+                if (reachable_edges_from.count(id)) {
+
+                    for (const auto& e : reachable_edges_from.at(id)) {
+                        
+                        if (reachable_locations_timed.count(e.from()) == 1 && reachable_locations_timed.count(e.to()) == 1) {
+
+                            bdd_edges_reachable_timed.push_back(e);
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+            return TAwithBDDEdges(product_name, new_clocks, locations_reachable_timed, bdd_edges_reachable_timed, new_loc_indir.at(location_ids).at(0));
+        
+        } else {
+
+            return product;
+
+        }
 
     }
+
 
     TA TAwithBDDEdges::projection(const std::set<int>& props_to_remove) {
 
@@ -433,16 +619,16 @@ namespace monitaal {
 
                 // std::cout << "Before projection: " << e.bdd_label() << std::endl;
 
-                bdd_allsat(e.bdd_label(), *mightylcpp::allsat_print_handler);
-                mightylcpp::sat_paths.clear();
+                // bdd_allsat(e.bdd_label(), *mightypplcpp::allsat_print_handler);
+                // mightypplcpp::sat_paths.clear();
 
                 projected_e = bdd_exist(e.bdd_label(), new_props);
 
                 // std::cout << "After projection: " << projected_e << std::endl;
 
-                bdd_allsat(projected_e, *mightylcpp::allsat_print_handler);
+                bdd_allsat(projected_e, *mightypplcpp::allsat_print_handler);
 
-                for (const auto& p : mightylcpp::sat_paths) {
+                for (const auto& p : mightypplcpp::sat_paths) {
 
                     if (!s.empty()) {
                         s += " || ";
@@ -453,13 +639,13 @@ namespace monitaal {
                 }
 
                 edges.push_back(monitaal::edge_t(e.from(), e.to(), e.guard(), e.reset(), s));     // from, to, guard, reset, label
-                mightylcpp::sat_paths.clear();
+                mightypplcpp::sat_paths.clear();
                 s.clear();
 
                 // std::set<std::string> labels_set;
 
-                // for (const auto& p : mightylcpp::sat_paths) {
-                //     for (const auto& s : mightylcpp::get_letters(p)) {
+                // for (const auto& p : mightypplcpp::sat_paths) {
+                //     for (const auto& s : mightypplcpp::get_letters(p)) {
                 //         std::string projected_s;
                 //         for (const auto& i : props_to_keep) {
                 //             projected_s += s[i];
@@ -468,7 +654,7 @@ namespace monitaal {
                 //     }
                 // }
 
-                // mightylcpp::sat_paths.clear();
+                // mightypplcpp::sat_paths.clear();
 
                 // for (const auto& label : labels_set) {
                 //     edges.push_back(monitaal::edge_t(e.from(), e.to(), e.guard(), e.reset(), label));     // from, to, guard, reset, label
@@ -497,7 +683,7 @@ namespace monitaal {
         std::cout << "locations.size() == " << locations.size() << std::endl;
         std::cout << "bdd_edges.size() == " << edges.size() << std::endl;
 
-        return TA("projected", clocks, locations, edges, this->initial_location());
+        return TA(this->name(), clocks, locations, edges, this->initial_location());
 
     }
 
@@ -505,11 +691,11 @@ namespace monitaal {
 
         clock_map_t clocks;
         clocks.insert({0, "0"});
-        clocks.insert({1, "div_clock"});
+        clocks.insert({1, "x_div"});
 
         locations_t locations;
-        locations.push_back(location_t(true, 0, "time_div1", constraints_t{}));
-        locations.push_back(location_t(false, 1, "time_div2", constraints_t{}));
+        locations.push_back(location_t(true, 0, "ell_0", constraints_t{}));
+        locations.push_back(location_t(mightypplcpp::out_fin ? true : false, 1, "ell_1", constraints_t{}));
 
         bdd_edges_t bdd_edges;
 
@@ -517,7 +703,7 @@ namespace monitaal {
         bdd_edges.push_back(bdd_edge_t(0, 1, constraints_t{}, clocks_t{1}, any));
         bdd_edges.push_back(bdd_edge_t(1, 0, constraints_t{constraint_t::lower_non_strict(1, 1)}, clocks_t{}, any));
 
-        return TAwithBDDEdges("time_divergence", clocks, locations, bdd_edges, 0);
+        return TAwithBDDEdges("TA_div", clocks, locations, bdd_edges, 0);
 
     }
 

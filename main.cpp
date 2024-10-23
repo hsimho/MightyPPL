@@ -7,41 +7,268 @@
 #include <vector>
 #include <iomanip>
 #include <chrono>
+#include <stdexcept>
+#include <optional>
 
 #include "types.h"
 // #include "StatewithBDDEdges.h"
 #include "TAwithBDDEdges.h"
 // #include "FixpointwithBDDEdges.h"
 
-#include "MightyL.h"
+#include "MightyPPL.h"
 
 #include "Monitor.h"
 #include "Parser.h"
 
-using namespace mightylcpp;
+using namespace mightypplcpp;
 using namespace antlr4;
 
 
-int main(int argc, const char ** argv) {
+namespace mightypplcpp {
 
     const char* spec_file = NULL;
-    const char* tck_file = NULL;
+    const char* out_file = NULL;
+    std::optional<bool> out_format = std::nullopt;    // true: tck, false: xml
+    bool out_flatten = true;
+    bool out_fin = false;
+    bool debug = false;
+    bool back = true;
 
-    if (argc >= 2) {
+    monitaal::TAwithBDDEdges varphi = monitaal::TAwithBDDEdges("dummy", {}, {}, {}, 0);
+    monitaal::TAwithBDDEdges div = monitaal::TAwithBDDEdges("dummy", {}, {}, {}, 0);
+    std::vector<monitaal::TAwithBDDEdges> temporal_components;
+    monitaal::TAwithBDDEdges model = monitaal::TAwithBDDEdges("dummy", {}, {}, {}, 0);   // last arg: initial location id
 
-        spec_file = argv[1];
+    std::map<std::string, std::pair<std::set<size_t>, std::set<size_t>>> acc_map;
 
-        if (argc >= 3) {
+} // namespace mightypplcpp
 
-            tck_file = argv[2]; 
+namespace mightypplcpp {
 
+
+
+    try {
+
+        if (argc < 3) {
+
+            throw std::invalid_argument("No spec file / acceptance type specified"); 
+
+        } else {
+
+            spec_file = argv[1];
+
+            if (std::string_view(argv[2]) == "--fin") {
+
+                out_fin = true;
+
+            } else if (std::string_view(argv[2]) == "--inf") {
+
+                out_fin = false;
+
+            } else {
+
+                throw std::invalid_argument("Wrong acceptance type specified"); 
+
+            }
+
+            if (argc > 3) {
+
+                if (argc >= 5) {
+
+                    if (argc > 5) {
+                    
+                        out_file = argv[3]; 
+
+                        if (std::string_view(argv[4]) == "--tck") {
+
+                            out_format = true;
+
+                        } else if (std::string_view(argv[4]) == "--xml") {
+
+                            out_format = false;
+
+                        } else {
+
+                            throw std::invalid_argument("Wrong output format specified (--tck or --xml?)"); 
+
+                        }
+
+
+                        if (argc > 8) {
+
+                            throw std::invalid_argument("Too many arguments");
+
+                        } else if (argc == 8) {
+
+                            if (std::string_view(argv[5]) == "--noflatten") {
+
+                                out_flatten = false;
+
+                            } else {
+
+                                throw std::invalid_argument("One of the last 3 arguments was wrong");
+
+                            }
+
+                            if (std::string_view(argv[6]) == "--debug") {
+
+                                debug = true;
+
+                            } else {
+
+                                throw std::invalid_argument("One of the last 3 arguments was wrong");
+
+                            }
+
+                            if (std::string_view(argv[7]) == "--noback") {
+
+                                back = false;
+
+                            } else {
+
+                                throw std::invalid_argument("One of the last 3 arguments was wrong");
+
+                            }
+
+                        } else if (argc == 7) {
+
+                            if (std::string_view(argv[5]) == "--noflatten") {
+
+                                out_flatten = false;
+
+                                if (std::string_view(argv[6]) == "--debug") {
+
+                                    debug = true;
+
+                                } else if (std::string_view(argv[6]) == "--noback") {
+
+                                    back = false;
+
+                                } else {
+
+                                    throw std::invalid_argument("Last argument was wrong");
+
+                                }
+
+                            } else {
+
+                                if (std::string_view(argv[5]) == "--debug") {
+
+                                    debug = true;
+
+                                } else {
+
+                                    throw std::invalid_argument("One of the last 2 arguments was wrong");
+
+                                }
+
+                                if (std::string_view(argv[6]) == "--noback") {
+
+                                    back = false;
+
+                                } else {
+
+                                    throw std::invalid_argument("One of the last 2 arguments was wrong");
+
+                                }
+
+                            }
+
+
+                        } else if (argc == 6) {
+
+                            if (std::string_view(argv[5]) == "--noflatten") {
+
+                                out_flatten = false;
+
+                            } else if (std::string_view(argv[5]) == "--debug") {
+
+                                debug = true;
+
+                            } else if (std::string_view(argv[5]) == "--noback") {
+
+                                back = false;
+
+                            } else {
+
+                                throw std::invalid_argument("The last argument was wrong");
+
+                            }
+
+                        }
+
+                    } else {    // argc == 5
+                            
+
+                        if (std::string_view(argv[3]) == "--debug") {
+
+                            debug = true;
+
+                            if (std::string_view(argv[4]) == "--noback") {
+
+                                back = false;
+
+                            } else {
+
+                                throw std::invalid_argument("The last argument was wrong");
+
+                            }
+
+                        } else {
+
+                            out_file = argv[3]; 
+
+                            if (std::string_view(argv[4]) == "--tck") {
+
+                                out_format = true;
+
+                            } else if (std::string_view(argv[4]) == "--xml") {
+
+                                out_format = false;
+
+                            } else {
+
+                                throw std::invalid_argument("Wrong output format specified (--tck or --xml?)"); 
+
+                            }
+
+                        }
+
+                    }
+
+                } else {    // argc == 4
+
+                    if (std::string_view(argv[3]) == "--debug") {
+
+                        debug = true;
+
+                    } else if (std::string_view(argv[3]) == "--noback") {
+
+                        back = false;
+
+                    } else {
+
+                        throw std::invalid_argument("No output format specified (--tck or --xml?)"); 
+
+                    }
+
+                }
+
+            }
+                    
         }
 
-    } else {
+    } catch (const std::invalid_argument& e) {
 
-        std::cerr << "Usage: demo <in_spec_file> [out_tck_file]" << std::endl;
-        std::cerr << "A standard fixpoint algorithm based on DBMs (PARDIBAAL) is used by default." << std::endl;
-        std::cerr << "If out_tck_file specified a (flattened) TChecker model will be generated instead." << std::endl;
+        std::cerr << e.what() << std::endl;
+        std::cerr << "Usage: mitppl <in_spec_file> --{fin|inf} [out_file --{tck|xml} [--noflatten]] [--debug] [--noback]" << std::endl << std::endl;
+
+        std::cerr << "--debug: pauses to see diagostic info" << std::endl;
+        std::cerr << "--noback: disables symbolic backward analysis for components" << std::endl;
+        std::cerr << "(only relevant for Pnueli modalities, or MITL modalities with <l, u>, and when --noflatten is not used)" << std::endl << std::endl;
+        std::cerr << "If [out_file ...] unspecified, the built-in fixpoint algorithm based on DBMs\n"
+                  << "(PARDIBAAL) checks the (Buechi) emptiness of a flattened automaton (i.e. the\n"
+                  << "satisfiability of the input formula && TA_div && model M)." << std::endl;
         return 1;
 
     }
@@ -58,7 +285,7 @@ int main(int argc, const char ** argv) {
 
     std::cout << "\n<<<<<< Pre-processing input formula... >>>>>>\n\n";
 
-    std::cout << "\nInput formula (as read from input):\n";
+    std::cout << "\nInput formula (as read from input):\n" << std::endl;
 
     std::stringstream buf;
     buf << spec_in.rdbuf();
@@ -74,141 +301,496 @@ int main(int argc, const char ** argv) {
     MitlParser::MainContext* original_formula = parser.main();
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    monitaal::TA pos = build_ta_from_main(original_formula);
+    auto [pos, out_str] = build_ta_from_main(original_formula);
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
    
-    std::cout << "Constructing TA (with BDD transitions) took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
-    // std::cout << pos << std::endl;
+    if (out_flatten) {
+
+        std::cout << "Constructing TA (with BDD transitions) took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+
+    }
 
 
-    if (tck_file == NULL) {
+    if (!out_format.has_value()) {
 
         std::chrono::steady_clock::time_point begin2 = std::chrono::steady_clock::now();
-        std::cout << "<<<<<< Calculating fixpoints >>>>>>" << std::endl;
-        auto recurrent = monitaal::Fixpoint::buchi_accept_fixpoint(pos);
+        std::cout << "<<<<<< Calculating fixpoint >>>>>>" << std::endl;
 
         auto initial_state = monitaal::symbolic_state_t(pos.initial_location(), monitaal::Federation::zero(pos.number_of_clocks()));
 
+        if (out_fin) {
 
-        if (initial_state.is_included_in(monitaal::Fixpoint::reach(recurrent, pos))) {
+            // Note that we assume the finite timed word accepted is of length >= 1 (as enforced by the acc. condition of TA_0)
+            if (initial_state.is_included_in(monitaal::Fixpoint::reach(monitaal::Fixpoint::accept_states(pos), pos))) {
 
-            std::cout << "SATISFIABLE" << std::endl;
+                std::cout << "\n\n\033[32mSATISFIABLE (by a \033[1mfinite\033[22m timed word)\033[0m\n\n" << std::endl;
+
+            } else {
+
+                std::cout << "\n\n\033[31mNOT SATISFIABLE (by \033[1mfinite\033[22m timed words)\033[0m\n\n" << std::endl;
+
+            }
 
         } else {
 
-            std::cout << "NOT SATISFIABLE" << std::endl;
+            if (initial_state.is_included_in(monitaal::Fixpoint::buchi_accept_fixpoint(pos))) {
+
+                std::cout << "\n\n\033[32mSATISFIABLE (by an \033[1minfinite\033[22m timed word)\033[0m\n\n" << std::endl;
+
+            } else {
+
+                std::cout << "\n\n\033[31mNOT SATISFIABLE (by \033[1minfinite\033[22m timed words)\033[0m\n\n" << std::endl;
+
+            }
 
         }
 
         std::chrono::steady_clock::time_point end2 = std::chrono::steady_clock::now();
         std::cout << "Fixpoint took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end2 - begin2).count() << "[ms]" << std::endl;
 
-    } else { 
+    } else {    // out_format.has_value()
 
-        std::ofstream tck_out(tck_file, std::ios::trunc);
-        if (!tck_out) {
+        std::ofstream spec_out(out_file, std::ios::trunc);
+        if (!spec_out) {
 
-            std::cerr << "Error: Could not open out_tck_file" << std::endl;
+            std::cerr << "Error: Could not open out_file" << std::endl;
             return 1;
 
         }
 
-        std::stringstream tck;
+        if (out_format.value()) {       // tck
 
-        tck << "# Model generated by MightyPPL" << std::endl;
-        tck << "system:model_and_spec" << std::endl << std::endl << std::endl;
+            if (out_flatten) {
 
-        tck << "event:a" << std::endl << std::endl << std::endl;
+                std::stringstream tck;
 
-        for (auto i = 1; i < pos.number_of_clocks() - 1; ++i) {
+                tck << "# File generated by MightyPPL" << std::endl;
+                tck << "system:model_and_spec" << std::endl << std::endl << std::endl;
 
-            // In MoniTAal there is always x0 (meant to be 0 at all times)
-            // And there is an extra "global" clock for monitoring in newer versions MoniTAal
-            // So if number_of_clocks() returns 5, only 3 clocks are useful for tck
+                tck << "event:a" << std::endl << std::endl << std::endl;
 
-            tck << "clock:1:x_" << i << std::endl;
+                for (auto i = 1; i < pos.number_of_clocks() - 1; ++i) {
 
-        }
-        tck << std::endl << std::endl;
+                    // In MoniTAal there is always x0 (meant to be 0 at all times)
+                    // And there is an extra "global" clock for monitoring in newer versions MoniTAal
+                    // So if number_of_clocks() returns 5, only 3 clocks are useful for tck
 
-        tck << "# " << "TA" << std::endl;
-        tck << "# " << "This is the (untimely-reachable part of the) product of component automata, TA_0, div, and M" << std::endl;
-        tck << "process:" << "TA" << std::endl;
+                    tck << "clock:1:x_" << i << std::endl;
 
-        for (const auto& [k, v] : pos.locations()) {
+                }
+                tck << std::endl << std::endl;
 
-            tck << "location:" << "TA" << ":ell_" << k << "{" << (k == pos.initial_location() ?  "initial: : " : std::string{})
-                << (v.is_accept() ? "labels: accept" : std::string{}) << "}" << std::endl;
+                tck << "# " << "TA" << std::endl;
+                tck << "# " << "This is the (untimely-reachable part of the) product of component automata, TA_0, div, and M" << std::endl;
+                tck << "process:" << "TA" << std::endl;
 
-        }
-        tck << std::endl << std::endl;
+                for (const auto& [k, v] : pos.locations()) {
 
-        for (const auto& [k, v] : pos.locations()) {
+                    tck << "location:" << "TA" << ":ell_" << k << "{" << (k == pos.initial_location() ?  (v.is_accept() ? "initial: : " : "initial: ") : "")
+                        << (v.is_accept() ? "labels: accept" : "") << "}" << std::endl;
 
-            for (const auto& e : pos.edges_from(k)) {
-                auto reset_clocks = e.reset();
-                tck << "edge:TA:ell_" << e.from() << ":ell_" << e.to() << ":a{";
+                }
+                tck << std::endl << std::endl;
 
-                std::string provided_str;
-                for (const auto& g : e.guard()) {
+                for (const auto& [k, v] : pos.locations()) {
 
-                    if (!provided_str.empty()) {
-                        provided_str += " && ";
+                    for (const auto& e : pos.edges_from(k)) {
+
+                        tck << "edge:TA:ell_" << e.from() << ":ell_" << e.to() << ":a{";
+
+                        std::string provided_str;
+                        for (const auto& g : e.guard()) {
+
+                            if (!provided_str.empty()) {
+                                provided_str += " && ";
+                            }
+
+                            if (g._i == 0) {
+
+                                assert(g._j != 0);
+
+                                if (g._bound.is_strict()) {
+                                    provided_str += "x_" + std::to_string(g._j) + " > " + std::to_string(-1 * g._bound.get_bound());
+                                } else {
+                                    provided_str += "x_" + std::to_string(g._j) + " >= " + std::to_string(-1 * g._bound.get_bound());
+                                }
+
+                            } else if (g._j == 0) {
+
+                                assert(g._i != 0);
+
+                                if (g._bound.is_strict()) {
+                                    provided_str += "x_" + std::to_string(g._i) + " < " + std::to_string(g._bound.get_bound());
+                                } else {
+                                    provided_str += "x_" + std::to_string(g._i) + " <= " + std::to_string(g._bound.get_bound());
+                                }
+
+                            } else {
+                                assert(("Currently support only non-diagonal guards", false));
+                            }
+
+                        }
+
+                        std::string do_str;
+                        for (const auto& r : e.reset()) {
+                    
+                            if (!do_str.empty()) {
+                                do_str += "; ";
+                            }
+
+                            do_str += "x_" + std::to_string(r) + " = 0";
+
+                        }
+
+                        tck << (provided_str.empty() ? std::string{} : "provided: ") << provided_str;
+                        tck << (provided_str.empty() || do_str.empty() ? std::string{} : " : ");
+                        tck << (do_str.empty() ? std::string{} : "do: ") << do_str;
+                        tck << "}" << std::endl;
                     }
 
-                    if (g._i == 0) {
+                }
+                tck << std::endl << std::endl;
 
-                        assert(g._j != 0);
+                tck << "\n# " << "Please use the following command to check satisfiability:\n\n";
+                std::cout << "\nPlease use the following command to check satisfiability:\n\n";
 
-                        if (g._bound.is_strict()) {
-                            provided_str += "x_" + std::to_string(g._j) + " > " + std::to_string(-1 * g._bound.get_bound());
-                        } else {
-                            provided_str += "x_" + std::to_string(g._j) + " >= " + std::to_string(-1 * g._bound.get_bound());
+                if (out_fin) {
+                    tck << "# " << "tck-reach -a covreach -l accept " << out_file << std::endl;
+                    std::cout << "tck-reach -a covreach -l accept " << out_file << std::endl;
+
+                } else {
+                    tck << "# " << "tck-liveness -a couvscc -l accept " << out_file << std::endl;
+                    std::cout << "tck-liveness -a couvscc -l accept " << out_file << std::endl;
+
+                }
+
+                spec_out << tck.str();
+
+            } else {
+
+                spec_out << out_str;
+
+            }
+
+        } else {        // xml
+
+            if (out_flatten) {
+
+                std::stringstream xml;
+
+                xml << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
+                xml << "<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>" << std::endl;
+
+                xml << "<nta>" << std::endl << std::endl;
+
+                xml << "\t<declaration>" << std::endl;
+
+
+                for (auto i = 1; i < pos.number_of_clocks() - 1; ++i) {
+
+                    // In MoniTAal there is always x0 (meant to be 0 at all times)
+                    // And there is an extra "global" clock for monitoring in newer versions MoniTAal
+                    // So if number_of_clocks() returns 5, only 3 clocks are useful
+
+                    xml << "\t\tclock x_" << i << ";" << std::endl;
+
+                }
+
+
+                xml << "\t</declaration>" << std::endl << std::endl;
+
+
+                xml << "\t<template>" << std::endl;
+                xml << "\t\t<name>TA</name>" << std::endl;
+
+                xml << "\t\t<declaration>" << std::endl;
+
+
+                monitaal::location_id_t largest_loc = 0;
+                for (const auto& [k, v] : pos.locations()) {
+                    if (k > largest_loc) {
+                        largest_loc = k;
+                    }
+                }
+
+                xml << "\t\t\tint[0, " << largest_loc << "] loc = " << pos.initial_location() << ";" << std::endl;
+
+
+                xml << "\t\t</declaration>" << std::endl;
+
+                xml << "\t\t<location id=\"id0\" x=\"0\" y=\"0\">" << std::endl;
+                xml << "\t\t</location>" << std::endl;
+                xml << "\t\t<init ref=\"id0\"/>" << std::endl;
+
+                for (const auto& [k, v] : pos.locations()) {
+
+                    for (const auto& e : pos.edges_from(k)) {
+
+                        xml << "\t\t<transition>" << std::endl;
+                        xml << "\t\t\t<source ref=\"id0\"/>" << std::endl;
+                        xml << "\t\t\t<target ref=\"id0\"/>" << std::endl;
+
+                        std::string provided_str;
+                        provided_str += "loc == " + std::to_string(e.from());
+                        for (const auto& g : e.guard()) {
+
+                            if (!provided_str.empty()) {
+                                provided_str += " &amp;&amp; ";
+                            }
+
+                            if (g._i == 0) {
+
+                                assert(g._j != 0);
+
+                                if (g._bound.is_strict()) {
+                                    provided_str += "x_" + std::to_string(g._j) + " &gt; " + std::to_string(-1 * g._bound.get_bound());
+                                } else {
+                                    provided_str += "x_" + std::to_string(g._j) + " &gt;= " + std::to_string(-1 * g._bound.get_bound());
+                                }
+
+                            } else if (g._j == 0) {
+
+                                assert(g._i != 0);
+
+                                if (g._bound.is_strict()) {
+                                    provided_str += "x_" + std::to_string(g._i) + " &lt; " + std::to_string(g._bound.get_bound());
+                                } else {
+                                    provided_str += "x_" + std::to_string(g._i) + " &lt;= " + std::to_string(g._bound.get_bound());
+                                }
+
+                            } else {
+                                assert(("Currently support only non-diagonal guards", false));
+                            }
+
                         }
 
-                    } else if (g._j == 0) {
+                        xml << "\t\t\t<label kind=\"guard\" x=\"-357\" y=\"-68\">" << provided_str << "</label>" << std::endl;
 
-                        assert(g._i != 0);
+                        std::string do_str;
+                        do_str += "loc = " + std::to_string(e.to());
+                        for (const auto& r : e.reset()) {
+                    
+                            if (!do_str.empty()) {
+                                do_str += ", ";
+                            }
 
-                        if (g._bound.is_strict()) {
-                            provided_str += "x_" + std::to_string(g._i) + " < " + std::to_string(g._bound.get_bound());
-                        } else {
-                            provided_str += "x_" + std::to_string(g._i) + " <= " + std::to_string(g._bound.get_bound());
+                            do_str += "x_" + std::to_string(r) + " = 0";
+
                         }
 
-                    } else {
-                        assert(("Currently support only non-diagonal guards", false));
+                        xml << "\t\t\t<label kind=\"assignment\" x=\"-246\" y=\"-34\">" << do_str << "</label>" << std::endl;
+
+                        xml << "\t\t\t<nail x=\"-102\" y=\"34\"/>" << std::endl;
+                        xml << "\t\t\t<nail x=\"-102\" y=\"-34\"/>" << std::endl;
+                        xml << "\t\t</transition>" << std::endl;
                     }
 
                 }
 
-                std::string do_str;
-                for (const auto& r : e.reset()) {
-            
-                    if (!do_str.empty()) {
-                        do_str += "; ";
+                xml << "\t</template>" << std::endl << std::endl;
+
+	            xml << "\t<system>system TA;" << std::endl;
+	            xml << "\t</system>" << std::endl << std::endl;
+                xml << "</nta>" << std::endl;
+
+                xml << std::endl << std::endl;
+
+                spec_out << xml.str();
+
+
+                std::cout << "\nPlease use the following command to check satisfiability:\n\n";
+
+                monitaal::location_id_t last_acc_loc;
+                for (const auto& [k, v] : pos.locations()) {
+                    if (v.is_accept()) {
+                        last_acc_loc = k;
+                    }
+                }
+
+                if (out_fin) {
+
+                    std::cout << "verifyta " << out_file << " " << (std::string(out_file) + ".q") << std::endl << std::endl;
+
+                    std::ofstream query_out(std::string(out_file) + ".q", std::ios::trunc);
+                    if (!query_out) {
+
+                        std::cerr << "Error: Could not open " << (std::string(out_file) + ".q") << std::endl;
+                        return 1;
+
                     }
 
-                    do_str += "x_" + std::to_string(r) + " = 0";
+                    query_out << "E<>(";
+
+                    for (auto it = pos.locations().begin(); it != pos.locations().end(); ++it) {
+
+                        if (it->second.is_accept()) {
+                            query_out << "TA.loc == " << it->first;
+                            if (it->first != last_acc_loc) {
+                                query_out << " || ";
+                            }
+                        }
+
+                    }
+
+                    query_out << ")";
+
+                    query_out.close();
+
+                } else {
+
+                    std::cout << "opaal_ltsmin " << out_file << " --ltl=" << (std::string(out_file) + ".ltl") << " -t 1" << std::endl;
+
+                    std::ofstream ltl_out(std::string(out_file) + ".ltl", std::ios::trunc);
+                    if (!ltl_out) {
+
+                        std::cerr << "Error: Could not open " << (std::string(out_file) + ".ltl") << std::endl;
+                        return 1;
+
+                    }
+
+                    ltl_out << "!([]<>(";
+
+                    for (auto it = pos.locations().begin(); it != pos.locations().end(); ++it) {
+
+                        if (it->second.is_accept()) {
+                            ltl_out << "TA_loc == " << it->first;
+                            if (it->first != last_acc_loc) {
+                                ltl_out << " || ";
+                            }
+                        }
+
+                    }
+
+                    ltl_out << "))";
+
+                    ltl_out.close();
 
                 }
 
-                tck << (provided_str.empty() ? std::string{} : "provided: ") << provided_str;
-                tck << (provided_str.empty() || do_str.empty() ? std::string{} : " : ");
-                tck << (do_str.empty() ? std::string{} : "do: ") << do_str;
-                tck << "}" << std::endl;
+            } else {        // !out_flatten
+
+	            out_str += "\t<system>system TA_0, TA_div, ";
+
+                for (const auto& a : temporal_components) {
+
+                    out_str += a.name() + ", ";
+
+                }
+
+                out_str += "M;\n";
+	            out_str += "\t</system>\n\n";
+                out_str += "</nta>\n";
+
+                out_str += "\n\n";
+
+                spec_out << out_str;
+
+
+                std::cout << "\nPlease use the following command to check satisfiability:\n\n";
+
+
+                if (out_fin) {
+
+                    std::cout << "verifyta " << out_file << " " << (std::string(out_file) + ".q") << std::endl << std::endl;
+
+                    std::ofstream query_out(std::string(out_file) + ".q", std::ios::trunc);
+                    if (!query_out) {
+
+                        std::cerr << "Error: Could not open " << (std::string(out_file) + ".q") << std::endl;
+                        return 1;
+
+                    }
+
+                    query_out << "E<>(";
+
+                    query_out << "turn == 0 && "; 
+
+                    for (const auto& [k, v] : acc_map) {
+
+                        if (!v.first.empty()) {
+                            if (v.first.size() >= 2) {
+                                query_out << "(";
+                            }
+                            for (auto it = v.first.begin(); it != v.first.end(); ++it) {
+                                query_out << k << ".loc == " << *it;
+                                if (std::next(it) != v.first.end()) {
+                                    query_out << " || ";
+                                }
+                            }
+
+                            if (v.first.size() >= 2) {
+                                query_out << ")";
+                            }
+
+                            query_out << " && ";
+
+                        }
+
+                    }
+
+                    query_out << "TA_0.loc == 1";
+
+                    // query_out << "M.loc == 0";
+
+                    query_out << ")";
+
+                    query_out.close();
+
+                } else {
+
+                    std::cout << "opaal_ltsmin " << out_file << " --ltl=" << (std::string(out_file) + ".ltl") << " -t 1" << std::endl;
+
+                    std::ofstream ltl_out(std::string(out_file) + ".ltl", std::ios::trunc);
+                    if (!ltl_out) {
+
+                        std::cerr << "Error: Could not open " << (std::string(out_file) + ".ltl") << std::endl;
+                        return 1;
+
+                    }
+
+                    ltl_out << "!(";
+
+
+
+                    for (const auto& [k, v] : acc_map) {
+
+
+                        if (!v.second.empty()) {
+
+                            ltl_out << "([]<>(";
+
+                            for (auto it = v.second.begin(); it != v.second.end(); ++it) {
+                                ltl_out << k << "_loc == " << *it;
+                                if (std::next(it) != v.second.end()) {
+                                    ltl_out << " || ";
+                                }
+                            }
+
+                            ltl_out << "))";
+
+                            ltl_out << " && ";
+
+                        }
+
+                    }
+
+                    ltl_out << "([]<>(TA_div_loc == 0))";
+
+                    // ltl_out << "([]<>(M_loc == 0))";
+
+
+                    ltl_out << ")";
+
+                    ltl_out.close();
+
+                }
+
             }
 
         }
-        tck << std::endl << std::endl;
 
-        tck_out << tck.str();
-
-        std::cout << "\nPlease use the following command to check satisfiability:\n\n";
-        std::cout << "tck-liveness -a couvscc -l accept out.tck" << std::endl;
-
-        tck_out.close();
+        spec_out.close();
 
     }
 

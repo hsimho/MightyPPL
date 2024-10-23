@@ -5,12 +5,13 @@
 
 #include <string>
 #include <map>
+#include <cmath>
 #include "antlr4-runtime.h"
 
 #include "MitlVisitor.h"
 
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
 /**
  * This class provides an empty implementation of MitlVisitor, which can be
@@ -63,9 +64,17 @@ public:
 
     std::any visitAtomOn(MitlParser::AtomOnContext *ctx) override;
 
-    std::any visitAtomFnDual(MitlParser::AtomFnDualContext *ctx) override;
+    std::any visitAtomGn(MitlParser::AtomGnContext *ctx) override;
 
-    std::any visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) override;
+    std::any visitAtomHn(MitlParser::AtomHnContext *ctx) override;
+
+    std::any visitAtomCFn(MitlParser::AtomCFnContext *ctx) override;
+
+    std::any visitAtomCOn(MitlParser::AtomCOnContext *ctx) override;
+
+    std::any visitAtomCGn(MitlParser::AtomCGnContext *ctx) override;
+
+    std::any visitAtomCHn(MitlParser::AtomCHnContext *ctx) override;
 
     std::any visitAtomParen(MitlParser::AtomParenContext *ctx) override;
 
@@ -78,4 +87,4 @@ public:
 
 };
 
-}  // namespace mightylcpp
+}  // namespace mightypplcpp

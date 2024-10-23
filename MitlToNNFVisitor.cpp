@@ -4,25 +4,26 @@
 #include "MitlToNNFVisitor.h"
 
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
     std::any MitlToNNFVisitor::visitMain(MitlParser::MainContext *ctx) {
         return visit(ctx->formula());
     }
     
     std::any MitlToNNFVisitor::visitFormulaAtom(MitlParser::FormulaAtomContext *ctx) {
-        std::any output;
+
+        std::string output;
 
         if (ctx->negated) {
 
             ctx->atom()->negated = true;
-            output = visit(ctx->atom());
+            output += std::any_cast<std::string>(visit(ctx->atom()));
             ctx->atom()->negated = false;
             return output;
 
         } else {
 
-            output = visit(ctx->atom());
+            output += std::any_cast<std::string>(visit(ctx->atom()));
             return output;
 
         }
@@ -37,11 +38,9 @@ namespace mightylcpp {
             ctx->formula(0)->negated = true;
             ctx->formula(1)->negated = true;
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "||" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(1))) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += std::any_cast<std::string>(visit(ctx->formula(0)));
+            output += " || ";
+            output += std::any_cast<std::string>(visit(ctx->formula(1)));
 
             ctx->formula(0)->negated = false;
             ctx->formula(1)->negated = false;
@@ -49,11 +48,10 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "&&" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(1))) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += std::any_cast<std::string>(visit(ctx->formula(0)));
+            output += " && ";
+            output += std::any_cast<std::string>(visit(ctx->formula(1)));
+
             return output;
 
         }
@@ -66,33 +64,29 @@ namespace mightylcpp {
 
         if (ctx->negated) {
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-
             ctx->formula(0)->negated = false;
             ctx->formula(1)->negated = true;
 
-            output += std::string(ctx->depth() * 1 + 1, ' ') + "(" + "\n";
+            output += "(";
 
-            output += std::any_cast<std::string>(visit(ctx->formula(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 5, ' ') + "&&" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(1))) + "\n";
+            output += std::any_cast<std::string>(visit(ctx->formula(0)));
+            output += " && ";
+            output += std::any_cast<std::string>(visit(ctx->formula(1)));
 
-            output += std::string(ctx->depth() * 1 + 1, ' ') + ")" + "\n";
+            output += ")";
 
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "||" + "\n";
+            output += " || ";
 
             ctx->formula(0)->negated = true;
             ctx->formula(1)->negated = false;
 
-            output += std::string(ctx->depth() * 1 + 1, ' ') + "(" + "\n";
+            output += "(";
 
-            output += std::any_cast<std::string>(visit(ctx->formula(1))) + "\n";
-            output += std::string(ctx->depth() * 1 + 5, ' ') + "&&" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(0))) + "\n";
+            output += std::any_cast<std::string>(visit(ctx->formula(1)));
+            output += " && ";
+            output += std::any_cast<std::string>(visit(ctx->formula(0)));
 
-            output += std::string(ctx->depth() * 1 + 1, ' ') + ")" + "\n";
-
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ")";
 
             ctx->formula(0)->negated = false;
             ctx->formula(1)->negated = false;
@@ -101,33 +95,29 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-
             ctx->formula(0)->negated = true;
             ctx->formula(1)->negated = false;
 
-            output += std::string(ctx->depth() * 1 + 1, ' ') + "(" + "\n";
+            output += "(";
 
-            output += std::any_cast<std::string>(visit(ctx->formula(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 5, ' ') + "||" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(1))) + "\n";
+            output += std::any_cast<std::string>(visit(ctx->formula(0)));
+            output += " || ";
+            output += std::any_cast<std::string>(visit(ctx->formula(1)));
 
-            output += std::string(ctx->depth() * 1 + 1, ' ') + ")" + "\n";
+            output += ")";
 
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "&&" + "\n";
+            output += " && ";
 
             ctx->formula(0)->negated = false;
             ctx->formula(1)->negated = true;
 
-            output += std::string(ctx->depth() * 1 + 1, ' ') + "(" + "\n";
+            output += "(";
 
-            output += std::any_cast<std::string>(visit(ctx->formula(1))) + "\n";
-            output += std::string(ctx->depth() * 1 + 5, ' ') + "||" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(0))) + "\n";
+            output += std::any_cast<std::string>(visit(ctx->formula(1)));
+            output += " || ";
+            output += std::any_cast<std::string>(visit(ctx->formula(0)));
 
-            output += std::string(ctx->depth() * 1 + 1, ' ') + ")" + "\n";
-
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ")";
 
             ctx->formula(0)->negated = false;
             ctx->formula(1)->negated = false;
@@ -145,11 +135,9 @@ namespace mightylcpp {
 
             ctx->formula(1)->negated = true;
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "&&" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(1))) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += std::any_cast<std::string>(visit(ctx->formula(0)));
+            output += " && ";
+            output += std::any_cast<std::string>(visit(ctx->formula(1)));
 
             ctx->formula(1)->negated = false;
 
@@ -159,11 +147,9 @@ namespace mightylcpp {
 
             ctx->formula(0)->negated = true;
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "||" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(1))) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += std::any_cast<std::string>(visit(ctx->formula(0)));
+            output += " || ";
+            output += std::any_cast<std::string>(visit(ctx->formula(1)));
 
             ctx->formula(0)->negated = false;
             return output;
@@ -177,21 +163,17 @@ namespace mightylcpp {
 
         if (ctx->negated) {
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula())) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom()));
 
             return output;
 
         } else {
 
-            ctx->formula()->negated = true;
+            ctx->atom()->negated = true;
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula())) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += std::any_cast<std::string>(visit(ctx->atom()));
 
-            ctx->formula()->negated = false;
+            ctx->atom()->negated = false;
 
             return output;
 
@@ -207,11 +189,9 @@ namespace mightylcpp {
             ctx->formula(0)->negated = true;
             ctx->formula(1)->negated = true;
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "&&" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(1))) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += std::any_cast<std::string>(visit(ctx->formula(0)));
+            output += " && ";
+            output += std::any_cast<std::string>(visit(ctx->formula(1)));
 
             ctx->formula(0)->negated = false;
             ctx->formula(1)->negated = false;
@@ -220,11 +200,10 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "||" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->formula(1))) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += std::any_cast<std::string>(visit(ctx->formula(0)));
+            output += " || ";
+            output += std::any_cast<std::string>(visit(ctx->formula(1)));
+
             return output;
 
         }
@@ -232,20 +211,8 @@ namespace mightylcpp {
     
     std::any MitlToNNFVisitor::visitBound(MitlParser::BoundContext *ctx) {
 
-        antlr4::tree::TerminalNode* child = (antlr4::tree::TerminalNode*)ctx->children[0];
-        if (child->getSymbol()->getType() == MitlParser::IntLit) {
+        assert(("visitBound() should not be called", false));
 
-            return child->getText();
-
-        } else if (child->getSymbol()->getType() == MitlParser::Infty) {
-
-            return child->getText();
-
-        } else {
-
-            assert(false);
-
-        }
     }
     
     std::any MitlToNNFVisitor::visitInterval(MitlParser::IntervalContext *ctx) {
@@ -288,11 +255,11 @@ namespace mightylcpp {
 
             ctx->atom()->negated = true;
 
-            output += std::string(ctx->depth() * 1, ' ') + "G ";
+            output += ctx->uni ? "G" : "CGn";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ctx->uni ? " " : std::string(" (false, ");
+            output += std::any_cast<std::string>(visit(ctx->atom()));
+            output += ctx->uni ? "" : ")";
 
             ctx->atom()->negated = false;
 
@@ -301,11 +268,11 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "F ";
+            output += ctx->uni ? "F" : "CFn";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ctx->uni ? " " : std::string(" (true, ");
+            output += std::any_cast<std::string>(visit(ctx->atom()));
+            output += ctx->uni ? "" : ")";
 
             return output;
 
@@ -321,11 +288,11 @@ namespace mightylcpp {
 
             ctx->atom()->negated = true;
 
-            output += std::string(ctx->depth() * 1, ' ') + "H ";
+            output += ctx->uni ? "H" : "CHn";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ctx->uni ? " " : std::string(" (false, ");
+            output += std::any_cast<std::string>(visit(ctx->atom()));
+            output += ctx->uni ? "" : ")";
 
             ctx->atom()->negated = false;
 
@@ -334,11 +301,11 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "O ";
+            output += ctx->uni ? "O" : "COn";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ctx->uni ? " " : std::string(" (true, ");
+            output += std::any_cast<std::string>(visit(ctx->atom()));
+            output += ctx->uni ? "" : ")";
 
             return output;
 
@@ -354,11 +321,11 @@ namespace mightylcpp {
 
             ctx->atom()->negated = true;
 
-            output += std::string(ctx->depth() * 1, ' ') + "F ";
+            output += ctx->uni ? "F" : "CFn";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ctx->uni ? " " : std::string(" (true, ");
+            output += std::any_cast<std::string>(visit(ctx->atom()));
+            output += ctx->uni ? "" : ")";
 
             ctx->atom()->negated = false;
 
@@ -367,11 +334,11 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "G ";
+            output += ctx->uni ? "G" : "CGn";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ctx->uni ? " " : std::string(" (false, ");
+            output += std::any_cast<std::string>(visit(ctx->atom()));
+            output += ctx->uni ? "" : ")";
 
             return output;
 
@@ -387,11 +354,11 @@ namespace mightylcpp {
 
             ctx->atom()->negated = true;
 
-            output += std::string(ctx->depth() * 1, ' ') + "O ";
+            output += ctx->uni ? "O" : "COn";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ctx->uni ? " " : std::string(" (true, ");
+            output += std::any_cast<std::string>(visit(ctx->atom()));
+            output += ctx->uni ? "" : ")";
 
             ctx->atom()->negated = false;
 
@@ -400,11 +367,11 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "H ";
+            output += ctx->uni ? "H" : "CHn";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom())) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ctx->uni ? " " : std::string(" (false, ");
+            output += std::any_cast<std::string>(visit(ctx->atom()));
+            output += ctx->uni ? "" : ")";
 
             return output;
 
@@ -416,17 +383,52 @@ namespace mightylcpp {
 
         std::string output;
 
+        // TODO: less hacky way to identify the type of rule?
+
+        antlr4::RuleContext* ancestor = static_cast<antlr4::RuleContext*>(ctx->parent); 
+        bool paren = false;
+        while (ancestor != nullptr) {
+
+            if (ancestor->getRuleIndex() == MitlParser::RuleFormula && static_cast<MitlParser::FormulaContext*>(ancestor)->children.size() == 3) {
+
+                paren = true;
+                ancestor = nullptr;
+
+            } else if (ancestor->getRuleIndex() == MitlParser::RuleAtom && !(static_cast<MitlParser::AtomContext*>(ancestor)->type == PAREN || static_cast<MitlParser::AtomContext*>(ancestor)->type == UNKNOWN)) {
+
+                paren = true;
+                ancestor = nullptr;
+
+            } else {
+                ancestor = static_cast<antlr4::RuleContext*>(ancestor->parent);
+            }
+
+        }
+
         if (ctx->negated) {
 
             ctx->atom(0)->negated = true;
             ctx->atom(1)->negated = true;
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "R "
-                        + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(1))) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            if (ctx->uni) {
+
+                output += paren ? "(" : "";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += " R" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " ";
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += paren ? ")" : "";
+
+            } else {
+
+                output += "CGn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " (";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += ", "; 
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += ")";
+
+            }
 
             ctx->atom(0)->negated = false;
             ctx->atom(1)->negated = false;
@@ -436,35 +438,82 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "U "
-                        + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(1))) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            if (ctx->uni) {
 
+                output += paren ? "(" : "";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += " U" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " ";
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += paren ? ")" : "";
+
+            } else {
+
+                output += "CFn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " (";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += ", "; 
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += ")";
+
+            }
 
             return output;
 
         }
+
     }
 
     std::any MitlToNNFVisitor::visitAtomS(MitlParser::AtomSContext *ctx) {
 
-
         std::string output;
+
+        // TODO: less hacky way to identify the type of rule?
+
+        antlr4::RuleContext* ancestor = static_cast<antlr4::RuleContext*>(ctx->parent); 
+        bool paren = false;
+        while (ancestor != nullptr) {
+
+            if (ancestor->getRuleIndex() == MitlParser::RuleFormula && static_cast<MitlParser::FormulaContext*>(ancestor)->children.size() == 3) {
+
+                paren = true;
+                ancestor = nullptr;
+
+            } else if (ancestor->getRuleIndex() == MitlParser::RuleAtom && !(static_cast<MitlParser::AtomContext*>(ancestor)->type == PAREN || static_cast<MitlParser::AtomContext*>(ancestor)->type == UNKNOWN)) {
+
+                paren = true;
+                ancestor = nullptr;
+
+            } else {
+                ancestor = static_cast<antlr4::RuleContext*>(ancestor->parent);
+            }
+
+        }
 
         if (ctx->negated) {
 
             ctx->atom(0)->negated = true;
             ctx->atom(1)->negated = true;
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "T "
-                        + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(1))) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            if (ctx->uni) {
+
+                output += paren ? "(" : "";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += " T" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " ";
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += paren ? ")" : "";
+
+            } else {
+
+                output += "CHn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " (";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += ", "; 
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += ")";
+
+            }
 
             ctx->atom(0)->negated = false;
             ctx->atom(1)->negated = false;
@@ -474,34 +523,82 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "S "
-                        + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(1))) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            if (ctx->uni) {
 
+                output += paren ? "(" : "";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += " S" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " ";
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += paren ? ")" : "";
+
+            } else {
+
+                output += "COn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " (";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += ", "; 
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += ")";
+
+            }
 
             return output;
 
         }
+
     }
 
     std::any MitlToNNFVisitor::visitAtomR(MitlParser::AtomRContext *ctx) {
 
         std::string output;
 
+        // TODO: less hacky way to identify the type of rule?
+
+        antlr4::RuleContext* ancestor = static_cast<antlr4::RuleContext*>(ctx->parent); 
+        bool paren = false;
+        while (ancestor != nullptr) {
+
+            if (ancestor->getRuleIndex() == MitlParser::RuleFormula && static_cast<MitlParser::FormulaContext*>(ancestor)->children.size() == 3) {
+
+                paren = true;
+                ancestor = nullptr;
+
+            } else if (ancestor->getRuleIndex() == MitlParser::RuleAtom && !(static_cast<MitlParser::AtomContext*>(ancestor)->type == PAREN || static_cast<MitlParser::AtomContext*>(ancestor)->type == UNKNOWN)) {
+
+                paren = true;
+                ancestor = nullptr;
+
+            } else {
+                ancestor = static_cast<antlr4::RuleContext*>(ancestor->parent);
+            }
+
+        }
+
         if (ctx->negated) {
 
             ctx->atom(0)->negated = true;
             ctx->atom(1)->negated = true;
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "U "
-                        + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(1))) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            if (ctx->uni) {
+
+                output += paren ? "(" : "";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += " U" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " ";
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += paren ? ")" : "";
+
+            } else {
+
+                output += "CFn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " (";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += ", "; 
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += ")";
+
+            }
 
             ctx->atom(0)->negated = false;
             ctx->atom(1)->negated = false;
@@ -511,13 +608,25 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "R "
-                        + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(1))) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            if (ctx->uni) {
 
+                output += paren ? "(" : "";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += " R" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " ";
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += paren ? ")" : "";
+
+            } else {
+
+                output += "CGn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " (";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += ", "; 
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += ")";
+
+            }
 
             return output;
 
@@ -529,17 +638,52 @@ namespace mightylcpp {
 
         std::string output;
 
+        // TODO: less hacky way to identify the type of rule?
+
+        antlr4::RuleContext* ancestor = static_cast<antlr4::RuleContext*>(ctx->parent); 
+        bool paren = false;
+        while (ancestor != nullptr) {
+
+            if (ancestor->getRuleIndex() == MitlParser::RuleFormula && static_cast<MitlParser::FormulaContext*>(ancestor)->children.size() == 3) {
+
+                paren = true;
+                ancestor = nullptr;
+
+            } else if (ancestor->getRuleIndex() == MitlParser::RuleAtom && !(static_cast<MitlParser::AtomContext*>(ancestor)->type == PAREN || static_cast<MitlParser::AtomContext*>(ancestor)->type == UNKNOWN)) {
+
+                paren = true;
+                ancestor = nullptr;
+
+            } else {
+                ancestor = static_cast<antlr4::RuleContext*>(ancestor->parent);
+            }
+
+        }
+
         if (ctx->negated) {
 
             ctx->atom(0)->negated = true;
             ctx->atom(1)->negated = true;
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "S "
-                        + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(1))) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            if (ctx->uni) {
+
+                output += paren ? "(" : "";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += " S" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " ";
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += paren ? ")" : "";
+
+            } else {
+
+                output += "COn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " (";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += ", "; 
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += ")";
+
+            }
 
             ctx->atom(0)->negated = false;
             ctx->atom(1)->negated = false;
@@ -549,13 +693,25 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "(" + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(0))) + "\n";
-            output += std::string(ctx->depth() * 1 + 4, ' ') + "T "
-                        + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "") + "\n";
-            output += std::any_cast<std::string>(visit(ctx->atom(1))) + "\n";
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            if (ctx->uni) {
 
+                output += paren ? "(" : "";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += " T" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " ";
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += paren ? ")" : "";
+
+            } else {
+
+                output += "CHn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " (";
+                output += std::any_cast<std::string>(visit(ctx->atom(0)));
+                output += ", "; 
+                output += std::any_cast<std::string>(visit(ctx->atom(1)));
+                output += ")";
+
+            }
 
             return output;
 
@@ -573,13 +729,13 @@ namespace mightylcpp {
                 ctx->atoms[i]->negated = true;
             }
 
-            output += std::string(ctx->depth() * 1, ' ') + "Gn ";
+            output += "Gn";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
+            output += std::string(" (");
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
-                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+                output += std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? ", " : "");
             }
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ")";
 
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
                 ctx->atoms[i]->negated = false;
@@ -590,13 +746,13 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "Fn ";
+            output += "Fn";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
+            output += std::string(" (");
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
-                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+                output += std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? ", " : "");
             }
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ")";
 
             return output;
 
@@ -614,13 +770,13 @@ namespace mightylcpp {
                 ctx->atoms[i]->negated = true;
             }
 
-            output += std::string(ctx->depth() * 1, ' ') + "Hn ";
+            output += "Hn";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
+            output += std::string(" (");
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
-                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+                output += std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? ", " : "");
             }
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ")";
 
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
                 ctx->atoms[i]->negated = false;
@@ -631,13 +787,13 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "On ";
+            output += "On";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
+            output += std::string(" (");
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
-                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+                output += std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? ", " : "");
             }
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ")";
 
             return output;
 
@@ -645,7 +801,7 @@ namespace mightylcpp {
 
     }
 
-    std::any MitlToNNFVisitor::visitAtomFnDual(MitlParser::AtomFnDualContext *ctx) {
+    std::any MitlToNNFVisitor::visitAtomGn(MitlParser::AtomGnContext *ctx) {
 
         std::string output;
 
@@ -655,13 +811,13 @@ namespace mightylcpp {
                 ctx->atoms[i]->negated = true;
             }
 
-            output += std::string(ctx->depth() * 1, ' ') + "Fn ";
+            output += "Fn";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
+            output += std::string(" (");
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
-                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+                output += std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? ", " : "");
             }
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ")";
 
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
                 ctx->atoms[i]->negated = false;
@@ -672,13 +828,13 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "Gn ";
+            output += "Gn";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
+            output += std::string(" (");
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
-                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+                output += std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? ", " : "");
             }
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ")";
 
             return output;
 
@@ -686,7 +842,7 @@ namespace mightylcpp {
 
     }
 
-    std::any MitlToNNFVisitor::visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) {
+    std::any MitlToNNFVisitor::visitAtomHn(MitlParser::AtomHnContext *ctx) {
 
         std::string output;
 
@@ -696,13 +852,13 @@ namespace mightylcpp {
                 ctx->atoms[i]->negated = true;
             }
 
-            output += std::string(ctx->depth() * 1, ' ') + "On ";
+            output += "On";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
+            output += std::string(" (");
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
-                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+                output += std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? ", " : "");
             }
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ")";
 
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
                 ctx->atoms[i]->negated = false;
@@ -713,36 +869,100 @@ namespace mightylcpp {
 
         } else {
 
-            output += std::string(ctx->depth() * 1, ' ') + "Hn ";
+            output += "Hn";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
-            output += std::string(" (") + "\n";
+            output += std::string(" (");
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
-                output += std::string(ctx->depth() * 1 + 4, ' ') + "\n" + std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? std::string(ctx->depth() * 1 + 4, ' ') + "," : "") + "\n";
+                output += std::any_cast<std::string>(visit(ctx->atoms[i])) + (i != ctx->atoms.size() - 1 ? ", " : "");
             }
-            output += std::string(ctx->depth() * 1, ' ') + ")" + "\n";
+            output += ")";
 
             return output;
 
         }
 
     }
+
+    std::any MitlToNNFVisitor::visitAtomCFn(MitlParser::AtomCFnContext *ctx) {
+
+        assert(("The original formula should contain no CFn, COn, CGn, CHn", false));
+
+    }
+
+    std::any MitlToNNFVisitor::visitAtomCOn(MitlParser::AtomCOnContext *ctx) {
+
+        assert(("The original formula should contain no CFn, COn, CGn, CHn", false));
+
+    }
+
+    std::any MitlToNNFVisitor::visitAtomCGn(MitlParser::AtomCGnContext *ctx) {
+
+        assert(("The original formula should contain no CFn, COn, CGn, CHn", false));
+
+    }
+
+    std::any MitlToNNFVisitor::visitAtomCHn(MitlParser::AtomCHnContext *ctx) {
+
+        assert(("The original formula should contain no CFn, COn, CGn, CHn", false));
+
+    }
+
 
     
     std::any MitlToNNFVisitor::visitAtomParen(MitlParser::AtomParenContext *ctx) {
 
-        std::any output;
+        std::string output;
+
+        // TODO: less hacky way to identify the type of rule?
+           
+        antlr4::RuleContext* ancestor = static_cast<antlr4::RuleContext*>(ctx->parent); 
+        bool paren = false;
+        while (ancestor != nullptr) {
+
+            if (ancestor->getRuleIndex() == MitlParser::RuleFormula && static_cast<MitlParser::FormulaContext*>(ancestor)->children.size() == 3) {
+
+                paren = true;
+                ancestor = nullptr;
+
+            } else if (ancestor->getRuleIndex() == MitlParser::RuleAtom && !(static_cast<MitlParser::AtomContext*>(ancestor)->type == PAREN || static_cast<MitlParser::AtomContext*>(ancestor)->type == UNKNOWN)) {
+
+                paren = true;
+                ancestor = nullptr;
+
+            } else {
+                ancestor = static_cast<antlr4::RuleContext*>(ancestor->parent);
+            }
+
+        }
 
         if (ctx->negated) {
 
             ctx->formula()->negated = true;
-            output = visit(ctx->formula());
+            if (ctx->formula()->children.size() == 1) {
+                output += std::any_cast<std::string>(visit(ctx->formula()));
+            } else {
+                if (paren) {
+                    output += "(" + std::any_cast<std::string>(visit(ctx->formula())) + ")";
+                } else {
+                    output += std::any_cast<std::string>(visit(ctx->formula()));
+                }
+            }
             ctx->formula()->negated = false;
 
             return output;
 
         } else {
 
-            output = visit(ctx->formula());
+            if (ctx->formula()->children.size() == 1) {
+                output += std::any_cast<std::string>(visit(ctx->formula()));
+            } else {
+                if (paren) {
+                    output += "(" + std::any_cast<std::string>(visit(ctx->formula())) + ")";
+                } else {
+                    output += std::any_cast<std::string>(visit(ctx->formula()));
+                }
+            }
+
             return output;
 
         }
@@ -750,13 +970,17 @@ namespace mightylcpp {
     
     std::any MitlToNNFVisitor::visitAtomTrue(MitlParser::AtomTrueContext *ctx) {
 
+        std::string output;
+
         if (ctx->negated) {
 
-            return std::string(ctx->depth() * 1, ' ') + "false";
+            output += "false";
+            return output;
 
         } else {
 
-            return std::string(ctx->depth() * 1, ' ') + "true";
+            output += "true";
+            return output;
 
         }
 
@@ -768,12 +992,62 @@ namespace mightylcpp {
 
         if (ctx->negated) {
 
-            output = std::string(ctx->depth() * 1, ' ') + "(!" + ctx->Idfr()->getText() + ")";
+            // TODO: less hacky way to identify the type of rule?
+           
+            // std::cout << "Trying to find the ancestor of " << "!" << ctx->Idfr()->getText() << std::endl << std::flush;
+            antlr4::RuleContext* ancestor = static_cast<antlr4::RuleContext*>(ctx->parent); 
+            bool paren = false;
+            while (ancestor != nullptr) {
+
+                // std::cout << "Trying " << ancestor->getText() << std::endl << std::flush;
+                // if (ancestor->getRuleIndex() == MitlParser::RuleFormula) {
+                //     
+                //     std::cout << "(this is a Formula)" << std::endl << std::flush;
+
+                // } else if (ancestor->getRuleIndex() == MitlParser::RuleAtom) {
+
+                //     std::cout << "(this is an Atom)" << std::endl << std::flush;
+
+                // } else {
+                //     assert(false);
+                // }
+
+                if (ancestor->getRuleIndex() == MitlParser::RuleFormula && static_cast<MitlParser::FormulaContext*>(ancestor)->children.size() == 3) {
+                //    std::cout << "(this is a Formula with two operands)" << std::endl << std::flush;
+                    paren = false;
+                    ancestor = nullptr;
+
+                } else if (ancestor->getRuleIndex() == MitlParser::RuleAtom &&
+                        (static_cast<MitlParser::AtomContext*>(ancestor)->type == FINALLY
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == ONCE
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == GLOBALLY
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == HISTORICALLY
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == PNUELIFN
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == PNUELION
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == PNUELIGN
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == PNUELIFN)) {
+                //    std::cout << "(this is an Atom in F O G H Fn On Gn Hn)" << std::endl << std::flush;
+                    paren = true;
+                    ancestor = nullptr;
+
+                } else {
+                //    std::cout << "go further up" << std::endl << std::flush;
+                    ancestor = static_cast<antlr4::RuleContext*>(ancestor->parent);
+                }
+
+            }
+
+           
+            if (paren) {
+                output += "(!" + ctx->Idfr()->getText() + ")";
+            } else {
+                output += "!" + ctx->Idfr()->getText();
+            }
             return output;
 
         } else {
 
-            output = std::string(ctx->depth() * 1, ' ') + ctx->Idfr()->getText();
+            output += ctx->Idfr()->getText();
             return output;
 
         }
@@ -782,13 +1056,17 @@ namespace mightylcpp {
     
     std::any MitlToNNFVisitor::visitAtomFalse(MitlParser::AtomFalseContext *ctx) {
 
+        std::string output;
+
         if (ctx->negated) {
 
-            return std::string(ctx->depth() * 1, ' ') + "true";
+            output += "true";
+            return output;
 
         } else {
 
-            return std::string(ctx->depth() * 1, ' ') + "false";
+            output += "false";
+            return output;
 
         }
 
@@ -796,5 +1074,5 @@ namespace mightylcpp {
     
 
 
-}  // namespace mightylcpp
+}  // namespace mightypplcpp
 

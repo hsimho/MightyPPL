@@ -9,7 +9,9 @@
 #include "MitlVisitor.h"
 
 
-namespace mightylcpp {
+namespace mightypplcpp {
+
+extern bdd encode(const int i, const int offset, const int bits);
 
 class  MitlGetBDDVisitor : public MitlVisitor {
 
@@ -57,9 +59,17 @@ public:
 
     std::any visitAtomOn(MitlParser::AtomOnContext *ctx) override;
 
-    std::any visitAtomFnDual(MitlParser::AtomFnDualContext *ctx) override;
+    std::any visitAtomGn(MitlParser::AtomGnContext *ctx) override;
 
-    std::any visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) override;
+    std::any visitAtomHn(MitlParser::AtomHnContext *ctx) override;
+
+    std::any visitAtomCFn(MitlParser::AtomCFnContext *ctx) override;
+
+    std::any visitAtomCOn(MitlParser::AtomCOnContext *ctx) override;
+
+    std::any visitAtomCGn(MitlParser::AtomCGnContext *ctx) override;
+
+    std::any visitAtomCHn(MitlParser::AtomCHnContext *ctx) override;
 
     std::any visitAtomParen(MitlParser::AtomParenContext *ctx) override;
 
@@ -72,4 +82,4 @@ public:
 
 };
 
-}  // namespace mightylcpp
+}  // namespace mightypplcpp

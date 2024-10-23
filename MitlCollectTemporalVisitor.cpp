@@ -4,7 +4,7 @@
 #include "MitlCollectTemporalVisitor.h"
 
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
 
     std::any MitlCollectTemporalVisitor::visitMain(MitlParser::MainContext *ctx) {
@@ -43,7 +43,7 @@ namespace mightylcpp {
 
     std::any MitlCollectTemporalVisitor::visitFormulaNot(MitlParser::FormulaNotContext *ctx) {
 
-        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->formula())));
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom())));
         return temporal_atoms; 
 
     }
@@ -156,7 +156,7 @@ namespace mightylcpp {
 
     }
 
-    std::any MitlCollectTemporalVisitor::visitAtomFnDual(MitlParser::AtomFnDualContext *ctx) {
+    std::any MitlCollectTemporalVisitor::visitAtomGn(MitlParser::AtomGnContext *ctx) {
 
         temporal_atoms.insert(ctx);
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
@@ -166,12 +166,48 @@ namespace mightylcpp {
 
     }
 
-    std::any MitlCollectTemporalVisitor::visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) {
+    std::any MitlCollectTemporalVisitor::visitAtomHn(MitlParser::AtomHnContext *ctx) {
 
         temporal_atoms.insert(ctx);
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
             temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atoms[i])));
         }
+        return temporal_atoms;
+
+    }
+
+    std::any MitlCollectTemporalVisitor::visitAtomCFn(MitlParser::AtomCFnContext *ctx) {
+
+        temporal_atoms.insert(ctx);
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(0))));
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(1))));
+        return temporal_atoms;
+
+    }
+
+    std::any MitlCollectTemporalVisitor::visitAtomCOn(MitlParser::AtomCOnContext *ctx) {
+
+        temporal_atoms.insert(ctx);
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(0))));
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(1))));
+        return temporal_atoms;
+
+    }
+
+    std::any MitlCollectTemporalVisitor::visitAtomCGn(MitlParser::AtomCGnContext *ctx) {
+
+        temporal_atoms.insert(ctx);
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(0))));
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(1))));
+        return temporal_atoms;
+
+    }
+
+    std::any MitlCollectTemporalVisitor::visitAtomCHn(MitlParser::AtomCHnContext *ctx) {
+
+        temporal_atoms.insert(ctx);
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(0))));
+        temporal_atoms.merge(std::any_cast<decltype(temporal_atoms)>(visit(ctx->atom(1))));
         return temporal_atoms;
 
     }
@@ -201,5 +237,5 @@ namespace mightylcpp {
     }
 
 
-}  // namespace mightylcpp
+}  // namespace mightypplcpp
 
