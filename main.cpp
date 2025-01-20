@@ -7,6 +7,8 @@
 #include <vector>
 #include <iomanip>
 #include <chrono>
+#include <stdexcept>
+#include <optional>
 
 #include "types.h"
 // #include "StatewithBDDEdges.h"
@@ -25,23 +27,87 @@ using namespace antlr4;
 int main(int argc, const char ** argv) {
 
     const char* spec_file = NULL;
-    const char* tck_file = NULL;
+    const char* out_file = NULL;
+    std::optional<bool> out_format = std::nullopt;    // true: tck, false: xml
+    bool out_flatten = true;
+    bool out_fin = false;
 
-    if (argc >= 2) {
 
-        spec_file = argv[1];
+    try {
 
-        if (argc >= 3) {
+        if (argc < 3) {
 
-            tck_file = argv[2]; 
+            throw std::invalid_argument("No spec file / acceptance type specified"); 
 
+        } else {
+
+            spec_file = argv[1];
+
+            if (std::string_view(argv[2]) == "--fin") {
+
+                out_fin = true;
+
+            } else if (std::string_view(argv[2]) == "--inf") {
+
+                out_fin = false;
+
+            } else {
+
+                throw std::invalid_argument("Wrong acceptance type specified"); 
+
+            }
+
+            if (argc > 3) {
+
+                if (argc >= 5) {
+
+                    out_file = argv[3]; 
+
+                    if (std::string_view(argv[4]) == "--tck") {
+
+                        out_format = true;
+
+                    } else if (std::string_view(argv[4]) == "--xml") {
+
+                        out_format = false;
+
+                    } else {
+
+                        throw std::invalid_argument("Wrong output format specified"); 
+
+                    }
+
+                    if (argc >= 6) {
+
+                        if (std::string_view(argv[5]) == "--noflatten") {
+
+                            out_flatten = false;
+
+                        } else {
+
+                            throw std::invalid_argument("Wrong output type specified"); 
+
+                        }
+
+                    }
+
+                } else {
+
+                    throw std::invalid_argument("No output format specified"); 
+
+                }
+
+            }
+                    
         }
 
-    } else {
+    } catch (const std::invalid_argument& e) {
 
-        std::cerr << "Usage: demo <in_spec_file> [out_tck_file]" << std::endl;
-        std::cerr << "A standard fixpoint algorithm based on DBMs (PARDIBAAL) is used by default." << std::endl;
-        std::cerr << "If out_tck_file specified a (flattened) TChecker model will be generated instead." << std::endl;
+        std::cerr << e.what() << std::endl;
+        std::cerr << "Usage: demo <in_spec_file> [--{fin|inf}] [out_file --{tck|xml} [--noflatten]]" << std::endl;
+        std::cerr << "If out_file unspecified, a standard fixpoint algorithm based on DBMs (PARDIBAAL)\n"
+                  << "is run on a flattened model to check (Buechi) emptiness (i.e. satisfiability the"
+                  << "input formula && model M)." << std::endl;
         return 1;
 
     }
@@ -82,7 +148,7 @@ int main(int argc, const char ** argv) {
     // std::cout << pos << std::endl;
 
 
-    if (tck_file == NULL) {
+    if (out_file == NULL) {
 
         std::chrono::steady_clock::time_point begin2 = std::chrono::steady_clock::now();
         std::cout << "<<<<<< Calculating fixpoints >>>>>>" << std::endl;
@@ -105,10 +171,10 @@ int main(int argc, const char ** argv) {
 
     } else { 
 
-        std::ofstream tck_out(tck_file, std::ios::trunc);
+        std::ofstream tck_out(out_file, std::ios::trunc);
         if (!tck_out) {
 
-            std::cerr << "Error: Could not open out_tck_file" << std::endl;
+            std::cerr << "Error: Could not open out_out_file" << std::endl;
             return 1;
 
         }
@@ -205,7 +271,7 @@ int main(int argc, const char ** argv) {
         tck_out << tck.str();
 
         std::cout << "\nPlease use the following command to check satisfiability:\n\n";
-        std::cout << "tck-liveness -a couvscc -l accept out.tck" << std::endl;
+        std::cout << "tck-liveness -a couvscc -l accept " << out_file << std::endl;
 
         tck_out.close();
 
