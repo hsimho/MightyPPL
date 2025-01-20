@@ -1,6 +1,6 @@
 #pragma once
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
 enum enum_atoms {
 
@@ -19,4 +19,4 @@ enum enum_atoms {
 
 };
 
-}  // namespace mightylcpp
+}  // namespace mightypplcpp

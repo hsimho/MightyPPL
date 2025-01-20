@@ -4,7 +4,7 @@
 #include "MitlGetBDDVisitor.h"
 
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
 
     std::any MitlGetBDDVisitor::visitMain(MitlParser::MainContext *ctx) {
@@ -389,5 +389,5 @@ namespace mightylcpp {
     }
 
 
-}  // namespace mightylcpp
+}  // namespace mightypplcpp
 

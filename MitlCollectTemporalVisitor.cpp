@@ -4,7 +4,7 @@
 #include "MitlCollectTemporalVisitor.h"
 
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
 
     std::any MitlCollectTemporalVisitor::visitMain(MitlParser::MainContext *ctx) {
@@ -201,5 +201,5 @@ namespace mightylcpp {
     }
 
 
-}  // namespace mightylcpp
+}  // namespace mightypplcpp
 

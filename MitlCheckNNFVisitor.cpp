@@ -5,7 +5,7 @@
 #include "MitlCheckNNFVisitor.h"
 
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
 //    void MitlCheckNNFVisitor::loadParser(const MitlParser& parser) {  //get parser
 //        ruleNames = parser.getRuleNames(); //load parser rules from parser
@@ -159,5 +159,5 @@ namespace mightylcpp {
 
 
 
-}  // namespace mightylcpp
+}  // namespace mightypplcpp
 

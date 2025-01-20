@@ -4,7 +4,7 @@
 #include "MitlAtomNumberingVisitor.h"
 
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
     std::any MitlAtomNumberingVisitor::visitMain(MitlParser::MainContext *ctx) {
 
@@ -221,5 +221,5 @@ namespace mightylcpp {
     }
 
 
-}  // namespace mightylcpp
+}  // namespace mightypplcpp
 

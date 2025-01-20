@@ -13,12 +13,12 @@
 #include "TAwithBDDEdges.h"
 // #include "FixpointwithBDDEdges.h"
 
-#include "MightyL.h"
+#include "MightyPPL.h"
 
 #include "Monitor.h"
 #include "Parser.h"
 
-using namespace mightylcpp;
+using namespace mightypplcpp;
 using namespace antlr4;
 
 

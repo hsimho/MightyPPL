@@ -10,7 +10,7 @@
 
 #include "bdd.h"
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
     extern void allsat_print_handler(char*, int);
     extern std::vector<std::string> sat_paths;

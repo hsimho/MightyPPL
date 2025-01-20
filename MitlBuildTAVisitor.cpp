@@ -4,7 +4,7 @@
 #include "MitlBuildTAVisitor.h"
 
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
 
   std::any MitlBuildTAVisitor::visitMain(MitlParser::MainContext *ctx) {
@@ -76,5 +76,5 @@ namespace mightylcpp {
   }
 
 
-}  // namespace mightylcpp
+}  // namespace mightypplcpp
 

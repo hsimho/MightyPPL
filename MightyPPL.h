@@ -26,7 +26,7 @@
 
 #include "TAwithBDDEdges.h"
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
     extern size_t num_all_props;
 
@@ -36,8 +36,8 @@ namespace mightylcpp {
 
     extern void allsat_print_handler(char*, int); 
 
-    extern std::vector<monitaal::TAwithBDDEdges> build_ta_from_atom(const mightylcpp::MitlParser::AtomContext*);
+    extern std::vector<monitaal::TAwithBDDEdges> build_ta_from_atom(const mightypplcpp::MitlParser::AtomContext*);
 
-    extern monitaal::TA build_ta_from_main(mightylcpp::MitlParser::MainContext*);
+    extern monitaal::TA build_ta_from_main(mightypplcpp::MitlParser::MainContext*);
 
 }

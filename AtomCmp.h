@@ -1,6 +1,6 @@
 #pragma once
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
 struct atom_cmp {
 
@@ -14,4 +14,4 @@ struct atom_cmp {
 
 };
 
-}  // namespace mightylcpp
+}  // namespace mightypplcpp

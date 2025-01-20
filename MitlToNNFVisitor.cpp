@@ -4,7 +4,7 @@
 #include "MitlToNNFVisitor.h"
 
 
-namespace mightylcpp {
+namespace mightypplcpp {
 
     std::any MitlToNNFVisitor::visitMain(MitlParser::MainContext *ctx) {
         return visit(ctx->formula());
@@ -796,5 +796,5 @@ namespace mightylcpp {
     
 
 
-}  // namespace mightylcpp
+}  // namespace mightypplcpp
 

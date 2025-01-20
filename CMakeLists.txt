@@ -1,6 +1,6 @@
 # minimum required CMAKE version
 CMAKE_MINIMUM_REQUIRED(VERSION 3.7 FATAL_ERROR)
-project(MightyL)
+project(MightyPPL)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -35,7 +35,7 @@ find_package(ANTLR REQUIRED)
 
 # Call macro to add lexer and grammar to your build dependencies.
 antlr_target(MitlGrammar Mitl.g4 VISITOR
-            PACKAGE mightylcpp)
+            PACKAGE mightypplcpp)
          #antlr_target(SampleGrammarParser TParser.g4 PARSER
          #             PACKAGE antlrcpptest
          #             DEPENDS_ANTLR SampleGrammarLexer
@@ -74,13 +74,14 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/build/monitaal-prefix/src/monitaal-
 
 # add generated grammar to demo binary target
 add_executable(demo main.cpp
+               MitlBuildTAVisitor.cpp
                MitlCheckNNFVisitor.cpp
                MitlToNNFVisitor.cpp
                MitlAtomNumberingVisitor.cpp
                MitlCollectTemporalVisitor.cpp
                MitlGetBDDVisitor.cpp
                TAwithBDDEdges.cpp
-               MightyL.cpp
+               MightyPPL.cpp
                ${ANTLR_MitlGrammar_CXX_OUTPUTS})
 
 

@@ -433,16 +433,16 @@ namespace monitaal {
 
                 // std::cout << "Before projection: " << e.bdd_label() << std::endl;
 
-                bdd_allsat(e.bdd_label(), *mightylcpp::allsat_print_handler);
-                mightylcpp::sat_paths.clear();
+                bdd_allsat(e.bdd_label(), *mightypplcpp::allsat_print_handler);
+                mightypplcpp::sat_paths.clear();
 
                 projected_e = bdd_exist(e.bdd_label(), new_props);
 
                 // std::cout << "After projection: " << projected_e << std::endl;
 
-                bdd_allsat(projected_e, *mightylcpp::allsat_print_handler);
+                bdd_allsat(projected_e, *mightypplcpp::allsat_print_handler);
 
-                for (const auto& p : mightylcpp::sat_paths) {
+                for (const auto& p : mightypplcpp::sat_paths) {
 
                     if (!s.empty()) {
                         s += " || ";
@@ -453,13 +453,13 @@ namespace monitaal {
                 }
 
                 edges.push_back(monitaal::edge_t(e.from(), e.to(), e.guard(), e.reset(), s));     // from, to, guard, reset, label
-                mightylcpp::sat_paths.clear();
+                mightypplcpp::sat_paths.clear();
                 s.clear();
 
                 // std::set<std::string> labels_set;
 
-                // for (const auto& p : mightylcpp::sat_paths) {
-                //     for (const auto& s : mightylcpp::get_letters(p)) {
+                // for (const auto& p : mightypplcpp::sat_paths) {
+                //     for (const auto& s : mightypplcpp::get_letters(p)) {
                 //         std::string projected_s;
                 //         for (const auto& i : props_to_keep) {
                 //             projected_s += s[i];
@@ -468,7 +468,7 @@ namespace monitaal {
                 //     }
                 // }
 
-                // mightylcpp::sat_paths.clear();
+                // mightypplcpp::sat_paths.clear();
 
                 // for (const auto& label : labels_set) {
                 //     edges.push_back(monitaal::edge_t(e.from(), e.to(), e.guard(), e.reset(), label));     // from, to, guard, reset, label
