@@ -127,7 +127,7 @@ namespace mightypplcpp {
     }
     
 
-    std::vector<monitaal::TAwithBDDEdges> build_ta_from_atom(const MitlParser::AtomContext* phi_) {
+    std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_ta_from_atom(const MitlParser::AtomContext* phi_) {
 
 
         monitaal::clock_map_t clocks;
@@ -190,7 +190,7 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, "2", "0", std::string{}, false, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
 
-                return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
             } else {
 
@@ -258,7 +258,7 @@ namespace mightypplcpp {
                     build_edge(bdd_edges, name_id_map, "2", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), true, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
 
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
 
                 } else if (right_delim->getSymbol()->getType() == MitlParser::RParen && right->children[0]->getText() == "infty") {
@@ -376,7 +376,7 @@ namespace mightypplcpp {
 
                     // build_edge(bdd_edges, name_id_map, "3", "2", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), true, bdd_true() & phi->atom()->hat);
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
 
                 } else {
@@ -432,7 +432,7 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, "0", "1", std::string{}, false, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
 
-                return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
 
             } else {
@@ -487,7 +487,7 @@ namespace mightypplcpp {
 
                     build_edge(bdd_edges, name_id_map, "0", "1", std::string{}, true, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
                 } else if (right_delim->getSymbol()->getType() == MitlParser::RParen && right->children[0]->getText() == "infty") {
 
@@ -575,7 +575,7 @@ namespace mightypplcpp {
 
                     build_edge(bdd_edges, name_id_map, "0", "1", std::string{}, true, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->hat);
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
                 } else {
 
@@ -629,7 +629,7 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, "1", "0", std::string{}, false, !bdd_ithvar(phi->id) & bdd_false() & phi->atom()->hat);
 
-                return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
             } else {
 
@@ -691,7 +691,7 @@ namespace mightypplcpp {
                     build_edge(bdd_edges, name_id_map, "1", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "> " : ">= ") + right->children[0]->getText(), true, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->star);
 
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
 
                 } else if (right_delim->getSymbol()->getType() == MitlParser::RParen && right->children[0]->getText() == "infty") {
@@ -754,7 +754,7 @@ namespace mightypplcpp {
 
                     build_edge(bdd_edges, name_id_map, "1", "0", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), true, !bdd_ithvar(phi->id) & bdd_false() & phi->atom()->hat);
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
 
                 } else {
@@ -833,7 +833,7 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, "0", "1", std::string{}, false, !bdd_ithvar(phi->id) & bdd_false() & phi->atom()->hat);
 
-                return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 2) };   // last arg: initial location id
+                return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 2) }, std::string{} };   // last arg: initial location id
 
             } else {
 
@@ -984,7 +984,7 @@ namespace mightypplcpp {
 
                     build_edge(bdd_edges, name_id_map, "0", "2", std::string{}, true, !bdd_ithvar(phi->id) & bdd_true() & phi->atom()->star);
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 3) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 3) }, std::string{} };   // last arg: initial location id
 
 
                 } else if (right_delim->getSymbol()->getType() == MitlParser::RParen && right->children[0]->getText() == "infty") {
@@ -1116,7 +1116,7 @@ namespace mightypplcpp {
 
                     build_edge(bdd_edges, name_id_map, "0", "1", std::string{}, true, !bdd_ithvar(phi->id) & bdd_false() & phi->atom()->hat);
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 3) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 3) }, std::string{} };   // last arg: initial location id
 
                 } else {
 
@@ -1184,7 +1184,7 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, "2", "0", std::string{}, false, !bdd_ithvar(phi->id) & phi->atom(0)->star & phi->atom(1)->hat);
 
-                return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
             } else {
 
@@ -1252,7 +1252,7 @@ namespace mightypplcpp {
                     build_edge(bdd_edges, name_id_map, "2", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), true, !bdd_ithvar(phi->id) & phi->atom(0)->star & phi->atom(1)->hat);
 
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
 
                 } else if (right_delim->getSymbol()->getType() == MitlParser::RParen && right->children[0]->getText() == "infty") {
@@ -1370,7 +1370,7 @@ namespace mightypplcpp {
 
                     // build_edge(bdd_edges, name_id_map, "3", "2", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), true, phi->atom(0)->hat & phi->atom(1)->hat);
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
                 } else {
 
@@ -1425,7 +1425,7 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, "0", "1", std::string{}, false, !bdd_ithvar(phi->id) & phi->atom(0)->star & phi->atom(1)->hat);
 
-                return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
 
             } else {
@@ -1480,7 +1480,7 @@ namespace mightypplcpp {
 
                     build_edge(bdd_edges, name_id_map, "0", "1", std::string{}, true, !bdd_ithvar(phi->id) & phi->atom(0)->star & phi->atom(1)->hat);
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
                 } else if (right_delim->getSymbol()->getType() == MitlParser::RParen && right->children[0]->getText() == "infty") {
 
@@ -1568,7 +1568,7 @@ namespace mightypplcpp {
 
                     build_edge(bdd_edges, name_id_map, "0", "1", std::string{}, true, !bdd_ithvar(phi->id) & phi->atom(0)->star & phi->atom(1)->hat);
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
 
                 } else {
@@ -1623,7 +1623,7 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, "1", "0", std::string{}, false, !bdd_ithvar(phi->id) & phi->atom(0)->hat & phi->atom(1)->hat);
 
-                return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
             } else {
 
@@ -1686,7 +1686,7 @@ namespace mightypplcpp {
                     build_edge(bdd_edges, name_id_map, "1", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "> " : ">= ") + right->children[0]->getText(), true, !bdd_ithvar(phi->id) & phi->atom(0)->star & phi->atom(1)->star);
 
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
 
 
@@ -1750,7 +1750,7 @@ namespace mightypplcpp {
 
                     build_edge(bdd_edges, name_id_map, "1", "0", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), true, !bdd_ithvar(phi->id) & phi->atom(0)->hat & phi->atom(1)->hat);
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0) }, std::string{} };   // last arg: initial location id
 
                 } else {
 
@@ -1829,7 +1829,7 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, "0", "1", std::string{}, false, !bdd_ithvar(phi->id) & phi->atom(0)->hat & phi->atom(1)->hat);
 
-                return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 2) };   // last arg: initial location id
+                return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 2) }, std::string{} };   // last arg: initial location id
 
 
             } else {
@@ -1981,7 +1981,7 @@ namespace mightypplcpp {
 
                     build_edge(bdd_edges, name_id_map, "0", "2", std::string{}, true, !bdd_ithvar(phi->id) & phi->atom(0)->star & phi->atom(1)->star);
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 3) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 3) }, std::string{} };   // last arg: initial location id
 
                 } else if (right_delim->getSymbol()->getType() == MitlParser::RParen && right->children[0]->getText() == "infty") {
 
@@ -2097,7 +2097,7 @@ namespace mightypplcpp {
 
                     build_edge(bdd_edges, name_id_map, "0", "1", std::string{}, true, !bdd_ithvar(phi->id) & phi->atom(0)->hat & phi->atom(1)->hat);
 
-                    return { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 3) };   // last arg: initial location id
+                    return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 3) }, std::string{} };   // last arg: initial location id
 
                 } else {
 
@@ -2206,7 +2206,7 @@ namespace mightypplcpp {
 
                     }
 
-                    return components;
+                    return { components, std::string{} };
 
                 } else {
 
@@ -2300,7 +2300,7 @@ namespace mightypplcpp {
 
                     }
 
-                    return components;
+                    return { components, std::string{} };
 
                 } else {
 
@@ -2408,7 +2408,7 @@ namespace mightypplcpp {
 
                     }
 
-                    return components;
+                    return { components, std::string{} };
 
                 } else {
 
@@ -2559,7 +2559,7 @@ namespace mightypplcpp {
 
                     }
 
-                    return components;
+                    return { components, std::string{} };
 
                 } else {
 
@@ -2966,7 +2966,7 @@ namespace mightypplcpp {
             } else {
                 std::cout << "\nGenerating TA_" << (*it)->id << "...\n";
             }
-            generated_components = build_ta_from_atom(*it);
+            generated_components = build_ta_from_atom(*it).first;
             temporal_components.insert(temporal_components.end(), generated_components.begin(), generated_components.end());
 
             std::cout << std::endl;

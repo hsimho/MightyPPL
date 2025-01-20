@@ -36,7 +36,7 @@ namespace mightypplcpp {
 
     extern void allsat_print_handler(char*, int); 
 
-    extern std::vector<monitaal::TAwithBDDEdges> build_ta_from_atom(const mightypplcpp::MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_ta_from_atom(const mightypplcpp::MitlParser::AtomContext*);
 
     extern monitaal::TA build_ta_from_main(mightypplcpp::MitlParser::MainContext*);
 
