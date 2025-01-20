@@ -129,6 +129,7 @@ namespace mightypplcpp {
 
     std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_ta_from_atom(const MitlParser::AtomContext* phi_) {
 
+        std::stringstream out_automaton;
 
         monitaal::clock_map_t clocks;
         clocks.insert({0, "x0"});        // clock 0 is needed anyway
@@ -139,10 +140,45 @@ namespace mightypplcpp {
 
             std::string name = "TA_" + std::to_string(phi->id);
 
+            if (out_format.has_value()) {
+
+                if (out_format.value()) {
+
+                    out_automaton << std::endl << std::endl;
+                    out_automaton << "# " << "TA_" << phi->id << std::endl;
+                    out_automaton << "# " << const_cast<MitlParser::AtomFContext*>(phi)->getText() << std::endl;
+                    out_automaton << "process:" << name << std::endl;
+
+                } else {
+
+                    assert(("UPPAAL XML output to be implemented", false));
+
+                }
+
+            }
+
             if (phi->interval() == nullptr) {
 
-                // Finally
-                // "untimed" case
+                /***** Finally
+                 "untimed" case
+                *****/
+
+                if (out_format.has_value()) {
+
+                    if (out_format.value()) {
+
+                        out_automaton << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
+                        out_automaton << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
+                        out_automaton << "location:" << "TA_" << phi->id << ":ell_2{labels: accept_" << phi->id << "}" << std::endl;
+
+                    } else {
+
+                        assert(("UPPAAL XML output to be implemented", false));
+
+                    }
+
+                }
+                
 
                 monitaal::constraints_t empty_invariant;
                 monitaal::locations_t locations;

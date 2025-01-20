@@ -23,11 +23,16 @@
 using namespace mightypplcpp;
 using namespace antlr4;
 
-const char* spec_file = NULL;
-const char* out_file = NULL;
-std::optional<bool> out_format = std::nullopt;    // true: tck, false: xml
-bool out_flatten = true;
-bool out_fin = false;
+
+namespace mightypplcpp {
+
+    const char* spec_file = NULL;
+    const char* out_file = NULL;
+    std::optional<bool> out_format = std::nullopt;    // true: tck, false: xml
+    bool out_flatten = true;
+    bool out_fin = false;
+
+} // namespace mightypplcpp
 
 int main(int argc, const char ** argv) {
 

@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <iomanip>
+#include <optional>
 
 #include "bdd.h"
 
@@ -35,6 +36,12 @@ namespace mightypplcpp {
     extern std::vector<std::string> get_letters(const std::string&);
 
     extern void allsat_print_handler(char*, int); 
+
+    extern const char* spec_file;
+    extern const char* out_file; 
+    extern std::optional<bool> out_format;
+    extern bool out_flatten;
+    extern bool out_fin;
 
     extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_ta_from_atom(const mightypplcpp::MitlParser::AtomContext*);
 
