@@ -106,7 +106,7 @@ int main(int argc, const char ** argv) {
         std::cerr << e.what() << std::endl;
         std::cerr << "Usage: demo <in_spec_file> [--{fin|inf}] [out_file --{tck|xml} [--noflatten]]" << std::endl;
         std::cerr << "If out_file unspecified, a standard fixpoint algorithm based on DBMs (PARDIBAAL)\n"
-                  << "is run on a flattened model to check (Buechi) emptiness (i.e. satisfiability the"
+                  << "checks the (Buechi) emptiness of a flattened automaton (i.e. satisfiability the"
                   << "input formula && model M)." << std::endl;
         return 1;
 
