@@ -4,6 +4,7 @@
 #include <set>
 #include <vector>
 #include <cassert>
+#include <optional>
 
 #include "types.h"
 #include "TA.h"
@@ -15,6 +16,8 @@ namespace mightypplcpp {
     extern void allsat_print_handler(char*, int);
     extern std::vector<std::string> sat_paths;
     extern std::vector<std::string> get_letters(const std::string&);
+
+    extern bool out_fin;
 
 }
 

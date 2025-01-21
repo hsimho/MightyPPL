@@ -37,7 +37,6 @@ namespace mightypplcpp {
 
     extern void allsat_print_handler(char*, int); 
 
-    extern const char* spec_file;
     extern const char* out_file; 
     extern std::optional<bool> out_format;
     extern bool out_flatten;
