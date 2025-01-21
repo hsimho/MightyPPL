@@ -45,6 +45,6 @@ namespace mightypplcpp {
 
     extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_ta_from_atom(const mightypplcpp::MitlParser::AtomContext*);
 
-    extern monitaal::TA build_ta_from_main(mightypplcpp::MitlParser::MainContext*);
+    extern std::pair<monitaal::TA, std::string> build_ta_from_main(mightypplcpp::MitlParser::MainContext*);
 
 }
