@@ -189,8 +189,25 @@ namespace monitaal {
             name += components[i].locations().at(location_ids[i]).name() + (components[i].locations().at(location_ids[i]).is_accept() ? "*" : "") + "_";
         }
 
-        new_locations_reachable.push_back(location_t(components[0].locations().at(location_ids[0]).is_accept(), tmp_id, name + std::to_string(0), constr));
-        std::cout << "Adding location " << tmp_id << (components[0].locations().at(location_ids[0]).is_accept() ?  " *ACCEPTING*" : std::string{}) << std::endl;
+
+        if (mightypplcpp::out_fin) {
+
+            bool acc = true;
+            for (size_t i = 0; i < components.size(); ++i) {
+
+                acc = acc && components[i].locations().at(location_ids[i]).is_accept();
+
+            }
+
+            new_locations_reachable.push_back(location_t(acc, tmp_id, name + std::to_string(0), constr));
+            std::cout << "Adding location " << tmp_id << (acc ?  " *ACCEPTING*" : std::string{}) << std::endl;
+
+        } else {
+
+            new_locations_reachable.push_back(location_t(components[0].locations().at(location_ids[0]).is_accept(), tmp_id, name + std::to_string(0), constr));
+            std::cout << "Adding location " << tmp_id << (components[0].locations().at(location_ids[0]).is_accept() ?  " *ACCEPTING*" : std::string{}) << std::endl;
+
+        }
 
         new_loc_indir.insert({location_ids, {}});
         new_loc_indir.at(location_ids).insert({0, tmp_id});
@@ -295,19 +312,31 @@ namespace monitaal {
                         //
                         int new_i = curr_i;
                         
-                        if (components[curr_i].locations().at(location_ids[curr_i]).is_accept()) {
+                        if (!mightypplcpp::out_fin) {
 
-                            bool full_circle = false;
-                            while (!full_circle && components[new_i].locations().at(location_ids[new_i]).is_accept()) { 
+                            if (components[curr_i].locations().at(location_ids[curr_i]).is_accept()) {
 
-                                if (new_i == components.size() - 1) {
-                                    new_i = 0;
-                                    full_circle = true;
-                                } else {
-                                    ++new_i; 
+                                bool full_circle = false;
+                                while (!full_circle && components[new_i].locations().at(location_ids[new_i]).is_accept()) { 
+
+                                    if (new_i == components.size() - 1) {
+                                        new_i = 0;
+                                        full_circle = true;
+                                    } else {
+                                        ++new_i; 
+                                    }
+
                                 }
 
                             }
+
+                        }
+
+
+                        bool dest_acc = true;
+                        for (size_t i = 0; i < components.size(); ++i) {
+
+                            dest_acc = dest_acc && components[i].locations().at(dest_location_ids[i]).is_accept();
 
                         }
 
@@ -316,8 +345,13 @@ namespace monitaal {
                             
                             if (!new_loc_indir.at(dest_location_ids).count(new_i)) {
 
-                                new_locations_reachable.push_back(location_t((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false), tmp_id, name + std::to_string(new_i), constr));
-                                std::cout << "Adding location " << tmp_id << ((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false) ?  " *ACCEPTING*" : std::string{}) << std::endl;
+                                if (mightypplcpp::out_fin) {
+                                    new_locations_reachable.push_back(location_t(dest_acc, tmp_id, name + std::to_string(new_i), constr));
+                                    std::cout << "Adding location " << tmp_id << (dest_acc ?  " *ACCEPTING*" : std::string{}) << std::endl;
+                                } else {
+                                    new_locations_reachable.push_back(location_t((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false), tmp_id, name + std::to_string(new_i), constr));
+                                    std::cout << "Adding location " << tmp_id << ((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false) ?  " *ACCEPTING*" : std::string{}) << std::endl;
+                                }
                                 new_loc_indir.at(dest_location_ids).insert({new_i, tmp_id});
                                 id_location_ids_map.insert({tmp_id, dest_location_ids});
                                 id_i_map.insert({tmp_id++, new_i});
@@ -326,8 +360,13 @@ namespace monitaal {
 
                         } else {
 
-                            new_locations_reachable.push_back(location_t((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false), tmp_id, name + std::to_string(new_i), constr));
-                            std::cout << "Adding location " << tmp_id << ((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false) ?  " *ACCEPTING*" : std::string{}) << std::endl;
+                            if (mightypplcpp::out_fin) {
+                                new_locations_reachable.push_back(location_t(dest_acc, tmp_id, name + std::to_string(new_i), constr));
+                                std::cout << "Adding location " << tmp_id << (dest_acc ?  " *ACCEPTING*" : std::string{}) << std::endl;
+                            } else {
+                                new_locations_reachable.push_back(location_t((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false), tmp_id, name + std::to_string(new_i), constr));
+                                std::cout << "Adding location " << tmp_id << ((new_i == 0 ? components[new_i].locations().at(dest_location_ids[new_i]).is_accept() : false) ?  " *ACCEPTING*" : std::string{}) << std::endl;
+                            }
                             new_loc_indir.insert({dest_location_ids, {}});
                             new_loc_indir.at(dest_location_ids).insert({new_i, tmp_id});
                             id_location_ids_map.insert({tmp_id, dest_location_ids});

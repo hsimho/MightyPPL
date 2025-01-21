@@ -214,7 +214,7 @@ namespace mightypplcpp {
 
                 locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
                 locations.push_back(monitaal::location_t(false, 1, "s1", empty_invariant));
-                locations.push_back(monitaal::location_t(true, 2, "s2", empty_invariant));
+                locations.push_back(monitaal::location_t(out_fin ? false : true, 2, "s2", empty_invariant));
 
                 std::map<std::string, monitaal::location_id_t> name_id_map;
                 name_id_map.insert({"0", 0});
@@ -230,7 +230,7 @@ namespace mightypplcpp {
 
                         out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                         out_str << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
-                        out_str << "location:" << "TA_" << phi->id << ":ell_2{labels: accept_" << phi->id << "}" << std::endl;
+                        out_str << "location:" << "TA_" << phi->id << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
 
                     } else {
 
@@ -300,7 +300,7 @@ namespace mightypplcpp {
 
                     locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
                     locations.push_back(monitaal::location_t(false, 1, "s1", empty_invariant));
-                    locations.push_back(monitaal::location_t(true, 2, "s2", empty_invariant));
+                    locations.push_back(monitaal::location_t(out_fin ? false : true, 2, "s2", empty_invariant));
 
                     std::map<std::string, monitaal::location_id_t> name_id_map;
                     name_id_map.insert({"0", 0});
@@ -315,7 +315,7 @@ namespace mightypplcpp {
 
                             out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
-                            out_str << "location:" << "TA_" << phi->id << ":ell_2{labels: accept_" << phi->id << "}" << std::endl;
+                            out_str << "location:" << "TA_" << phi->id << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
 
                         } else {
 
@@ -374,7 +374,7 @@ namespace mightypplcpp {
 
                     locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
                     locations.push_back(monitaal::location_t(false, 1, "s1", empty_invariant));
-                    locations.push_back(monitaal::location_t(true, 2, "s2", empty_invariant));
+                    locations.push_back(monitaal::location_t(out_fin ? false : true, 2, "s2", empty_invariant));
                     // locations.push_back(monitaal::location_t(false, 3, "s3", empty_invariant));
 
                     std::map<std::string, monitaal::location_id_t> name_id_map;
@@ -391,7 +391,7 @@ namespace mightypplcpp {
 
                             out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
-                            out_str << "location:" << "TA_" << phi->id << ":ell_2{labels: accept_" << phi->id << "}" << std::endl;
+                            out_str << "location:" << "TA_" << phi->id << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
                             // out_str << "location:" << "TA_" << phi->id << ":ell_3{}" << std::endl;
 
                         } else {
@@ -1477,7 +1477,7 @@ namespace mightypplcpp {
 
                 locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
                 locations.push_back(monitaal::location_t(false, 1, "s1", empty_invariant));
-                locations.push_back(monitaal::location_t(true, 2, "s2", empty_invariant));
+                locations.push_back(monitaal::location_t(out_fin ? false : true, 2, "s2", empty_invariant));
 
                 std::map<std::string, monitaal::location_id_t> name_id_map;
                 name_id_map.insert({"0", 0});
@@ -1492,7 +1492,7 @@ namespace mightypplcpp {
 
                         out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                         out_str << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
-                        out_str << "location:" << "TA_" << phi->id << ":ell_2{labels: accept_" << phi->id << "}" << std::endl;
+                        out_str << "location:" << "TA_" << phi->id << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
 
                     } else {
 
@@ -1561,7 +1561,7 @@ namespace mightypplcpp {
 
                     locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
                     locations.push_back(monitaal::location_t(false, 1, "s1", empty_invariant));
-                    locations.push_back(monitaal::location_t(true, 2, "s2", empty_invariant));
+                    locations.push_back(monitaal::location_t(out_fin ? false : true, 2, "s2", empty_invariant));
 
                     std::map<std::string, monitaal::location_id_t> name_id_map;
                     name_id_map.insert({"0", 0});
@@ -1576,7 +1576,7 @@ namespace mightypplcpp {
 
                             out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
-                            out_str << "location:" << "TA_" << phi->id << ":ell_2{labels: accept_" << phi->id << "}" << std::endl;
+                            out_str << "location:" << "TA_" << phi->id << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
 
                         } else {
 
@@ -1635,7 +1635,7 @@ namespace mightypplcpp {
 
                     locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
                     locations.push_back(monitaal::location_t(false, 1, "s1", empty_invariant));
-                    locations.push_back(monitaal::location_t(true, 2, "s2", empty_invariant));
+                    locations.push_back(monitaal::location_t(out_fin ? false : true, 2, "s2", empty_invariant));
                     // locations.push_back(monitaal::location_t(false, 3, "s3", empty_invariant));
 
                     std::map<std::string, monitaal::location_id_t> name_id_map;
@@ -1652,7 +1652,7 @@ namespace mightypplcpp {
 
                             out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
-                            out_str << "location:" << "TA_" << phi->id << ":ell_2{labels: accept_" << phi->id << "}" << std::endl;
+                            out_str << "location:" << "TA_" << phi->id << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
                             // out_str << "location:" << "TA_" << phi->id << ":ell_3{}" << std::endl;
 
                         } else {
@@ -2737,7 +2737,7 @@ namespace mightypplcpp {
                             name_id_map.insert({"1_" + std::to_string(j), 1 + j});
                         }
 
-                        locations.push_back(monitaal::location_t(true, 1 + phi->atoms.size(), "s2", empty_invariant));
+                        locations.push_back(monitaal::location_t(out_fin ? false : true, 1 + phi->atoms.size(), "s2", empty_invariant));
                         name_id_map.insert({"2", 1 + phi->atoms.size()});
 
                         if (out_format.has_value()) {
@@ -2754,7 +2754,7 @@ namespace mightypplcpp {
                                     out_str << "location:" << "TA_" << phi->id + i << ":ell_1_" << j << "{}" << std::endl;
                                 }
 
-                                out_str << "location:" << "TA_" << phi->id + i << ":ell_2{labels: accept_" << phi->id + i << "}" << std::endl;
+                                out_str << "location:" << "TA_" << phi->id + i << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id + i)) << "}" << std::endl;
 
                             } else {
 
@@ -4100,7 +4100,12 @@ namespace mightypplcpp {
             if (out_format.value()) {
 
                 std::cout << "\nPlease use the following command to check satisfiability:\n\n";
-                std::cout << "tck-liveness -a couvscc -l ";
+                if (out_fin) {
+                    std::cout << "tck-reach -a covreach -l ";
+                } else {
+                    std::cout << "tck-liveness -a couvscc -l ";
+                }
+
                 for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
 
                     if ((*it)->type == PNUELIFN) {

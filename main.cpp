@@ -156,18 +156,33 @@ int main(int argc, const char ** argv) {
     if (!out_format.has_value()) {
 
         std::chrono::steady_clock::time_point begin2 = std::chrono::steady_clock::now();
-        std::cout << "<<<<<< Calculating fixpoints >>>>>>" << std::endl;
-        auto recurrent = monitaal::Fixpoint::buchi_accept_fixpoint(pos);
+        std::cout << "<<<<<< Calculating fixpoint >>>>>>" << std::endl;
 
         auto initial_state = monitaal::symbolic_state_t(pos.initial_location(), monitaal::Federation::zero(pos.number_of_clocks()));
 
-        if (initial_state.is_included_in(monitaal::Fixpoint::reach(recurrent, pos))) {
+        if (out_fin) {
 
-            std::cout << "\n\n\033[32mSATISFIABLE\033[0m\n\n" << std::endl;
+            if (initial_state.is_included_in(monitaal::Fixpoint::reach(monitaal::Fixpoint::accept_states(pos), pos))) {
+
+                std::cout << "\n\n\033[32mSATISFIABLE (by a \033[1mfinite\033[22m timed word)\033[0m\n\n" << std::endl;
+
+            } else {
+
+                std::cout << "\n\n\033[31mNOT SATISFIABLE (by \033[1mfinite\033[22m timed words)\033[0m\n\n" << std::endl;
+
+            }
 
         } else {
 
-            std::cout << "\n\n\033[31mNOT SATISFIABLE\033[0m\n\n" << std::endl;
+            if (initial_state.is_included_in(monitaal::Fixpoint::buchi_accept_fixpoint(pos))) {
+
+                std::cout << "\n\n\033[32mSATISFIABLE (by an \033[1minfinite\033[22m timed word)\033[0m\n\n" << std::endl;
+
+            } else {
+
+                std::cout << "\n\n\033[31mNOT SATISFIABLE (by \033[1minfinite\033[22m timed words)\033[0m\n\n" << std::endl;
+
+            }
 
         }
 
@@ -212,8 +227,8 @@ int main(int argc, const char ** argv) {
 
                 for (const auto& [k, v] : pos.locations()) {
 
-                    tck << "location:" << "TA" << ":ell_" << k << "{" << (k == pos.initial_location() ?  "initial: : " : std::string{})
-                        << (v.is_accept() ? "labels: accept" : std::string{}) << "}" << std::endl;
+                    tck << "location:" << "TA" << ":ell_" << k << "{" << (k == pos.initial_location() ?  (v.is_accept() ? "initial: : " : "initial: ") : "")
+                        << (v.is_accept() ? "labels: accept" : "") << "}" << std::endl;
 
                 }
                 tck << std::endl << std::endl;
@@ -280,7 +295,12 @@ int main(int argc, const char ** argv) {
                 spec_out << tck.str();
 
                 std::cout << "\nPlease use the following command to check satisfiability:\n\n";
-                std::cout << "tck-liveness -a couvscc -l accept " << out_file << std::endl;
+
+                if (out_fin) {
+                    std::cout << "tck-reach -a covreach -l accept " << out_file << std::endl;
+                } else {
+                    std::cout << "tck-liveness -a couvscc -l accept " << out_file << std::endl;
+                }
 
             } else {
 
