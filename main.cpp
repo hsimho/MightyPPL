@@ -487,7 +487,7 @@ int main(int argc, const char ** argv) {
                     for (auto it = pos.locations().begin(); it != pos.locations().end(); ++it) {
 
                         if (it->second.is_accept()) {
-                            ltl_out << "TA.loc == " << it->first;
+                            ltl_out << "TA_loc == " << it->first;
                             if (it->first != last_acc_loc) {
                                 ltl_out << " || ";
                             }
