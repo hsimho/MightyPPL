@@ -78,11 +78,11 @@ namespace mightypplcpp {
 
     void build_edge(monitaal::bdd_edges_t& bdd_edges, const std::map<std::string, monitaal::location_id_t> name_id_map, std::stringstream& out_s, const int id, const std::string& source, const std::string& target, const std::string& guard, bool reset, bdd label) {
 
-        monitaal::constraints_t guard_constraints_t;
-        monitaal::clocks_t reset_clocks_t;
+        monitaal::constraints_t guard_constraints;
+        monitaal::clocks_t reset_clocks;
 
         if (reset) {
-            reset_clocks_t.push_back(1);
+            reset_clocks.push_back(1);
         }
 
         if (!guard.empty()) {
@@ -102,25 +102,25 @@ namespace mightypplcpp {
 
             if (comp_operator == "<=") {
 
-                guard_constraints_t.push_back(monitaal::constraint_t::upper_non_strict(1, c));
+                guard_constraints.push_back(monitaal::constraint_t::upper_non_strict(1, c));
 
             } else if (comp_operator == "<") {
 
-                guard_constraints_t.push_back(monitaal::constraint_t::upper_strict(1, c));
+                guard_constraints.push_back(monitaal::constraint_t::upper_strict(1, c));
 
             } else if (comp_operator == ">=") {
 
-                guard_constraints_t.push_back(monitaal::constraint_t::lower_non_strict(1, c));
+                guard_constraints.push_back(monitaal::constraint_t::lower_non_strict(1, c));
 
             } else { // comp_operator == ">"
 
-                guard_constraints_t.push_back(monitaal::constraint_t::lower_strict(1, c));
+                guard_constraints.push_back(monitaal::constraint_t::lower_strict(1, c));
 
             }
 
         }
 
-        bdd_edges.push_back(monitaal::bdd_edge_t(name_id_map.at(source), name_id_map.at(target), guard_constraints_t, reset_clocks_t, label));
+        bdd_edges.push_back(monitaal::bdd_edge_t(name_id_map.at(source), name_id_map.at(target), guard_constraints, reset_clocks, label));
 
 
         if (out_format.has_value()) {
@@ -160,10 +160,6 @@ namespace mightypplcpp {
                 sat_paths.clear();
                 out_s << s;
 
-            } else {
-
-                assert(("UPPAAL XML output to be implemented", false));
-
             }
 
         }
@@ -194,10 +190,6 @@ namespace mightypplcpp {
                     out_str << "# " << "TA_" << phi->id << std::endl;
                     out_str << "# " << const_cast<MitlParser::AtomFContext*>(phi)->getText() << std::endl;
                     out_str << "process:" << name << std::endl;
-
-                } else {
-
-                    assert(("UPPAAL XML output to be implemented", false));
 
                 }
 
@@ -231,10 +223,6 @@ namespace mightypplcpp {
                         out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                         out_str << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
                         out_str << "location:" << "TA_" << phi->id << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
-
-                    } else {
-
-                        assert(("UPPAAL XML output to be implemented", false));
 
                     }
 
@@ -317,10 +305,6 @@ namespace mightypplcpp {
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
 
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
-
                         }
 
                     }
@@ -393,10 +377,6 @@ namespace mightypplcpp {
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
                             // out_str << "location:" << "TA_" << phi->id << ":ell_3{}" << std::endl;
-
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
 
                         }
 
@@ -523,10 +503,6 @@ namespace mightypplcpp {
                     out_str << "# " << const_cast<MitlParser::AtomOContext*>(phi)->getText() << std::endl;
                     out_str << "process:" << name << std::endl;
 
-                } else {
-
-                    assert(("UPPAAL XML output to be implemented", false));
-
                 }
 
             }
@@ -556,10 +532,6 @@ namespace mightypplcpp {
 
                         out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                         out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
-
-                    } else {
-
-                        assert(("UPPAAL XML output to be implemented", false));
 
                     }
 
@@ -627,10 +599,6 @@ namespace mightypplcpp {
                             out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
 
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
-
                         }
 
                     }
@@ -687,10 +655,6 @@ namespace mightypplcpp {
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_2{labels: accept_" << phi->id << "}" << std::endl;
                             // out_str << "location:" << "TA_" << phi->id << ":ell_3{}" << std::endl;
-
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
 
                         }
 
@@ -786,10 +750,6 @@ namespace mightypplcpp {
                     out_str << "# " << const_cast<MitlParser::AtomGContext*>(phi)->getText() << std::endl;
                     out_str << "process:" << name << std::endl;
 
-                } else {
-
-                    assert(("UPPAAL XML output to be implemented", false));
-
                 }
 
             }
@@ -818,10 +778,6 @@ namespace mightypplcpp {
 
                         out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                         out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
-
-                    } else {
-
-                        assert(("UPPAAL XML output to be implemented", false));
 
                     }
 
@@ -888,10 +844,6 @@ namespace mightypplcpp {
                             out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
 
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
-
                         }
 
                     }
@@ -954,10 +906,6 @@ namespace mightypplcpp {
 
                             out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
-
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
 
                         }
 
@@ -1029,10 +977,6 @@ namespace mightypplcpp {
                     out_str << "# " << const_cast<MitlParser::AtomHContext*>(phi)->getText() << std::endl;
                     out_str << "process:" << name << std::endl;
 
-                } else {
-
-                    assert(("UPPAAL XML output to be implemented", false));
-
                 }
 
             }
@@ -1066,10 +1010,6 @@ namespace mightypplcpp {
                         out_str << "location:" << "TA_" << phi->id << ":ell_0i{initial: }" << std::endl;
                         out_str << "location:" << "TA_" << phi->id << ":ell_0{labels: accept_" << phi->id << "}" << std::endl;
                         out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
-
-                    } else {
-
-                        assert(("UPPAAL XML output to be implemented", false));
 
                     }
 
@@ -1161,10 +1101,6 @@ namespace mightypplcpp {
                             out_str << "location:" << "TA_" << phi->id << ":ell_0{labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_2{labels: accept_" << phi->id << "}" << std::endl;
-
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
 
                         }
 
@@ -1319,10 +1255,6 @@ namespace mightypplcpp {
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_2{labels: accept_" << phi->id << "}" << std::endl;
 
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
-
                         }
 
                     }
@@ -1458,10 +1390,6 @@ namespace mightypplcpp {
                     out_str << "# " << const_cast<MitlParser::AtomUContext*>(phi)->getText() << std::endl;
                     out_str << "process:" << name << std::endl;
 
-                } else {
-
-                    assert(("UPPAAL XML output to be implemented", false));
-
                 }
 
             }
@@ -1493,10 +1421,6 @@ namespace mightypplcpp {
                         out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                         out_str << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
                         out_str << "location:" << "TA_" << phi->id << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
-
-                    } else {
-
-                        assert(("UPPAAL XML output to be implemented", false));
 
                     }
 
@@ -1578,10 +1502,6 @@ namespace mightypplcpp {
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
 
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
-
                         }
 
                     }
@@ -1654,10 +1574,6 @@ namespace mightypplcpp {
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
                             // out_str << "location:" << "TA_" << phi->id << ":ell_3{}" << std::endl;
-
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
 
                         }
 
@@ -1781,10 +1697,6 @@ namespace mightypplcpp {
                     out_str << "# " << const_cast<MitlParser::AtomSContext*>(phi)->getText() << std::endl;
                     out_str << "process:" << name << std::endl;
 
-                } else {
-
-                    assert(("UPPAAL XML output to be implemented", false));
-
                 }
 
             }
@@ -1813,10 +1725,6 @@ namespace mightypplcpp {
 
                         out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                         out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
-
-                    } else {
-
-                        assert(("UPPAAL XML output to be implemented", false));
 
                     }
 
@@ -1884,10 +1792,6 @@ namespace mightypplcpp {
                             out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
 
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
-
                         }
 
                     }
@@ -1944,10 +1848,6 @@ namespace mightypplcpp {
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_2{labels: accept_" << phi->id << "}" << std::endl;
                             // out_str << "location:" << "TA_" << phi->id << ":ell_3{}" << std::endl;
-
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
 
                         }
 
@@ -2044,10 +1944,6 @@ namespace mightypplcpp {
                     out_str << "# " << const_cast<MitlParser::AtomRContext*>(phi)->getText() << std::endl;
                     out_str << "process:" << name << std::endl;
 
-                } else {
-
-                    assert(("UPPAAL XML output to be implemented", false));
-
                 }
 
             }
@@ -2076,10 +1972,6 @@ namespace mightypplcpp {
 
                         out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                         out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
-
-                    } else {
-
-                        assert(("UPPAAL XML output to be implemented", false));
 
                     }
 
@@ -2147,10 +2039,6 @@ namespace mightypplcpp {
                             out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
 
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
-
                         }
 
                     }
@@ -2214,10 +2102,6 @@ namespace mightypplcpp {
 
                             out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
-
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
 
                         }
 
@@ -2288,10 +2172,6 @@ namespace mightypplcpp {
                     out_str << "# " << const_cast<MitlParser::AtomTContext*>(phi)->getText() << std::endl;
                     out_str << "process:" << name << std::endl;
 
-                } else {
-
-                    assert(("UPPAAL XML output to be implemented", false));
-
                 }
 
             }
@@ -2325,10 +2205,6 @@ namespace mightypplcpp {
                         out_str << "location:" << "TA_" << phi->id << ":ell_0i{initial: }" << std::endl;
                         out_str << "location:" << "TA_" << phi->id << ":ell_0{labels: accept_" << phi->id << "}" << std::endl;
                         out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
-
-                    } else {
-
-                        assert(("UPPAAL XML output to be implemented", false));
 
                     }
 
@@ -2422,10 +2298,6 @@ namespace mightypplcpp {
                             out_str << "location:" << "TA_" << phi->id << ":ell_0{labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_2{labels: accept_" << phi->id << "}" << std::endl;
-
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
 
                         }
 
@@ -2578,10 +2450,6 @@ namespace mightypplcpp {
                             out_str << "location:" << "TA_" << phi->id << ":ell_0{labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
                             out_str << "location:" << "TA_" << phi->id << ":ell_2{labels: accept_" << phi->id << "}" << std::endl;
-
-                        } else {
-
-                            assert(("UPPAAL XML output to be implemented", false));
 
                         }
 
@@ -2756,10 +2624,6 @@ namespace mightypplcpp {
 
                                 out_str << "location:" << "TA_" << phi->id + i << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id + i)) << "}" << std::endl;
 
-                            } else {
-
-                                assert(("UPPAAL XML output to be implemented", false));
-
                             }
 
                         }
@@ -2885,10 +2749,6 @@ namespace mightypplcpp {
                                     out_str << "location:" << "TA_" << phi->id + i << ":ell_1_" << j << "{labels: accept_" << phi->id + i << "}" << std::endl;
                                 }
 
-                            } else {
-
-                                assert(("UPPAAL XML output to be implemented", false));
-
                             }
 
                         }
@@ -3001,10 +2861,6 @@ namespace mightypplcpp {
                                 for (auto j = 0; j < phi->atoms.size(); ++j) {
                                     out_str << "location:" << "TA_" << phi->id + i << ":ell_1_" << j << "{labels: accept_" << phi->id + i << "}" << std::endl;
                                 }
-
-                            } else {
-
-                                assert(("UPPAAL XML output to be implemented", false));
 
                             }
 
@@ -3135,10 +2991,6 @@ namespace mightypplcpp {
                                 for (auto j = 0; j < phi->atoms.size(); ++j) {
                                     out_str << "location:" << "TA_" << phi->id + i << ":ell_1_" << j << "{labels: accept_" << phi->id + i << "}" << std::endl;
                                 }
-
-                            } else {
-
-                                assert(("UPPAAL XML output to be implemented", false));
 
                             }
 
@@ -3720,10 +3572,6 @@ namespace mightypplcpp {
                 out_str << "int:1:0:1:0:turn" << std::endl;
 
 
-            } else {
-
-                assert(("UPPAAL XML output to be implemented", false));
-
             }
 
         }
@@ -3894,10 +3742,6 @@ namespace mightypplcpp {
                 out_str << "edge:" << "TA_div" << ":ell_1:ell_0:a{provided: turn == 1 && x_div >= 1 : do: turn = 0; x_div = 0}" << std::endl;
 
 
-            } else {
-
-                assert(("UPPAAL XML output to be implemented", false));
-
             }
 
         }
@@ -4027,7 +3871,7 @@ namespace mightypplcpp {
 
             } else {
 
-                assert(("UPPAAL XML output to be implemented", false));
+                // no need to generate XML in out_str at this point
 
             }
 
@@ -4093,6 +3937,8 @@ namespace mightypplcpp {
                 }
             }
 
+            // return TA, but not the generated output for components 
+
             return { product.projection(props_to_remove), std::string{} };
 
         } else { // out_format.has_value() && !out_flatten
@@ -4157,15 +4003,18 @@ namespace mightypplcpp {
 
                 std::cout << "accept_0,accept_M,accept_div " << out_file << std::endl;
                 
-                return { monitaal::TA("dummy", {}, {}, {}, 0), out_str.str() };
 
+                // return no TA, but the genereated output for components
+
+                return { monitaal::TA("dummy", {}, {}, {}, 0), out_str.str() };
 
             } else {
 
-                assert(("UPPAAL XML output to be implemented", false));
+                // return nothing; out_str is empty at this point anyway
+
+                return { monitaal::TA("dummy", {}, {}, {}, 0), std::string{} };
 
             }
-
 
         }
 

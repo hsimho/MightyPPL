@@ -110,9 +110,9 @@ int main(int argc, const char ** argv) {
 
         std::cerr << e.what() << std::endl;
         std::cerr << "Usage: demo <in_spec_file> --{fin|inf} [out_file --{tck|xml} [--noflatten]]" << std::endl;
-        std::cerr << "If out_file unspecified, a standard fixpoint algorithm based on DBMs (PARDIBAAL)\n"
-                  << "checks the (Buechi) emptiness of a flattened automaton (i.e. satisfiability the"
-                  << "input formula && model M)." << std::endl;
+        std::cerr << "If [out_file ...] unspecified, the built-in fixpoint algorithm based on DBMs\n"
+                  << "(PARDIBAAL) checks the (Buechi) emptiness of a flattened automaton (i.e. the\n"
+                  << "satisfiability of the input formula && TA_div && model M)." << std::endl;
         return 1;
 
     }
@@ -236,7 +236,7 @@ int main(int argc, const char ** argv) {
                 for (const auto& [k, v] : pos.locations()) {
 
                     for (const auto& e : pos.edges_from(k)) {
-                        auto reset_clocks = e.reset();
+
                         tck << "edge:TA:ell_" << e.from() << ":ell_" << e.to() << ":a{";
 
                         std::string provided_str;
@@ -310,7 +310,204 @@ int main(int argc, const char ** argv) {
 
         } else {
 
-            assert(("UPPAAL XML output to be implemented", false));
+            if (out_flatten) {
+
+                std::stringstream xml;
+
+                xml << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
+                xml << "<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>" << std::endl;
+
+                xml << "<nta>" << std::endl << std::endl;
+
+                xml << "\t<declaration>" << std::endl;
+
+
+                for (auto i = 1; i < pos.number_of_clocks() - 1; ++i) {
+
+                    // In MoniTAal there is always x0 (meant to be 0 at all times)
+                    // And there is an extra "global" clock for monitoring in newer versions MoniTAal
+                    // So if number_of_clocks() returns 5, only 3 clocks are useful
+
+                    xml << "\t\tclock x_" << i << ";" << std::endl;
+
+                }
+
+
+                xml << "\t</declaration>" << std::endl << std::endl;
+
+
+                xml << "\t<template>" << std::endl;
+                xml << "\t\t<name>TA</name>" << std::endl;
+
+                xml << "\t\t<declaration>" << std::endl;
+
+
+                monitaal::location_id_t largest_loc = 0;
+                for (const auto& [k, v] : pos.locations()) {
+                    if (k > largest_loc) {
+                        largest_loc = k;
+                    }
+                }
+
+                xml << "\t\t\tint[0, " << largest_loc << "] loc = " << pos.initial_location() << ";" << std::endl;
+
+
+                xml << "\t\t</declaration>" << std::endl;
+
+                xml << "\t\t<location id=\"id0\" x=\"0\" y=\"0\">" << std::endl;
+                xml << "\t\t</location>" << std::endl;
+                xml << "\t\t<init ref=\"id0\"/>" << std::endl;
+
+                for (const auto& [k, v] : pos.locations()) {
+
+                    for (const auto& e : pos.edges_from(k)) {
+
+                        xml << "\t\t<transition>" << std::endl;
+                        xml << "\t\t\t<source ref=\"id0\"/>" << std::endl;
+                        xml << "\t\t\t<target ref=\"id0\"/>" << std::endl;
+
+                        std::string provided_str;
+                        provided_str += "loc == " + std::to_string(e.from());
+                        for (const auto& g : e.guard()) {
+
+                            if (!provided_str.empty()) {
+                                provided_str += " &amp;&amp; ";
+                            }
+
+                            if (g._i == 0) {
+
+                                assert(g._j != 0);
+
+                                if (g._bound.is_strict()) {
+                                    provided_str += "x_" + std::to_string(g._j) + " &gt; " + std::to_string(-1 * g._bound.get_bound());
+                                } else {
+                                    provided_str += "x_" + std::to_string(g._j) + " &gt;= " + std::to_string(-1 * g._bound.get_bound());
+                                }
+
+                            } else if (g._j == 0) {
+
+                                assert(g._i != 0);
+
+                                if (g._bound.is_strict()) {
+                                    provided_str += "x_" + std::to_string(g._i) + " &lt; " + std::to_string(g._bound.get_bound());
+                                } else {
+                                    provided_str += "x_" + std::to_string(g._i) + " &lt;= " + std::to_string(g._bound.get_bound());
+                                }
+
+                            } else {
+                                assert(("Currently support only non-diagonal guards", false));
+                            }
+
+                        }
+
+                        xml << "\t\t\t<label kind=\"guard\" x=\"-357\" y=\"-68\">" << provided_str << "</label>" << std::endl;
+
+                        std::string do_str;
+                        do_str += "loc = " + std::to_string(e.to());
+                        for (const auto& r : e.reset()) {
+                    
+                            if (!do_str.empty()) {
+                                do_str += ", ";
+                            }
+
+                            do_str += "x_" + std::to_string(r) + " = 0";
+
+                        }
+
+                        xml << "\t\t\t<label kind=\"assignment\" x=\"-246\" y=\"-34\">" << do_str << "</label>" << std::endl;
+
+                        xml << "\t\t\t<nail x=\"-102\" y=\"34\"/>" << std::endl;
+                        xml << "\t\t\t<nail x=\"-102\" y=\"-34\"/>" << std::endl;
+                        xml << "\t\t</transition>" << std::endl;
+                    }
+
+                }
+
+                xml << "\t</template>" << std::endl << std::endl;
+
+	            xml << "\t<system>system TA;" << std::endl;
+	            xml << "\t</system>" << std::endl << std::endl;
+                xml << "</nta>" << std::endl;
+
+                xml << std::endl << std::endl;
+
+                spec_out << xml.str();
+
+
+                std::cout << "\nPlease use the following command to check satisfiability:\n\n";
+
+                monitaal::location_id_t last_acc_loc;
+                for (const auto& [k, v] : pos.locations()) {
+                    if (v.is_accept()) {
+                        last_acc_loc = k;
+                    }
+                }
+
+                if (out_fin) {
+                    std::cout << "verifyta " << out_file << " " << (std::string(out_file) + ".q") << std::endl << std::endl;
+
+                    std::ofstream query_out(std::string(out_file) + ".q", std::ios::trunc);
+                    if (!query_out) {
+
+                        std::cerr << "Error: Could not open " << (std::string(out_file) + ".q") << std::endl;
+                        return 1;
+
+                    }
+
+                    query_out << "E<>(";
+
+                    for (auto it = pos.locations().begin(); it != pos.locations().end(); ++it) {
+
+                        if (it->second.is_accept()) {
+                            query_out << "TA.loc == " << it->first;
+                            if (it->first != last_acc_loc) {
+                                query_out << " || ";
+                            }
+                        }
+
+                    }
+
+                    query_out << ")";
+
+                    query_out.close();
+
+                } else {
+                    std::cout << "opaal_ltsmin " << out_file << " --ltl=" << (std::string(out_file) + ".ltl") << " -t 1" << std::endl;
+
+                    std::ofstream ltl_out(std::string(out_file) + ".ltl", std::ios::trunc);
+                    if (!ltl_out) {
+
+                        std::cerr << "Error: Could not open " << (std::string(out_file) + ".ltl") << std::endl;
+                        return 1;
+
+                    }
+
+                    ltl_out << "!([]<>(";
+
+                    for (auto it = pos.locations().begin(); it != pos.locations().end(); ++it) {
+
+                        if (it->second.is_accept()) {
+                            ltl_out << "TA_loc == " << it->first;
+                            if (it->first != last_acc_loc) {
+                                ltl_out << " || ";
+                            }
+                        }
+
+                    }
+
+                    ltl_out << "))";
+
+                    ltl_out.close();
+
+                }
+
+
+
+            } else {
+
+                assert(("UPPAAL XML output is only supported for flattened (monolithic) automata", false));
+
+            }
 
         }
 
