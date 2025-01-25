@@ -37,18 +37,10 @@ namespace mightypplcpp {
 
         // TODO: less hacky way to identify the type of rule?
 
-        if (ctx->formula()->children.size() != 1) {     // Check if ctx is FormulaAtom
-            return false;
-        }
-
-        antlr4::RuleContext* child = (antlr4::RuleContext*)ctx->formula()->children[0];
-
-        // assert(ruleNames[child->getRuleIndex()] == "atom");
-
-        if (child->children.size() != 1) {
+        if (ctx->atom()->children.size() != 1) {
             return false;
         } else {      // AtomTrue, AtomFalse, or AtomIdfr
-            if (child->children[0]->getText() == "true" || child->children[0]->getText() == "false") {
+            if (ctx->atom()->children[0]->getText() == "true" || ctx->atom()->children[0]->getText() == "false") {
                 return false;
             }
         }
@@ -136,6 +128,46 @@ namespace mightypplcpp {
         bool ret = true;
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
             ret = ret && std::any_cast<bool>(visit(ctx->atoms[i]));
+        }
+        return ret;
+
+    }
+
+    std::any MitlCheckNNFVisitor::visitAtomCFn(MitlParser::AtomCFnContext *ctx) {
+
+        bool ret = true;
+        for (auto i = 0; i < 4; ++i) {
+            ret = ret && std::any_cast<bool>(visit(ctx->atom(i)));
+        }
+        return ret;
+
+    }
+    
+    std::any MitlCheckNNFVisitor::visitAtomCOn(MitlParser::AtomCOnContext *ctx) {
+
+        bool ret = true;
+        for (auto i = 0; i < 4; ++i) {
+            ret = ret && std::any_cast<bool>(visit(ctx->atom(i)));
+        }
+        return ret;
+
+    }
+    
+    std::any MitlCheckNNFVisitor::visitAtomCFnDual(MitlParser::AtomCFnDualContext *ctx) {
+
+        bool ret = true;
+        for (auto i = 0; i < 4; ++i) {
+            ret = ret && std::any_cast<bool>(visit(ctx->atom(i)));
+        }
+        return ret;
+
+    }
+    
+    std::any MitlCheckNNFVisitor::visitAtomCOnDual(MitlParser::AtomCOnDualContext *ctx) {
+
+        bool ret = true;
+        for (auto i = 0; i < 4; ++i) {
+            ret = ret && std::any_cast<bool>(visit(ctx->atom(i)));
         }
         return ret;
 

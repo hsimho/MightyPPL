@@ -15,7 +15,11 @@ enum enum_atoms {
     PNUELIFN,
     PNUELION,
     PNUELIFNDUAL,
-    PNUELIONDUAL
+    PNUELIONDUAL,
+    COUNTFN,
+    COUNTON,
+    COUNTFNDUAL,
+    COUNTONDUAL
 
 };
 

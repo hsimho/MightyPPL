@@ -7,13 +7,14 @@ grammar Mitl;
 
 }
 
-main locals [std::map<std::string, int> props; bdd overline; bdd star; bdd tilde; bdd hat]
+main locals [std::map<std::string, int> props; std::map<std::string, int> temporals; std::set<int>
+repeats; bdd overline; bdd star; bdd tilde; bdd hat]
     : formula EOF
 ;
 
 formula locals [bool negated = false; bdd overline; bdd star; bdd tilde; bdd hat]
     : atom                                                                  #FormulaAtom
-    | Not formula                                                           #FormulaNot
+    | Not atom                                                              #FormulaNot
     | formula And formula                                                   #FormulaAnd
     | formula Or formula                                                    #FormulaOr
     | formula Iff formula                                                   #FormulaIff
@@ -33,29 +34,35 @@ interval
     | LParen bound Comma bound RParen
 ;
 
-atom locals [bool negated = false; int id = 0; enum_atoms type; bdd overline; bdd star; bdd tilde; bdd hat]
-    : Finally interval? atom                                                #AtomF
-    | Once interval? atom                                                   #AtomO
+atom locals [bool uni = true; size_t max_l; size_t bits = 1; bool negated = false; size_t id; enum_atoms type; bdd overline; bdd star; bdd tilde; bdd hat]
+    : Finally interval? atom                                                        #AtomF
+    | Once interval? atom                                                           #AtomO
     
-    | Globally interval? atom                                               #AtomG
-    | Historically interval? atom                                           #AtomH
+    | Globally interval? atom                                                       #AtomG
+    | Historically interval? atom                                                   #AtomH
     
-    | atom Until interval? atom                                             #AtomU       
-    | atom Since interval? atom                                             #AtomS
+    | atom Until interval? atom                                                     #AtomU       
+    | atom Since interval? atom                                                     #AtomS
     
-    | atom Release interval? atom                                           #AtomR   
-    | atom Trigger interval? atom                                           #AtomT
+    | atom Release interval? atom                                                   #AtomR   
+    | atom Trigger interval? atom                                                   #AtomT
 
-    | PnueliFn interval LParen atoms+=atom (Comma atoms+=atom)+ RParen      #AtomFn
-    | PnueliOn interval LParen atoms+=atom (Comma atoms+=atom)+ RParen      #AtomOn
+    | PnueliFn interval LParen atoms+=atom (Comma atoms+=atom)+ RParen              #AtomFn
+    | PnueliOn interval LParen atoms+=atom (Comma atoms+=atom)+ RParen              #AtomOn
 
-    | PnueliFnDual interval LParen atoms+=atom (Comma atoms+=atom)+ RParen  #AtomFnDual
-    | PnueliOnDual interval LParen atoms+=atom (Comma atoms+=atom)+ RParen  #AtomOnDual
+    | PnueliFnDual interval LParen atoms+=atom (Comma atoms+=atom)+ RParen          #AtomFnDual
+    | PnueliOnDual interval LParen atoms+=atom (Comma atoms+=atom)+ RParen          #AtomOnDual
+
+    | CountFn interval LParen atom Comma atom Comma atom Comma atom RParen          #AtomCFn
+    | CountOn interval LParen atom Comma atom Comma atom Comma atom RParen          #AtomCOn
+
+    | CountFnDual interval LParen atom Comma atom Comma atom Comma atom RParen      #AtomCFnDual
+    | CountOnDual interval LParen atom Comma atom Comma atom Comma atom RParen      #AtomCOnDual
     
-    | 'true'                                                                #AtomTrue
-    | 'false'                                                               #AtomFalse
-    | Idfr                                                                  #AtomIdfr
-    | LParen formula RParen                                                 #AtomParen
+    | 'true'                                                                        #AtomTrue
+    | 'false'                                                                       #AtomFalse
+    | Idfr                                                                          #AtomIdfr
+    | LParen formula RParen                                                         #AtomParen
 
 ;
 
@@ -83,6 +90,10 @@ PnueliFn : 'Fn' ;
 PnueliOn : 'On' ;
 PnueliFnDual : 'Gn' ;
 PnueliOnDual : 'Hn' ;
+CountFn : 'CFn' ;
+CountOn : 'COn' ;
+CountFnDual: 'CGn' ;
+CountOnDual: 'CHn' ;
 
 IntLit : '0' | ([1-9][0-9]*) ;
 Infty : 'infty' ;

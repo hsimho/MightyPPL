@@ -74,7 +74,9 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/build/monitaal-prefix/src/monitaal-
 
 # add generated grammar to demo binary target
 add_executable(demo main.cpp
-               MitlBuildTAVisitor.cpp
+               MitlFormulaVisitor.cpp
+               MitlCheckUniVisitor.cpp
+               MitlToUniVisitor.cpp
                MitlCheckNNFVisitor.cpp
                MitlToNNFVisitor.cpp
                MitlAtomNumberingVisitor.cpp

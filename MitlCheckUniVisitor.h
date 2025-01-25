@@ -17,7 +17,7 @@ namespace mightypplcpp {
  * This class provides an empty implementation of MitlVisitor, which can be
  * extended to create a visitor which only needs to handle a subset of the available methods.
  */
-class  MitlCheckNNFVisitor : public MitlVisitor {
+class  MitlCheckUniVisitor : public MitlVisitor {
 
 //private:
 //

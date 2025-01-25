@@ -13,6 +13,9 @@
 #include "MitlLexer.h"
 #include "MitlParser.h"
 
+#include "MitlFormulaVisitor.h"
+#include "MitlCheckUniVisitor.h"
+#include "MitlToUniVisitor.h"
 #include "MitlCheckNNFVisitor.h"
 #include "MitlToNNFVisitor.h"
 #include "MitlAtomNumberingVisitor.h"
@@ -30,6 +33,8 @@
 namespace mightypplcpp {
 
     extern size_t num_all_props;
+
+    extern bdd encode(const int i, const int offset, const int bits);
 
     extern std::vector<std::string> sat_paths;
 

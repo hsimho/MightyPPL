@@ -70,6 +70,14 @@ public:
 
     std::any visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) override;
 
+    std::any visitAtomCFn(MitlParser::AtomCFnContext *ctx) override;
+
+    std::any visitAtomCOn(MitlParser::AtomCOnContext *ctx) override;
+
+    std::any visitAtomCFnDual(MitlParser::AtomCFnDualContext *ctx) override;
+
+    std::any visitAtomCOnDual(MitlParser::AtomCOnDualContext *ctx) override;
+
     std::any visitAtomParen(MitlParser::AtomParenContext *ctx) override;
 
     std::any visitAtomTrue(MitlParser::AtomTrueContext *ctx) override;

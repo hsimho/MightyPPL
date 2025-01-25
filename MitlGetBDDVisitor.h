@@ -11,6 +11,8 @@
 
 namespace mightypplcpp {
 
+extern bdd encode(const int i, const int offset, const int bits);
+
 class  MitlGetBDDVisitor : public MitlVisitor {
 
 private:
@@ -60,6 +62,14 @@ public:
     std::any visitAtomFnDual(MitlParser::AtomFnDualContext *ctx) override;
 
     std::any visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) override;
+
+    std::any visitAtomCFn(MitlParser::AtomCFnContext *ctx) override;
+
+    std::any visitAtomCOn(MitlParser::AtomCOnContext *ctx) override;
+
+    std::any visitAtomCFnDual(MitlParser::AtomCFnDualContext *ctx) override;
+
+    std::any visitAtomCOnDual(MitlParser::AtomCOnDualContext *ctx) override;
 
     std::any visitAtomParen(MitlParser::AtomParenContext *ctx) override;
 
