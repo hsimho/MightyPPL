@@ -1,0 +1,1 @@
+E<> (N == 0 && TA_prop1.loc == 1 && TA_prop2.loc == 0 && TA_prop3.loc == 0 && TA_prop4.loc == 0)

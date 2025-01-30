@@ -83,6 +83,22 @@ add_executable(demo main.cpp
                MitlCollectTemporalVisitor.cpp
                MitlGetBDDVisitor.cpp
                TAwithBDDEdges.cpp
+               Finally.cpp
+               Once.cpp
+               Globally.cpp
+               Historically.cpp
+               Until.cpp
+               Since.cpp
+               Release.cpp
+               Trigger.cpp
+               PnueliFn.cpp
+               PnueliOn.cpp
+               PnueliFnDual.cpp
+               PnueliOnDual.cpp
+               CountFn.cpp
+               CountOn.cpp
+               CountFnDual.cpp
+               CountOnDual.cpp
                MightyPPL.cpp
                ${ANTLR_MitlGrammar_CXX_OUTPUTS})
 

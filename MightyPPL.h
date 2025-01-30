@@ -42,10 +42,27 @@ namespace mightypplcpp {
 
     extern void allsat_print_handler(char*, int); 
 
+    extern void build_edge(monitaal::bdd_edges_t&, const std::map<std::string, monitaal::location_id_t>&, std::stringstream&, const int, const std::string&, const std::string&, const std::string&, const std::string&, int, bdd);
+
     extern const char* out_file; 
     extern std::optional<bool> out_format;
     extern bool out_flatten;
     extern bool out_fin;
+
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_finally(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_once(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_globally(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_historically(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_until(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_since(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_release(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_trigger(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelifn(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelion(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelifndual(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnueliondual(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_countfn(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_countfndual(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
 
     extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_ta_from_atom(const mightypplcpp::MitlParser::AtomContext*);
 
