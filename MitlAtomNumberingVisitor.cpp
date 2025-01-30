@@ -268,19 +268,19 @@ namespace mightypplcpp {
         std::string atom_clean = std::any_cast<std::string>(to_nnf_visitor.visit(ctx));
         atom_clean.erase(std::remove_if(atom_clean.begin(), atom_clean.end(), [](unsigned char x) { return std::isspace(x); }), atom_clean.end());
 
-        if (root->temporals.count(atom_clean) == 0) {
+        ctx->bits = std::ceil(std::log2(ctx->atoms.size() + 1)); // +1: for 0, which represents "all off"
 
-            ctx->bits = std::ceil(std::log2(ctx->atoms.size() + 1)); // +1: for 0, which represents "all off"
+        if (root->temporals.count(atom_clean) == 0) {
 
             ctx->id = ++current_id;
             root->temporals.insert({atom_clean, current_id}); 
-            current_id = current_id + ctx->bits - 1;
+            current_id = current_id + ctx->atoms.size() - 1;
             ctx->type = PNUELIFN;
             size_t ret = 0;
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
                 ret = ret + std::any_cast<int>(visit(ctx->atoms[i]));
             }
-            return (int)(ret + ctx->bits);
+            return (int)(ret + ctx->atoms.size());
 
 
         } else {
@@ -304,19 +304,19 @@ namespace mightypplcpp {
         std::string atom_clean = std::any_cast<std::string>(to_nnf_visitor.visit(ctx));
         atom_clean.erase(std::remove_if(atom_clean.begin(), atom_clean.end(), [](unsigned char x) { return std::isspace(x); }), atom_clean.end());
 
-        if (root->temporals.count(atom_clean) == 0) {
+        ctx->bits = std::ceil(std::log2(ctx->atoms.size() + 1)); // +1: for 0, which represents "all off"
 
-            ctx->bits = std::ceil(std::log2(ctx->atoms.size() + 1)); // +1: for 0, which represents "all off"
+        if (root->temporals.count(atom_clean) == 0) {
 
             ctx->id = ++current_id;
             root->temporals.insert({atom_clean, current_id}); 
-            current_id = current_id + ctx->bits - 1;
+            current_id = current_id + ctx->atoms.size() - 1;
             ctx->type = PNUELION;
             size_t ret = 0;
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
                 ret = ret + std::any_cast<int>(visit(ctx->atoms[i]));
             }
-            return (int)(ret + ctx->bits);
+            return (int)(ret + ctx->atoms.size());
 
 
         } else {
@@ -340,19 +340,19 @@ namespace mightypplcpp {
         std::string atom_clean = std::any_cast<std::string>(to_nnf_visitor.visit(ctx));
         atom_clean.erase(std::remove_if(atom_clean.begin(), atom_clean.end(), [](unsigned char x) { return std::isspace(x); }), atom_clean.end());
 
-        if (root->temporals.count(atom_clean) == 0) {
+        ctx->bits = std::ceil(std::log2(ctx->atoms.size() + 1)); // +1: for 0, which represents "all off"
 
-            ctx->bits = std::ceil(std::log2(ctx->atoms.size() + 1)); // +1: for 0, which represents "all off"
+        if (root->temporals.count(atom_clean) == 0) {
 
             ctx->id = ++current_id;
             root->temporals.insert({atom_clean, current_id}); 
-            current_id = current_id + ctx->bits - 1;
+            current_id = current_id + ctx->atoms.size() - 1;
             ctx->type = PNUELIFNDUAL;
             size_t ret = 0;
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
                 ret = ret + std::any_cast<int>(visit(ctx->atoms[i]));
             }
-            return (int)(ret + ctx->bits);
+            return (int)(ret + ctx->atoms.size());
 
 
         } else {
@@ -376,19 +376,19 @@ namespace mightypplcpp {
         std::string atom_clean = std::any_cast<std::string>(to_nnf_visitor.visit(ctx));
         atom_clean.erase(std::remove_if(atom_clean.begin(), atom_clean.end(), [](unsigned char x) { return std::isspace(x); }), atom_clean.end());
 
-        if (root->temporals.count(atom_clean) == 0) {
+        ctx->bits = std::ceil(std::log2(ctx->atoms.size() + 1)); // +1: for 0, which represents "all off"
 
-            ctx->bits = std::ceil(std::log2(ctx->atoms.size() + 1)); // +1: for 0, which represents "all off"
+        if (root->temporals.count(atom_clean) == 0) {
 
             ctx->id = ++current_id;
             root->temporals.insert({atom_clean, current_id}); 
-            current_id = current_id + ctx->bits - 1;
+            current_id = current_id + ctx->atoms.size() - 1;
             ctx->type = PNUELIONDUAL;
             size_t ret = 0;
             for (auto i = 0; i < ctx->atoms.size(); ++i) {
                 ret = ret + std::any_cast<int>(visit(ctx->atoms[i]));
             }
-            return (int)(ret + ctx->bits);
+            return (int)(ret + ctx->atoms.size());
 
 
         } else {
@@ -412,26 +412,26 @@ namespace mightypplcpp {
         std::string atom_clean = std::any_cast<std::string>(to_nnf_visitor.visit(ctx));
         atom_clean.erase(std::remove_if(atom_clean.begin(), atom_clean.end(), [](unsigned char x) { return std::isspace(x); }), atom_clean.end());
 
+        antlr4::tree::TerminalNode* left_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[0];
+        antlr4::tree::TerminalNode* right_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[4];
+
+        antlr4::tree::ParseTree* left = (antlr4::tree::ParseTree*)ctx->interval()->children[1];
+        antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
+
+        ctx->max_l = std::floor(std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 1;
+        ctx->bits = std::ceil(std::log2(ctx->max_l + 2)); // +2: Pn / \neg Pn with l + 1 arguments, and "0" which represents "all off"
+
         if (root->temporals.count(atom_clean) == 0) {
-
-            antlr4::tree::TerminalNode* left_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[0];
-            antlr4::tree::TerminalNode* right_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[4];
-
-            antlr4::tree::ParseTree* left = (antlr4::tree::ParseTree*)ctx->interval()->children[1];
-            antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
-
-            ctx->max_l = std::floor(std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 1;
-            ctx->bits = std::ceil(std::log2(ctx->max_l + 2)); // +2: Pn / \neg Pn with l + 1 arguments, and "0" which represents "all off"
 
             ctx->id = ++current_id;
             root->temporals.insert({atom_clean, current_id}); 
-            current_id = current_id + ctx->bits - 1;
+            current_id = current_id + ctx->max_l + 1 - 1;
             ctx->type = COUNTFN;
             size_t ret = 0;
             for (auto i = 0; i < 4; ++i) {
                 ret = ret + std::any_cast<int>(visit(ctx->atom(i)));
             }
-            return (int)(ret + ctx->bits);
+            return (int)(ret + ctx->max_l + 1);
 
 
         } else {
@@ -455,26 +455,26 @@ namespace mightypplcpp {
         std::string atom_clean = std::any_cast<std::string>(to_nnf_visitor.visit(ctx));
         atom_clean.erase(std::remove_if(atom_clean.begin(), atom_clean.end(), [](unsigned char x) { return std::isspace(x); }), atom_clean.end());
 
+        antlr4::tree::TerminalNode* left_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[0];
+        antlr4::tree::TerminalNode* right_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[4];
+
+        antlr4::tree::ParseTree* left = (antlr4::tree::ParseTree*)ctx->interval()->children[1];
+        antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
+
+        ctx->max_l = std::floor(std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 1;
+        ctx->bits = std::ceil(std::log2(ctx->max_l + 2)); // +2: Pn / \neg Pn with l + 1 arguments, and "0" which represents "all off"
+
         if (root->temporals.count(atom_clean) == 0) {
-
-            antlr4::tree::TerminalNode* left_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[0];
-            antlr4::tree::TerminalNode* right_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[4];
-
-            antlr4::tree::ParseTree* left = (antlr4::tree::ParseTree*)ctx->interval()->children[1];
-            antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
-
-            ctx->max_l = std::floor(std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 1;
-            ctx->bits = std::ceil(std::log2(ctx->max_l + 2)); // +2: Pn / \neg Pn with l + 1 arguments, and "0" which represents "all off"
 
             ctx->id = ++current_id;
             root->temporals.insert({atom_clean, current_id}); 
-            current_id = current_id + ctx->bits - 1;
+            current_id = current_id + ctx->max_l + 1 - 1;
             ctx->type = COUNTON;
             size_t ret = 0;
             for (auto i = 0; i < 4; ++i) {
                 ret = ret + std::any_cast<int>(visit(ctx->atom(i)));
             }
-            return (int)(ret + ctx->bits);
+            return (int)(ret + ctx->max_l + 1);
 
 
         } else {
@@ -498,26 +498,26 @@ namespace mightypplcpp {
         std::string atom_clean = std::any_cast<std::string>(to_nnf_visitor.visit(ctx));
         atom_clean.erase(std::remove_if(atom_clean.begin(), atom_clean.end(), [](unsigned char x) { return std::isspace(x); }), atom_clean.end());
 
+        antlr4::tree::TerminalNode* left_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[0];
+        antlr4::tree::TerminalNode* right_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[4];
+
+        antlr4::tree::ParseTree* left = (antlr4::tree::ParseTree*)ctx->interval()->children[1];
+        antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
+
+        ctx->max_l = std::floor(std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 1;
+        ctx->bits = std::ceil(std::log2(ctx->max_l + 2)); // +2: Pn / \neg Pn with l + 1 arguments, and "0" which represents "all off"
+
         if (root->temporals.count(atom_clean) == 0) {
-
-            antlr4::tree::TerminalNode* left_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[0];
-            antlr4::tree::TerminalNode* right_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[4];
-
-            antlr4::tree::ParseTree* left = (antlr4::tree::ParseTree*)ctx->interval()->children[1];
-            antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
-
-            ctx->max_l = std::floor(std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 1;
-            ctx->bits = std::ceil(std::log2(ctx->max_l + 2)); // +2: Pn / \neg Pn with l + 1 arguments, and "0" which represents "all off"
 
             ctx->id = ++current_id;
             root->temporals.insert({atom_clean, current_id}); 
-            current_id = current_id + ctx->bits - 1;
+            current_id = current_id + ctx->max_l + 1 - 1;
             ctx->type = COUNTFNDUAL;
             size_t ret = 0;
             for (auto i = 0; i < 4; ++i) {
                 ret = ret + std::any_cast<int>(visit(ctx->atom(i)));
             }
-            return (int)(ret + ctx->bits);
+            return (int)(ret + ctx->max_l + 1);
 
 
         } else {
@@ -541,26 +541,26 @@ namespace mightypplcpp {
         std::string atom_clean = std::any_cast<std::string>(to_nnf_visitor.visit(ctx));
         atom_clean.erase(std::remove_if(atom_clean.begin(), atom_clean.end(), [](unsigned char x) { return std::isspace(x); }), atom_clean.end());
 
+        antlr4::tree::TerminalNode* left_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[0];
+        antlr4::tree::TerminalNode* right_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[4];
+
+        antlr4::tree::ParseTree* left = (antlr4::tree::ParseTree*)ctx->interval()->children[1];
+        antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
+
+        ctx->max_l = std::floor(std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 1;
+        ctx->bits = std::ceil(std::log2(ctx->max_l + 2)); // +2: Pn / \neg Pn with l + 1 arguments, and "0" which represents "all off"
+
         if (root->temporals.count(atom_clean) == 0) {
-
-            antlr4::tree::TerminalNode* left_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[0];
-            antlr4::tree::TerminalNode* right_delim = (antlr4::tree::TerminalNode*)ctx->interval()->children[4];
-
-            antlr4::tree::ParseTree* left = (antlr4::tree::ParseTree*)ctx->interval()->children[1];
-            antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
-
-            ctx->max_l = std::floor(std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 1;
-            ctx->bits = std::ceil(std::log2(ctx->max_l + 2)); // +2: Pn / \neg Pn with l + 1 arguments, and "0" which represents "all off"
 
             ctx->id = ++current_id;
             root->temporals.insert({atom_clean, current_id}); 
-            current_id = current_id + ctx->bits - 1;
+            current_id = current_id + ctx->max_l + 1 - 1;
             ctx->type = COUNTONDUAL;
             size_t ret = 0;
             for (auto i = 0; i < 4; ++i) {
                 ret = ret + std::any_cast<int>(visit(ctx->atom(i)));
             }
-            return (int)(ret + ctx->bits);
+            return (int)(ret + ctx->max_l + 1);
 
 
         } else {
