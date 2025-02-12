@@ -3,7 +3,12 @@
 namespace mightypplcpp {
 
 
-    std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelifn(std::stringstream& out_str, monitaal::clock_map_t& clocks, const MitlParser::AtomContext* phi_) {
+    std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelifn(const MitlParser::AtomContext* phi_) {
+
+        std::stringstream out_str;
+
+        monitaal::clock_map_t clocks;
+        clocks.insert({0, "x0"});        // clock 0 is needed anyway
 
         MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)phi_;
 
@@ -88,25 +93,17 @@ namespace mightypplcpp {
 
                         // 1_j -> 1_j, !p1 (!r) && ~p_j
 
-                        build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(j), "1_" + std::to_string(j), (j + 1 == phi->atoms.size() ? (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText() : std::string{}), std::string{}, 0, (j == 0 ? phi->tilde : !encode(i + 1, phi->id, phi->bits)) & phi->atoms[j]->star);
+                        build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(j), "1_" + std::to_string(j), std::string{}, std::string{}, 0, (j == 0 ? (encode(i + 1, phi->id, phi->bits) | phi->tilde) & phi->atoms[j]->star : !encode(i + 1, phi->id, phi->bits) & phi->atoms[j]->tilde));
 
                         // 1_j -> 1_j+1, !p1 && ^p_j (x := 0, x <= a)
 
-                        build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(j), (j + 1 == phi->atoms.size() ? "0" : "1_" + std::to_string(j + 1)), (j + 1 == phi->atoms.size() ? (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText() : std::string{}), std::string{}, (j + 1 == phi->atoms.size() ? true : false), !encode(i + 1, phi->id, phi->bits) & phi->atoms[j]->hat);
+                        build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(j), (j + 1 == phi->atoms.size() ? "0" : "1_" + std::to_string(j + 1)), (j + 1 == phi->atoms.size() ? (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText() : std::string{}), std::string{}, (j + 1 == phi->atoms.size() ? 1 : 0), !encode(i + 1, phi->id, phi->bits) & phi->atoms[j]->hat);
 
                     }
-
-                    // 1_0 -> 1_0, p1 && *p_0
-
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_0", "1_0", std::string{}, std::string{}, 0, encode(i + 1, phi->id, phi->bits) & phi->atoms[0]->star);
 
                     // 1_n-1 -> 2, p1 && ^p_j, x := 0, x <= a
 
                     build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(phi->atoms.size() - 1), "2", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 1, encode(i + 1, phi->id, phi->bits) & phi->atoms[phi->atoms.size() - 1]->hat);
-
-                    // 2 -> 1_0, !r && ~p_0
-
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "2", "1_0", std::string{}, std::string{}, 0, phi->tilde & phi->atoms[0]->star);
 
                     // 2 -> 1_1, !p1 && ^p_0
 
@@ -114,7 +111,7 @@ namespace mightypplcpp {
 
                     // 2 -> 1_0, p1 && *p_0
 
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "2", "1_0", std::string{}, std::string{}, 0, encode(i + 1, phi->id, phi->bits) & phi->atoms[0]->star);
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "2", "1_0", std::string{}, std::string{}, 0, (encode(i + 1, phi->id, phi->bits) | phi->tilde) & phi->atoms[0]->star);
 
 
                     components.push_back(monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0));

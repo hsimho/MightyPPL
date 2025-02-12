@@ -75,8 +75,7 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/build/monitaal-prefix/src/monitaal-
 # add generated grammar to demo binary target
 add_executable(demo main.cpp
                MitlFormulaVisitor.cpp
-               MitlCheckUniVisitor.cpp
-               MitlToUniVisitor.cpp
+               MitlTypingVisitor.cpp
                MitlCheckNNFVisitor.cpp
                MitlToNNFVisitor.cpp
                MitlAtomNumberingVisitor.cpp
@@ -93,12 +92,12 @@ add_executable(demo main.cpp
                Trigger.cpp
                PnueliFn.cpp
                PnueliOn.cpp
-               PnueliFnDual.cpp
-               PnueliOnDual.cpp
+               PnueliGn.cpp
+               PnueliHn.cpp
                CountFn.cpp
                CountOn.cpp
-               CountFnDual.cpp
-               CountOnDual.cpp
+               CountGn.cpp
+               CountHn.cpp
                MightyPPL.cpp
                ${ANTLR_MitlGrammar_CXX_OUTPUTS})
 

@@ -77,28 +77,14 @@ namespace mightypplcpp {
 
     }
 
-    // int edges_increment_count() {
-    //
-    //     int i = 0;
-    //     for (const auto& p : sat_paths) {
-    //         for (const auto& s : get_letters(p)) {
-    //             ++i;
-    //         }
-    //     }
-    //     return i;
-    // }
-
     void allsat_print_handler(char* varset, int size) {
 
         std::string output;
 
-        //std::cout << std::setw(12);     // only affects the first char below, actually
         for (int v = 0; v < size; ++v) {
             output += (varset[v] < 0 ? 'X' : (char)('0' + varset[v]));
-          //  std::cout << (varset[v] < 0 ? 'X' : (char)('0' + varset[v]));
         }
-        //std::cout << std::endl;
-        //std::cout << std::setw(0);
+        std::cout << std::setw(20) << output << std::setw(0) << std::endl;
 
         sat_paths.push_back(output);
 
@@ -256,66 +242,62 @@ namespace mightypplcpp {
 
     std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_ta_from_atom(const MitlParser::AtomContext* phi_) {
 
-        std::stringstream out_str;
-
-        monitaal::clock_map_t clocks;
-        clocks.insert({0, "x0"});        // clock 0 is needed anyway
 
         if (phi_->type == FINALLY) {
 
-            return build_finally(out_str, clocks, phi_);
+            return build_finally(phi_);
 
         } else if (phi_->type == ONCE) {
 
-            return build_once(out_str, clocks, phi_);
+            return build_once(phi_);
 
         } else if (phi_->type == GLOBALLY) {
 
-            return build_globally(out_str, clocks, phi_);
+            return build_globally(phi_);
 
         } else if (phi_->type == HISTORICALLY) {
 
-            return build_historically(out_str, clocks, phi_);
+            return build_historically(phi_);
 
         } else if (phi_->type == UNTIL) {
 
-            return build_until(out_str, clocks, phi_);
+            return build_until(phi_);
 
         } else if (phi_->type == SINCE) {
 
-            return build_since(out_str, clocks, phi_);
+            return build_since(phi_);
 
         } else if (phi_->type == RELEASE) {
 
-            return build_release(out_str, clocks, phi_);
+            return build_release(phi_);
 
         } else if (phi_->type == TRIGGER) {
 
-            return build_trigger(out_str, clocks, phi_);
+            return build_trigger(phi_);
 
         } else if (phi_->type == PNUELIFN) {
 
-            return build_pnuelifn(out_str, clocks, phi_);
+            return build_pnuelifn(phi_);
 
         } else if (phi_->type == PNUELION) {
 
-            return build_pnuelion(out_str, clocks, phi_);
+            return build_pnuelion(phi_);
 
-        } else if (phi_->type == PNUELIFNDUAL) {
+        } else if (phi_->type == PNUELIGN) {
 
-            return build_pnuelifndual(out_str, clocks, phi_);
+            return build_pnuelign(phi_);
 
-        } else if (phi_->type == PNUELIONDUAL) {
+        } else if (phi_->type == PNUELIHN) {
 
-            return build_pnueliondual(out_str, clocks, phi_);
+            return build_pnuelihn(phi_);
 
         } else if (phi_->type == COUNTFN) {
 
-            return build_countfn(out_str, clocks, phi_);
+            return build_countfn(phi_);
 
-        } else if (phi_->type == COUNTFNDUAL) {
+        } else if (phi_->type == COUNTGN) {
 
-            return build_countfndual(out_str, clocks, phi_);
+            return build_countgn(phi_);
 
         } else {
 
@@ -333,77 +315,30 @@ namespace mightypplcpp {
 
         std::cout << phi_->getText() << std::endl;
 
-        MitlFormulaVisitor formula_visitor;
+        MitlTypingVisitor typing_visitor;
 
-        std::string uni_in;
-
-        MitlCheckUniVisitor check_uni_visitor;
-
-        if (!std::any_cast<bool>(check_uni_visitor.visitMain(phi_))) {
-
-            std::cout << "\nThe input formula contains temporal operators with <l, u>." << std::endl;
-
-            std::cout << "\nRewriting into unilateral formula...\n";
-
-            MitlToUniVisitor to_uni_visitor;
-
-            uni_in = std::any_cast<std::string>(to_uni_visitor.visitMain(phi_));
-
-
-        } else {
-
-            MitlToUniVisitor to_uni_visitor;
-
-            uni_in = std::any_cast<std::string>(to_uni_visitor.visitMain(phi_));
-
-        }
-
-        std::cout << "\nInput formula (in unilateral form):\n";
-
-        std::cout << uni_in;
-
-        std::cout << "\nRe-parsing...\n";
-
-        antlr4::ANTLRInputStream uni_input = antlr4::ANTLRInputStream(uni_in);
-
-        MitlLexer uni_lexer(&uni_input);
-        antlr4::CommonTokenStream uni_tokens(&uni_lexer);
-
-        MitlParser uni_parser(&uni_tokens);
-
-        MitlParser::MainContext* uni_formula = uni_parser.main();
-
-        assert(std::any_cast<bool>(check_uni_visitor.visitMain(uni_formula)));
-
-        std::string nnf_in;
+        typing_visitor.visitMain(phi_);
 
         MitlCheckNNFVisitor check_nnf_visitor;
-//        check_nnf_visitor.loadParser(parser);      // This is for ruleNames[]
-//
 
-        if (!std::any_cast<bool>(check_nnf_visitor.visitMain(uni_formula))) {
+        if (!std::any_cast<bool>(check_nnf_visitor.visitMain(phi_))) {
 
             std::cout << "\nThe input formula is not in negation normal form (i.e. AND and OR only, and all negations\n"
                       << "appear just before letters)." << std::endl;
 
             std::cout << "\nRewriting into NNF...\n";
 
-            MitlToNNFVisitor to_nnf_visitor;
-
-            nnf_in = std::any_cast<std::string>(to_nnf_visitor.visitMain(uni_formula));
-
-
-        } else {
-
-            MitlToNNFVisitor to_nnf_visitor;
-
-            nnf_in = std::any_cast<std::string>(to_nnf_visitor.visitMain(uni_formula));
-
         }
 
-        std::cout << "\nInput formula (in NNF):\n";
+        std::string nnf_in;
 
-        std::cout << nnf_in;
+        MitlToNNFVisitor to_nnf_visitor;
+
+        nnf_in = std::any_cast<std::string>(to_nnf_visitor.visitMain(phi_));
+
+        std::cout << "\nInput formula (in NNF):\n" << std::endl;
+
+        std::cout << nnf_in << std::endl;
 
         std::cout << "\nRe-parsing...\n";
 
@@ -416,7 +351,13 @@ namespace mightypplcpp {
 
         MitlParser::MainContext* nnf_formula = nnf_parser.main();
 
+        typing_visitor.visitMain(nnf_formula);
+
         assert(std::any_cast<bool>(check_nnf_visitor.visitMain(nnf_formula)));
+
+        std::cout << "\ntoStringTree:\n" << std::endl;
+
+        std::cout << nnf_formula->toStringTree(&nnf_parser, true) << std::endl << std::endl;
 
 
         std::cout << "\n<<<<<< Numbering temporal subformulae... >>>>>>\n\n";
@@ -437,7 +378,6 @@ namespace mightypplcpp {
 
         std::cout << num_all_props - nnf_formula->props.size() << std::endl;
 
-
         std::cout << std::endl;
         std::cout << "props:" << std::endl << std::endl;
         for (const auto & [k, v] : nnf_formula->props) {
@@ -452,22 +392,18 @@ namespace mightypplcpp {
         temporal_atoms = std::any_cast<decltype(temporal_atoms)>(collect_temporal_visitor.visitMain(nnf_formula));
         for (auto it = temporal_atoms.rbegin(); it != temporal_atoms.rend(); ++it) {
 
-            MitlToNNFVisitor to_nnf_visitor;
-            std::string atom_clean = std::any_cast<std::string>(to_nnf_visitor.visit(*it));
-            atom_clean.erase(std::remove_if(atom_clean.begin(), atom_clean.end(), [](unsigned char x) { return std::isspace(x); }), atom_clean.end());
-            std::cout << (*it)->id << ": " << atom_clean << std::endl;
-            assert(nnf_formula->temporals.count(atom_clean));
-            assert(nnf_formula->temporals[atom_clean] == (*it)->id);
+            std::cout << (*it)->id << ": " << (*it)->getText() << std::endl;
+            assert(nnf_formula->temporals.count((*it)->getText()));
+            assert(nnf_formula->temporals[(*it)->getText()] == (*it)->id);
 
         }
+
 
         std::cout << std::endl;
         std::cout << "repeats:" << std::endl << std::endl;
         for (const auto& v : nnf_formula->repeats) {
             std::cout << v << std::endl << std::endl;
         }
-
-
 
         /*
         {   // re-numbering
@@ -486,12 +422,12 @@ namespace mightypplcpp {
                 } else if ((*it)->type == PNUELION) {
                     (*it)->id = ++i;
                     i = i + ((MitlParser::AtomOnContext*)(*it))->atoms.size() - 1;
-                } else if ((*it)->type == PNUELIFNDUAL) {
+                } else if ((*it)->type == PNUELIGN) {
                     (*it)->id = ++i;
-                    i = i + ((MitlParser::AtomFnDualContext*)(*it))->atoms.size() - 1;
-                } else if ((*it)->type == PNUELIONDUAL) {
+                    i = i + ((MitlParser::AtomGnContext*)(*it))->atoms.size() - 1;
+                } else if ((*it)->type == PNUELIHN) {
                     (*it)->id = ++i;
-                    i = i + ((MitlParser::AtomOnDualContext*)(*it))->atoms.size() - 1;
+                    i = i + ((MitlParser::AtomHnContext*)(*it))->atoms.size() - 1;
                 } else {
                     (*it)->id = ++i;
                 }
@@ -702,107 +638,135 @@ namespace mightypplcpp {
 
                 }
 
-            } else if ((*it)->type == PNUELIFNDUAL) {
+            } else if ((*it)->type == PNUELIGN) {
 
-                for (auto i = 0; i < ((MitlParser::AtomFnDualContext*)(*it))->atoms.size(); ++i) {
+                for (auto i = 0; i < ((MitlParser::AtomGnContext*)(*it))->atoms.size(); ++i) {
 
                     std::cout << "\nphi_" << i << ":\n";
 
                     std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomFnDualContext*)(*it))->atoms[i]->overline, *allsat_print_handler);
+                    bdd_allsat(((MitlParser::AtomGnContext*)(*it))->atoms[i]->overline, *allsat_print_handler);
                     std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomFnDualContext*)(*it))->atoms[i]->star, *allsat_print_handler);
+                    bdd_allsat(((MitlParser::AtomGnContext*)(*it))->atoms[i]->star, *allsat_print_handler);
                     std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomFnDualContext*)(*it))->atoms[i]->tilde, *allsat_print_handler);
+                    bdd_allsat(((MitlParser::AtomGnContext*)(*it))->atoms[i]->tilde, *allsat_print_handler);
                     std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomFnDualContext*)(*it))->atoms[i]->hat, *allsat_print_handler);
+                    bdd_allsat(((MitlParser::AtomGnContext*)(*it))->atoms[i]->hat, *allsat_print_handler);
 
                 }
 
-            } else if ((*it)->type == PNUELIONDUAL) {
+            } else if ((*it)->type == PNUELIHN) {
 
-                for (auto i = 0; i < ((MitlParser::AtomOnDualContext*)(*it))->atoms.size(); ++i) {
+                for (auto i = 0; i < ((MitlParser::AtomHnContext*)(*it))->atoms.size(); ++i) {
 
                     std::cout << "\nphi_" << i << ":\n";
 
                     std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomOnDualContext*)(*it))->atoms[i]->overline, *allsat_print_handler);
+                    bdd_allsat(((MitlParser::AtomHnContext*)(*it))->atoms[i]->overline, *allsat_print_handler);
                     std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomOnDualContext*)(*it))->atoms[i]->star, *allsat_print_handler);
+                    bdd_allsat(((MitlParser::AtomHnContext*)(*it))->atoms[i]->star, *allsat_print_handler);
                     std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomOnDualContext*)(*it))->atoms[i]->tilde, *allsat_print_handler);
+                    bdd_allsat(((MitlParser::AtomHnContext*)(*it))->atoms[i]->tilde, *allsat_print_handler);
                     std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomOnDualContext*)(*it))->atoms[i]->hat, *allsat_print_handler);
+                    bdd_allsat(((MitlParser::AtomHnContext*)(*it))->atoms[i]->hat, *allsat_print_handler);
 
                 }
 
             } else if ((*it)->type == COUNTFN) {
 
-                for (auto i = 0; i < 4; ++i) {
+                std::cout << "\nphi_1:\n";
 
-                    std::cout << "\nphi_" << i << ":\n";
+                std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->overline, *allsat_print_handler);
+                std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->star, *allsat_print_handler);
+                std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->tilde, *allsat_print_handler);
+                std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->hat, *allsat_print_handler);
 
-                    std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCFnContext*)(*it))->atom(i)->overline, *allsat_print_handler);
-                    std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCFnContext*)(*it))->atom(i)->star, *allsat_print_handler);
-                    std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCFnContext*)(*it))->atom(i)->tilde, *allsat_print_handler);
-                    std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCFnContext*)(*it))->atom(i)->hat, *allsat_print_handler);
+                std::cout << "\nphi_2:\n";
 
-                }
+                std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->overline, *allsat_print_handler);
+                std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->star, *allsat_print_handler);
+                std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->tilde, *allsat_print_handler);
+                std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->hat, *allsat_print_handler);
 
             } else if ((*it)->type == COUNTON) {
 
-                for (auto i = 0; i < 4; ++i) {
+                std::cout << "\nphi_1:\n";
 
-                    std::cout << "\nphi_" << i << ":\n";
+                std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->overline, *allsat_print_handler);
+                std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->star, *allsat_print_handler);
+                std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->tilde, *allsat_print_handler);
+                std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->hat, *allsat_print_handler);
 
-                    std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCOnContext*)(*it))->atom(i)->overline, *allsat_print_handler);
-                    std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCOnContext*)(*it))->atom(i)->star, *allsat_print_handler);
-                    std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCOnContext*)(*it))->atom(i)->tilde, *allsat_print_handler);
-                    std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCOnContext*)(*it))->atom(i)->hat, *allsat_print_handler);
+                std::cout << "\nphi_2:\n";
 
-                }
+                std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->overline, *allsat_print_handler);
+                std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->star, *allsat_print_handler);
+                std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->tilde, *allsat_print_handler);
+                std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->hat, *allsat_print_handler);
 
-            } else if ((*it)->type == COUNTFNDUAL) {
+            } else if ((*it)->type == COUNTGN) {
 
-                for (auto i = 0; i < 4; ++i) {
+                std::cout << "\nphi_1:\n";
 
-                    std::cout << "\nphi_" << i << ":\n";
+                std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->overline, *allsat_print_handler);
+                std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->star, *allsat_print_handler);
+                std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->tilde, *allsat_print_handler);
+                std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->hat, *allsat_print_handler);
 
-                    std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCFnDualContext*)(*it))->atom(i)->overline, *allsat_print_handler);
-                    std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCFnDualContext*)(*it))->atom(i)->star, *allsat_print_handler);
-                    std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCFnDualContext*)(*it))->atom(i)->tilde, *allsat_print_handler);
-                    std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCFnDualContext*)(*it))->atom(i)->hat, *allsat_print_handler);
+                std::cout << "\nphi_2:\n";
 
-                }
+                std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->overline, *allsat_print_handler);
+                std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->star, *allsat_print_handler);
+                std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->tilde, *allsat_print_handler);
+                std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->hat, *allsat_print_handler);
 
-            } else if ((*it)->type == COUNTONDUAL) {
+            } else if ((*it)->type == COUNTHN) {
 
-                for (auto i = 0; i < 4; ++i) {
+                std::cout << "\nphi_1:\n";
 
-                    std::cout << "\nphi_" << i << ":\n";
+                std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->overline, *allsat_print_handler);
+                std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->star, *allsat_print_handler);
+                std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->tilde, *allsat_print_handler);
+                std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(0)->hat, *allsat_print_handler);
 
-                    std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCOnDualContext*)(*it))->atom(i)->overline, *allsat_print_handler);
-                    std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCOnDualContext*)(*it))->atom(i)->star, *allsat_print_handler);
-                    std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCOnDualContext*)(*it))->atom(i)->tilde, *allsat_print_handler);
-                    std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
-                    bdd_allsat(((MitlParser::AtomCOnDualContext*)(*it))->atom(i)->hat, *allsat_print_handler);
+                std::cout << "\nphi_2:\n";
 
-                }
+                std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->overline, *allsat_print_handler);
+                std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->star, *allsat_print_handler);
+                std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->tilde, *allsat_print_handler);
+                std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
+                bdd_allsat(((MitlParser::AtomTContext*)(*it))->atom(1)->hat, *allsat_print_handler);
 
             } else {
                 assert(false);
@@ -813,16 +777,17 @@ namespace mightypplcpp {
         std::cout << "\n" << "TA_0" << ": " << nnf_formula->formula()->getText() << "\n" << std::endl;
 
         std::cout << std::setw(12) << "overline: " << std::setw(0) << std::endl;
-        bdd_allsat(nnf_formula->overline, *allsat_print_handler);
+        bdd_allsat(nnf_formula->formula()->overline, *allsat_print_handler);
         std::cout << std::setw(12) << "star: " << std::setw(0) << std::endl;
-        bdd_allsat(nnf_formula->star, *allsat_print_handler);
+        bdd_allsat(nnf_formula->formula()->star, *allsat_print_handler);
         std::cout << std::setw(12) << "tilde: " << std::setw(0) << std::endl;
-        bdd_allsat(nnf_formula->tilde, *allsat_print_handler);
+        bdd_allsat(nnf_formula->formula()->tilde, *allsat_print_handler);
         std::cout << std::setw(12) << "hat: " << std::setw(0) << std::endl;
-        bdd_allsat(nnf_formula->hat, *allsat_print_handler);
+        bdd_allsat(nnf_formula->formula()->hat, *allsat_print_handler);
 
         sat_paths.clear();
 
+        assert(("Okay until up here", false));
 
         std::cout << "\n<<<<<< Converting into TAs... >>>>>>\n\n";
 
@@ -894,13 +859,13 @@ namespace mightypplcpp {
                         for (auto i = 0; i < phi->atoms.size(); ++i) {
                             out_str << "clock:1:x_" << phi->id + i << std::endl;
                         }
-                    } else if ((*it)->type == PNUELIFNDUAL) {
-                        MitlParser::AtomFnDualContext* phi = (MitlParser::AtomFnDualContext*)(*it);
+                    } else if ((*it)->type == PNUELIGN) {
+                        MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
                         for (auto i = 0; i < phi->atoms.size(); ++i) {
                             out_str << "clock:1:x_" << phi->id + i << std::endl;
                         }
-                    } else if ((*it)->type == PNUELIONDUAL) {
-                        MitlParser::AtomOnDualContext* phi = (MitlParser::AtomOnDualContext*)(*it);
+                    } else if ((*it)->type == PNUELIHN) {
+                        MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
                         for (auto i = 0; i < phi->atoms.size(); ++i) {
                             out_str << "clock:1:x_" << phi->id + i << std::endl;
                         }
@@ -916,14 +881,14 @@ namespace mightypplcpp {
                             out_str << "clock:1:x_" << phi->id + i << std::endl;
                             out_str << "clock:1:y_" << phi->id + i << std::endl;
                         }
-                    } else if ((*it)->type == COUNTFNDUAL) {
-                        MitlParser::AtomCFnDualContext* phi = (MitlParser::AtomCFnDualContext*)(*it);
+                    } else if ((*it)->type == COUNTGN) {
+                        MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
                         for (auto i = 0; i < phi->max_l + 1; ++i) {
                             out_str << "clock:1:x_" << phi->id + i << std::endl;
                             out_str << "clock:1:y_" << phi->id + i << std::endl;
                         }
-                    } else if ((*it)->type == COUNTONDUAL) {
-                        MitlParser::AtomCOnDualContext* phi = (MitlParser::AtomCOnDualContext*)(*it);
+                    } else if ((*it)->type == COUNTHN) {
+                        MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
                         for (auto i = 0; i < phi->max_l + 1; ++i) {
                             out_str << "clock:1:x_" << phi->id + i << std::endl;
                             out_str << "clock:1:y_" << phi->id + i << std::endl;
@@ -952,8 +917,8 @@ namespace mightypplcpp {
 
         for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
 
-            if ((*it)->type == PNUELIFN || (*it)->type == PNUELION || (*it)->type == PNUELIFNDUAL || (*it)->type == PNUELIONDUAL
-                    || (*it)->type == COUNTFN || (*it)->type == COUNTON || (*it)->type == COUNTFNDUAL || (*it)->type == COUNTONDUAL) {
+            if ((*it)->type == PNUELIFN || (*it)->type == PNUELION || (*it)->type == PNUELIGN || (*it)->type == PNUELIHN
+                    || (*it)->type == COUNTFN || (*it)->type == COUNTON || (*it)->type == COUNTGN || (*it)->type == COUNTHN) {
                 std::cout << "\nGenerating TA_" << (*it)->id << " (and other sub-components)...\n";
             } else {
                 std::cout << "\nGenerating TA_" << (*it)->id << "...\n";
@@ -1015,13 +980,13 @@ namespace mightypplcpp {
 
         // 0 -> 1, varphi
 
-        label = nnf_formula->hat;
+        label = nnf_formula->formula()->hat;
 
         bdd_edges.push_back(monitaal::bdd_edge_t(0, 1, guard, reset, label));
 
         // 1 -> 1, *varphi
 
-        label = nnf_formula->star;
+        label = nnf_formula->formula()->star;
 
         bdd_edges.push_back(monitaal::bdd_edge_t(1, 1, guard, reset, label));
 
@@ -1046,7 +1011,7 @@ namespace mightypplcpp {
 
                 // 0 -> 1, varphi
 
-                label = nnf_formula->hat;
+                label = nnf_formula->formula()->hat;
 
                 bdd_allsat(label, *allsat_print_handler);
 
@@ -1073,7 +1038,7 @@ namespace mightypplcpp {
 
                 // 1 -> 1, *varphi
 
-                label = nnf_formula->star;
+                label = nnf_formula->formula()->star;
 
                 bdd_allsat(label, *allsat_print_handler);
 
@@ -1204,9 +1169,9 @@ namespace mightypplcpp {
 
                         out_str << "seq_" << (*it)->id << "@a";
 
-                    } else if ((*it)->type == PNUELIFNDUAL) {
+                    } else if ((*it)->type == PNUELIGN) {
 
-                        MitlParser::AtomFnDualContext* phi = (MitlParser::AtomFnDualContext*)(*it);
+                        MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
 
                         for (auto i = 0; i < phi->atoms.size(); ++i) {
 
@@ -1217,9 +1182,9 @@ namespace mightypplcpp {
 
                         out_str << "seq_" << (*it)->id << "@a";
 
-                    } else if ((*it)->type == PNUELIONDUAL) {
+                    } else if ((*it)->type == PNUELIHN) {
 
-                        MitlParser::AtomOnDualContext* phi = (MitlParser::AtomOnDualContext*)(*it);
+                        MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
 
                         for (auto i = 0; i < phi->atoms.size(); ++i) {
 
@@ -1256,9 +1221,9 @@ namespace mightypplcpp {
 
                         out_str << "seq_" << (*it)->id << "@a";
 
-                    } else if ((*it)->type == COUNTFNDUAL) {
+                    } else if ((*it)->type == COUNTGN) {
 
-                        MitlParser::AtomCFnDualContext* phi = (MitlParser::AtomCFnDualContext*)(*it);
+                        MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
 
                         for (auto i = 0; i < (*it)->max_l + 1; ++i) {
 
@@ -1269,9 +1234,9 @@ namespace mightypplcpp {
 
                         out_str << "seq_" << (*it)->id << "@a";
 
-                    } else if ((*it)->type == COUNTONDUAL) {
+                    } else if ((*it)->type == COUNTHN) {
 
-                        MitlParser::AtomCOnDualContext* phi = (MitlParser::AtomCOnDualContext*)(*it);
+                        MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
 
                         for (auto i = 0; i < (*it)->max_l + 1; ++i) {
 
@@ -1295,10 +1260,6 @@ namespace mightypplcpp {
 
                 }
                 out_str << std::endl;
-
-            } else {
-
-                // no need to generate XML in out_str at this point
 
             }
 
@@ -1407,9 +1368,9 @@ namespace mightypplcpp {
 
                         std::cout << "accept_seq_" << (*it)->id << ",";
 
-                    } else if ((*it)->type == PNUELIFNDUAL) {
+                    } else if ((*it)->type == PNUELIGN) {
 
-                        MitlParser::AtomFnDualContext* phi = (MitlParser::AtomFnDualContext*)(*it);
+                        MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
 
                         for (auto i = 0; i < phi->atoms.size(); ++i) {
 
@@ -1419,9 +1380,9 @@ namespace mightypplcpp {
 
                         std::cout << "accept_seq_" << (*it)->id << ",";
 
-                    } else if ((*it)->type == PNUELIONDUAL) {
+                    } else if ((*it)->type == PNUELIHN) {
 
-                        MitlParser::AtomOnDualContext* phi = (MitlParser::AtomOnDualContext*)(*it);
+                        MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
 
                         for (auto i = 0; i < phi->atoms.size(); ++i) {
 
@@ -1455,9 +1416,9 @@ namespace mightypplcpp {
 
                         std::cout << "accept_seq_" << (*it)->id << ",";
 
-                    } else if ((*it)->type == COUNTFNDUAL) {
+                    } else if ((*it)->type == COUNTGN) {
 
-                        MitlParser::AtomCFnDualContext* phi = (MitlParser::AtomCFnDualContext*)(*it);
+                        MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
 
                         for (auto i = 0; i < phi->max_l + 1; ++i) {
 
@@ -1467,9 +1428,9 @@ namespace mightypplcpp {
 
                         std::cout << "accept_seq_" << (*it)->id << ",";
 
-                    } else if ((*it)->type == COUNTONDUAL) {
+                    } else if ((*it)->type == COUNTHN) {
 
-                        MitlParser::AtomCOnDualContext* phi = (MitlParser::AtomCOnDualContext*)(*it);
+                        MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
 
                         for (auto i = 0; i < phi->max_l + 1; ++i) {
 
@@ -1487,7 +1448,6 @@ namespace mightypplcpp {
                 }
 
                 std::cout << "accept_0,accept_M,accept_div " << out_file << std::endl;
-                
 
                 // return no TA, but the genereated output for components
 
@@ -1495,9 +1455,11 @@ namespace mightypplcpp {
 
             } else {
 
-                // return nothing; out_str is empty at this point anyway
+                assert(("UPPAAL XML output is only supported for flattened (monolithic) automata", false));
+                
+                // // return nothing; out_str is empty at this point anyway
 
-                return { monitaal::TA("dummy", {}, {}, {}, 0), std::string{} };
+                // return { monitaal::TA("dummy", {}, {}, {}, 0), std::string{} };
 
             }
 

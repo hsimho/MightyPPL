@@ -129,7 +129,7 @@ int main(int argc, const char ** argv) {
 
     std::cout << "\n<<<<<< Pre-processing input formula... >>>>>>\n\n";
 
-    std::cout << "\nInput formula (as read from input):\n";
+    std::cout << "\nInput formula (as read from input):\n" << std::endl;
 
     std::stringstream buf;
     buf << spec_in.rdbuf();
@@ -189,7 +189,7 @@ int main(int argc, const char ** argv) {
         std::chrono::steady_clock::time_point end2 = std::chrono::steady_clock::now();
         std::cout << "Fixpoint took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end2 - begin2).count() << "[ms]" << std::endl;
 
-    } else { 
+    } else {
 
         std::ofstream spec_out(out_file, std::ios::trunc);
         if (!spec_out) {

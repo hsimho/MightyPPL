@@ -39,7 +39,9 @@ namespace monitaal {
 
         // TODO: This is a temporary adjustment in response to the off-by-one error
         // introduced by https://github.com/DEIS-Tools/MoniTAal/commit/2207cb9
-        
+
+        assert(("Does not currently support finite-word product", false));
+
         auto clock_size = this->number_of_clocks() - 2;
 
         std::map<std::pair<location_id_t, location_id_t>, std::pair<location_id_t, location_id_t>> new_loc_indir;
@@ -472,8 +474,8 @@ namespace monitaal {
 
                 // std::cout << "Before projection: " << e.bdd_label() << std::endl;
 
-                bdd_allsat(e.bdd_label(), *mightypplcpp::allsat_print_handler);
-                mightypplcpp::sat_paths.clear();
+                // bdd_allsat(e.bdd_label(), *mightypplcpp::allsat_print_handler);
+                // mightypplcpp::sat_paths.clear();
 
                 projected_e = bdd_exist(e.bdd_label(), new_props);
 

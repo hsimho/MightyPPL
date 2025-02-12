@@ -3,7 +3,12 @@
 namespace mightypplcpp {
 
 
-    std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_finally(std::stringstream& out_str, monitaal::clock_map_t& clocks, const MitlParser::AtomContext* phi_) {
+    std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_finally(const MitlParser::AtomContext* phi_) {
+
+        std::stringstream out_str;
+
+        monitaal::clock_map_t clocks;
+        clocks.insert({0, "x0"});        // clock 0 is needed anyway
 
         MitlParser::AtomFContext* phi = (MitlParser::AtomFContext*)phi_;
 

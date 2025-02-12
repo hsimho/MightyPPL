@@ -3,9 +3,14 @@
 namespace mightypplcpp {
 
 
-    std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnueliondual(std::stringstream& out_str, monitaal::clock_map_t& clocks, const MitlParser::AtomContext* phi_) {
+    std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelihn(const MitlParser::AtomContext* phi_) {
 
-        MitlParser::AtomOnDualContext* phi = (MitlParser::AtomOnDualContext*)phi_;
+        std::stringstream out_str;
+
+        monitaal::clock_map_t clocks;
+        clocks.insert({0, "x0"});        // clock 0 is needed anyway
+
+        MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)phi_;
 
         std::string name = "TA_" + std::to_string(phi->id);
 
@@ -61,7 +66,7 @@ namespace mightypplcpp {
 
                             out_str << std::endl << std::endl;
                             out_str << "# " << "TA_" << phi->id + i << " (" << i + 1 << " / " << phi->atoms.size() << ")" << std::endl;
-                            out_str << "# " << const_cast<MitlParser::AtomOnDualContext*>(phi)->getText() << std::endl;
+                            out_str << "# " << const_cast<MitlParser::AtomHnContext*>(phi)->getText() << std::endl;
                             out_str << "process:" << "TA_" << phi->id + i << std::endl;
 
                             out_str << "location:" << "TA_" << phi->id + i << ":ell_0i{initial: }" << std::endl;

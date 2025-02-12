@@ -83,11 +83,11 @@ namespace mightypplcpp {
       return std::string("Test");
   }
 
-  std::any MitlFormulaVisitor::visitAtomFnDual(MitlParser::AtomFnDualContext *ctx) {
+  std::any MitlFormulaVisitor::visitAtomGn(MitlParser::AtomGnContext *ctx) {
       return std::string("Test");
   }
 
-  std::any MitlFormulaVisitor::visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) {
+  std::any MitlFormulaVisitor::visitAtomHn(MitlParser::AtomHnContext *ctx) {
       return std::string("Test");
   }
 
@@ -99,11 +99,11 @@ namespace mightypplcpp {
     return std::string("Test");
   }
   
-  std::any MitlFormulaVisitor::visitAtomCFnDual(MitlParser::AtomCFnDualContext *ctx) {
+  std::any MitlFormulaVisitor::visitAtomCGn(MitlParser::AtomCGnContext *ctx) {
     return std::string("Test");
   }
   
-  std::any MitlFormulaVisitor::visitAtomCOnDual(MitlParser::AtomCOnDualContext *ctx) {
+  std::any MitlFormulaVisitor::visitAtomCHn(MitlParser::AtomCHnContext *ctx) {
     return std::string("Test");
   }
 

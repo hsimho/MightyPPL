@@ -12,11 +12,6 @@ namespace mightypplcpp {
         root = ctx;
         visit(ctx->formula());
 
-        ctx->overline = ctx->formula()->overline;
-        ctx->star = ctx->formula()->star;
-        ctx->tilde = ctx->formula()->tilde;
-        ctx->hat = ctx->formula()->hat;
-
         return nullptr;
 
     }
@@ -50,13 +45,13 @@ namespace mightypplcpp {
 
     std::any MitlGetBDDVisitor::visitFormulaIff(MitlParser::FormulaIffContext *ctx) {
 
-        assert(false);
+        assert(("The formula should be in NNF now", false));
 
     }
 
     std::any MitlGetBDDVisitor::visitFormulaImplies(MitlParser::FormulaImpliesContext *ctx) {
 
-        assert(false);
+        assert(("The formula should be in NNF now", false));
 
     }
 
@@ -65,7 +60,7 @@ namespace mightypplcpp {
         visit(ctx->atom());
 
        // indeed as the whole formula is in NNF, ctx->atom() is always propositional
-       // with only original propositions.
+       // (exactly 1 original proposition).
 
         ctx->overline = !ctx->atom()->overline;
         ctx->star = ctx->atom()->star;
@@ -92,13 +87,13 @@ namespace mightypplcpp {
 
     std::any MitlGetBDDVisitor::visitBound(MitlParser::BoundContext *ctx) {
 
-        assert(false);
+        assert(("visitBound() should not be called", false));
 
     }
 
     std::any MitlGetBDDVisitor::visitInterval(MitlParser::IntervalContext *ctx) {
 
-        assert(false);
+        assert(("visitInterval() should not be called", false));
 
     }
 
@@ -223,10 +218,10 @@ namespace mightypplcpp {
 
         ctx->overline = bdd_false(); 
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits);
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
 
         ctx->tilde = !ctx->overline & ctx->star;
 
@@ -244,10 +239,10 @@ namespace mightypplcpp {
 
         ctx->overline = bdd_false(); 
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits);
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
 
         ctx->tilde = !ctx->overline & ctx->star;
 
@@ -257,7 +252,7 @@ namespace mightypplcpp {
 
     }
     
-    std::any MitlGetBDDVisitor::visitAtomFnDual(MitlParser::AtomFnDualContext *ctx) {
+    std::any MitlGetBDDVisitor::visitAtomGn(MitlParser::AtomGnContext *ctx) {
 
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
             visit(ctx->atoms[i]);
@@ -265,10 +260,10 @@ namespace mightypplcpp {
 
         ctx->overline = bdd_false(); 
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits);
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
 
         ctx->tilde = !ctx->overline & ctx->star;
 
@@ -278,7 +273,7 @@ namespace mightypplcpp {
 
     }
     
-    std::any MitlGetBDDVisitor::visitAtomOnDual(MitlParser::AtomOnDualContext *ctx) {
+    std::any MitlGetBDDVisitor::visitAtomHn(MitlParser::AtomHnContext *ctx) {
 
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
             visit(ctx->atoms[i]);
@@ -286,10 +281,10 @@ namespace mightypplcpp {
 
         ctx->overline = bdd_false(); 
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits);
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
 
         ctx->tilde = !ctx->overline & ctx->star;
 
@@ -301,16 +296,15 @@ namespace mightypplcpp {
 
     std::any MitlGetBDDVisitor::visitAtomCFn(MitlParser::AtomCFnContext *ctx) {
 
-        for (auto i = 0; i < 4; ++i) {
-            visit(ctx->atom(i));
-        }
+        visit(ctx->atom(0));
+        visit(ctx->atom(1));
 
         ctx->overline = bdd_false(); 
-        for (auto i = 0; i < ctx->max_l + 1; ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits);
+        for (auto i = 0; i < ctx->num_pairs; ++i) {
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
 
         ctx->tilde = !ctx->overline & ctx->star;
 
@@ -322,16 +316,15 @@ namespace mightypplcpp {
     
     std::any MitlGetBDDVisitor::visitAtomCOn(MitlParser::AtomCOnContext *ctx) {
 
-        for (auto i = 0; i < 4; ++i) {
-            visit(ctx->atom(i));
-        }
+        visit(ctx->atom(0));
+        visit(ctx->atom(1));
 
         ctx->overline = bdd_false(); 
-        for (auto i = 0; i < ctx->max_l + 1; ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits);
+        for (auto i = 0; i < ctx->num_pairs; ++i) {
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
 
         ctx->tilde = !ctx->overline & ctx->star;
 
@@ -341,18 +334,17 @@ namespace mightypplcpp {
 
     }
     
-    std::any MitlGetBDDVisitor::visitAtomCFnDual(MitlParser::AtomCFnDualContext *ctx) {
+    std::any MitlGetBDDVisitor::visitAtomCGn(MitlParser::AtomCGnContext *ctx) {
 
-        for (auto i = 0; i < 4; ++i) {
-            visit(ctx->atom(i));
-        }
+        visit(ctx->atom(0));
+        visit(ctx->atom(1));
 
         ctx->overline = bdd_false(); 
-        for (auto i = 0; i < ctx->max_l + 1; ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits);
+        for (auto i = 0; i < ctx->num_pairs; ++i) {
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
 
         ctx->tilde = !ctx->overline & ctx->star;
 
@@ -362,18 +354,17 @@ namespace mightypplcpp {
 
     }
     
-    std::any MitlGetBDDVisitor::visitAtomCOnDual(MitlParser::AtomCOnDualContext *ctx) {
+    std::any MitlGetBDDVisitor::visitAtomCHn(MitlParser::AtomCHnContext *ctx) {
 
-        for (auto i = 0; i < 4; ++i) {
-            visit(ctx->atom(i));
-        }
+        visit(ctx->atom(0));
+        visit(ctx->atom(1));
 
         ctx->overline = bdd_false(); 
-        for (auto i = 0; i < ctx->max_l + 1; ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits);
+        for (auto i = 0; i < ctx->num_pairs; ++i) {
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
 
         ctx->tilde = !ctx->overline & ctx->star;
 

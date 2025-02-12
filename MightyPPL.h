@@ -14,8 +14,7 @@
 #include "MitlParser.h"
 
 #include "MitlFormulaVisitor.h"
-#include "MitlCheckUniVisitor.h"
-#include "MitlToUniVisitor.h"
+#include "MitlTypingVisitor.h"
 #include "MitlCheckNNFVisitor.h"
 #include "MitlToNNFVisitor.h"
 #include "MitlAtomNumberingVisitor.h"
@@ -49,20 +48,20 @@ namespace mightypplcpp {
     extern bool out_flatten;
     extern bool out_fin;
 
-    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_finally(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
-    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_once(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
-    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_globally(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
-    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_historically(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
-    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_until(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
-    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_since(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
-    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_release(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
-    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_trigger(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
-    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelifn(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
-    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelion(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
-    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelifndual(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
-    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnueliondual(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
-    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_countfn(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
-    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_countfndual(std::stringstream&, monitaal::clock_map_t&, const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_finally(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_once(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_globally(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_historically(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_until(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_since(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_release(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_trigger(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelifn(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelion(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelign(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelihn(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_countfn(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_countgn(const MitlParser::AtomContext*);
 
     extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_ta_from_atom(const mightypplcpp::MitlParser::AtomContext*);
 

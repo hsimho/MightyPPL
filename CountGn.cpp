@@ -3,9 +3,14 @@
 namespace mightypplcpp {
 
 
-    std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_countfndual(std::stringstream& out_str, monitaal::clock_map_t& clocks, const MitlParser::AtomContext* phi_) {
+    std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_countgn(const MitlParser::AtomContext* phi_) {
 
-        MitlParser::AtomCFnDualContext* phi = (MitlParser::AtomCFnDualContext*)phi_;
+        std::stringstream out_str;
+
+        monitaal::clock_map_t clocks;
+        clocks.insert({0, "x0"});        // clock 0 is needed anyway
+
+        MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)phi_;
 
         std::string name = "TA_" + std::to_string(phi->id);     // TODO: individual names for sub-components?
 
@@ -63,7 +68,7 @@ namespace mightypplcpp {
 
                             out_str << std::endl << std::endl;
                             out_str << "# " << "TA_" << phi->id + i << " (" << i + 1 << " / " << phi->max_l + 1 << ")" << std::endl;
-                            out_str << "# " << const_cast<MitlParser::AtomCFnDualContext*>(phi)->getText() << std::endl;
+                            out_str << "# " << const_cast<MitlParser::AtomCGnContext*>(phi)->getText() << std::endl;
                             out_str << "process:" << "TA_" << phi->id + i << std::endl;
 
                             out_str << "location:" << "TA_" << phi->id + i << ":ell_0{initial: : labels: accept_" << phi->id + i << "}" << std::endl;

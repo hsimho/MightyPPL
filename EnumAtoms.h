@@ -4,6 +4,8 @@ namespace mightypplcpp {
 
 enum enum_atoms {
 
+    UNKNOWN,
+    PAREN,
     FINALLY,
     ONCE,
     GLOBALLY,
@@ -14,12 +16,12 @@ enum enum_atoms {
     TRIGGER,
     PNUELIFN,
     PNUELION,
-    PNUELIFNDUAL,
-    PNUELIONDUAL,
+    PNUELIGN,
+    PNUELIHN,
     COUNTFN,
     COUNTON,
-    COUNTFNDUAL,
-    COUNTONDUAL
+    COUNTGN,
+    COUNTHN
 
 };
 
