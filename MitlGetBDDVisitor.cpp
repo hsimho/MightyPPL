@@ -212,6 +212,7 @@ namespace mightypplcpp {
 
     std::any MitlGetBDDVisitor::visitAtomFn(MitlParser::AtomFnContext *ctx) {
 
+
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
             visit(ctx->atoms[i]);
         }
@@ -239,10 +240,10 @@ namespace mightypplcpp {
 
         ctx->overline = bdd_false(); 
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2);
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2));
 
         ctx->tilde = !ctx->overline & ctx->star;
 
@@ -281,10 +282,10 @@ namespace mightypplcpp {
 
         ctx->overline = bdd_false(); 
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2);
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2));
 
         ctx->tilde = !ctx->overline & ctx->star;
 
@@ -300,15 +301,16 @@ namespace mightypplcpp {
         visit(ctx->atom(1));
 
         ctx->overline = bdd_false(); 
+        ctx->hat = bdd_false();
+
         for (auto i = 0; i < ctx->num_pairs; ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
+            ctx->overline = ctx->overline | (encode(i + 1, ctx->id, ctx->bits / 2 - 1) & bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
+            ctx->hat = ctx->hat | (encode(i + 1, ctx->id, ctx->bits / 2 - 1) & bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
         }
 
         ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
 
         ctx->tilde = !ctx->overline & ctx->star;
-
-        ctx->hat = ctx->overline; 
 
         return nullptr;
 
@@ -320,15 +322,16 @@ namespace mightypplcpp {
         visit(ctx->atom(1));
 
         ctx->overline = bdd_false(); 
+        ctx->hat = bdd_false();
+
         for (auto i = 0; i < ctx->num_pairs; ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
+            ctx->overline = ctx->overline | (encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2 - 1) & bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
+            ctx->hat = ctx->hat | (encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2 - 1) & bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2));
 
         ctx->tilde = !ctx->overline & ctx->star;
-
-        ctx->hat = ctx->overline; 
 
         return nullptr;
 
@@ -340,15 +343,19 @@ namespace mightypplcpp {
         visit(ctx->atom(1));
 
         ctx->overline = bdd_false(); 
+        ctx->hat = bdd_false();
+
         for (auto i = 0; i < ctx->num_pairs; ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2 - 1);
+            ctx->hat = ctx->hat | (encode(i + 1, ctx->id, ctx->bits / 2 - 1) & !bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
         }
+
+        ctx->overline = ctx->overline | bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
+        ctx->hat = ctx->hat | (encode(0, ctx->id, ctx->bits / 2 - 1) & bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
 
         ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
 
         ctx->tilde = !ctx->overline & ctx->star;
-
-        ctx->hat = ctx->overline; 
 
         return nullptr;
 
@@ -360,15 +367,19 @@ namespace mightypplcpp {
         visit(ctx->atom(1));
 
         ctx->overline = bdd_false(); 
+        ctx->hat = bdd_false();
+
         for (auto i = 0; i < ctx->num_pairs; ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2 - 1);
+            ctx->hat = ctx->hat | (encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2 - 1) & !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
+        ctx->overline = ctx->overline | bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+        ctx->hat = ctx->hat | (encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2 - 1) & bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
+
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2));
 
         ctx->tilde = !ctx->overline & ctx->star;
-
-        ctx->hat = ctx->overline; 
 
         return nullptr;
 

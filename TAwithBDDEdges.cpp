@@ -41,6 +41,7 @@ namespace monitaal {
         // introduced by https://github.com/DEIS-Tools/MoniTAal/commit/2207cb9
 
         assert(("Does not currently support finite-word product", false));
+        assert(("Also note that there's a bug (fixed in a later commit) in TA::intersection", false));
 
         auto clock_size = this->number_of_clocks() - 2;
 
@@ -240,7 +241,8 @@ namespace monitaal {
 
             }
 
-            // We don't currently remove "dead-end" locations
+            // We don't currently remove "dead-end" locations (they are needed for finite-word
+            // acceptance?)
 
             if (!stucked) {
 

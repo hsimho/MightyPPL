@@ -41,7 +41,8 @@ namespace mightypplcpp {
 
     extern void allsat_print_handler(char*, int); 
 
-    extern void build_edge(monitaal::bdd_edges_t&, const std::map<std::string, monitaal::location_id_t>&, std::stringstream&, const int, const std::string&, const std::string&, const std::string&, const std::string&, int, bdd);
+    extern void build_untimed_edge(monitaal::bdd_edges_t&, const std::map<std::string, monitaal::location_id_t>&, std::stringstream&, const std::string&, const std::string&, const std::string&, bdd);
+    extern void build_edge(monitaal::bdd_edges_t&, const std::map<std::string, monitaal::location_id_t>&, std::stringstream&, const int, const int, const std::string&, const std::string&, const std::string&, const std::string&, const int, bdd);
 
     extern const char* out_file; 
     extern std::optional<bool> out_format;
@@ -61,7 +62,9 @@ namespace mightypplcpp {
     extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelign(const MitlParser::AtomContext*);
     extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_pnuelihn(const MitlParser::AtomContext*);
     extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_countfn(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_counton(const MitlParser::AtomContext*);
     extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_countgn(const MitlParser::AtomContext*);
+    extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_counthn(const MitlParser::AtomContext*);
 
     extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_ta_from_atom(const mightypplcpp::MitlParser::AtomContext*);
 

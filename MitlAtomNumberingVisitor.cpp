@@ -362,7 +362,7 @@ namespace mightypplcpp {
         antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
 
         ctx->num_pairs = std::floor(std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 2;
-        ctx->bits = 2 * std::ceil(std::log2(ctx->num_pairs + 1)); // + 1: 0 for "all off"
+        ctx->bits = 2 * (std::ceil(std::log2(ctx->num_pairs + 1)) + 1); // + 1: 0 for "all off", another +1 for the other disjunct (both in and out, but only in really needed)
 
         if (root->temporals.count(ctx->getText()) == 0) {
 
@@ -393,7 +393,7 @@ namespace mightypplcpp {
         antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
 
         ctx->num_pairs = std::floor(std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 2;
-        ctx->bits = 2 * std::ceil(std::log2(ctx->num_pairs + 1)); // + 1: 0 for "all off"
+        ctx->bits = 2 * (std::ceil(std::log2(ctx->num_pairs + 1)) + 1); // + 1: 0 for "all off", another +1 for the other disjunct (both in and out, but only in really needed)
 
         if (root->temporals.count(ctx->getText()) == 0) {
 
@@ -424,7 +424,7 @@ namespace mightypplcpp {
         antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
 
         ctx->num_pairs = std::ceil(std::stoi(right->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText())));
-        ctx->bits = 2 * std::ceil(std::log2(ctx->num_pairs + 1)); // + 1: 0 for "all off"
+        ctx->bits = 2 * (std::ceil(std::log2(ctx->num_pairs + 1)) + 1); // + 1: 0 for "all off", another +1 for the other disjunct (both in and out, but only in really needed)
 
         if (root->temporals.count(ctx->getText()) == 0) {
 
@@ -455,7 +455,7 @@ namespace mightypplcpp {
         antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
 
         ctx->num_pairs = std::ceil(std::stoi(right->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText())));
-        ctx->bits = 2 * std::ceil(std::log2(ctx->num_pairs + 1)); // + 1: 0 for "all off"
+        ctx->bits = 2 * (std::ceil(std::log2(ctx->num_pairs + 1)) + 1); // + 1: 0 for "all off", another +1 for the other disjunct (both in and out, but only in really needed)
 
         if (root->temporals.count(ctx->getText()) == 0) {
 

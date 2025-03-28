@@ -1017,8 +1017,16 @@ namespace mightypplcpp {
                     paren = false;
                     ancestor = nullptr;
 
-                } else if (ancestor->getRuleIndex() == MitlParser::RuleAtom && (static_cast<MitlParser::AtomContext*>(ancestor)->type == FINALLY || static_cast<MitlParser::AtomContext*>(ancestor)->type == ONCE || static_cast<MitlParser::AtomContext*>(ancestor)->type == GLOBALLY || static_cast<MitlParser::AtomContext*>(ancestor)->type == HISTORICALLY)) {
-                //    std::cout << "(this is an Atom in F O G H)" << std::endl << std::flush;
+                } else if (ancestor->getRuleIndex() == MitlParser::RuleAtom &&
+                        (static_cast<MitlParser::AtomContext*>(ancestor)->type == FINALLY
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == ONCE
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == GLOBALLY
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == HISTORICALLY
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == PNUELIFN
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == PNUELION
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == PNUELIGN
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == PNUELIFN)) {
+                //    std::cout << "(this is an Atom in F O G H Fn On Gn Hn)" << std::endl << std::flush;
                     paren = true;
                     ancestor = nullptr;
 

@@ -12,11 +12,11 @@ namespace mightypplcpp {
 
         MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)phi_;
 
-        std::string name = "TA_" + std::to_string(phi->id);     // TODO: individual names for sub-components?
+        std::string name;
 
         if (phi->interval() == nullptr) {
 
-                assert(("Unexpected interval on CFn COn CGn CHn", false));
+            assert(("There should be a general interval on CFn COn CGn CHn", false));
 
         } else {
 
@@ -26,309 +26,396 @@ namespace mightypplcpp {
             antlr4::tree::ParseTree* left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
             antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
 
-            if (
-                (left_delim->getSymbol()->getType() == MitlParser::LBrack && left->children[0]->getText() == "0")
-                || 
-                (right_delim->getSymbol()->getType() == MitlParser::RParen && right->children[0]->getText() == "infty")
-               ) {
+            /***** Count Fn
+             <l, u>
+            *****/
+            
+            clocks.insert({1, "x1"});
+            clocks.insert({2, "y1"});
 
-                assert(("Unexpected interval on CFn COn CGn CHn", false));
+            std::vector<monitaal::TAwithBDDEdges> components;
 
-            } else {
+            monitaal::constraints_t empty_invariant;
+            monitaal::locations_t locations;
 
-                /***** Count Fn
-                 <l, u>
-                *****/
-                
-                clocks.insert({1, "x1"});
-                clocks.insert({2, "y1"});
+            std::map<std::string, monitaal::location_id_t> name_id_map;
 
-                std::vector<monitaal::TAwithBDDEdges> components;
+            monitaal::bdd_edges_t bdd_edges;
 
-                monitaal::constraints_t empty_invariant;
-                monitaal::locations_t locations;
-
-                std::map<std::string, monitaal::location_id_t> name_id_map;
-
-                monitaal::bdd_edges_t bdd_edges;
-
-
-                for (auto i = 0; i < phi->max_l + 1; ++i) {
-
-                    locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
-                    name_id_map.insert({"0", 0});
-                    for (auto j = 0; j < phi->max_l + 1; ++j) {
-                        locations.push_back(monitaal::location_t(false, 1 + j, "s1_" + std::to_string(j), empty_invariant));
-                        name_id_map.insert({"1_" + std::to_string(j), 1 + j});
-                    }
-
-                    // TODO: distinguish fin/inf acceptance?
-
-                    locations.push_back(monitaal::location_t(false, 1 + phi->max_l + 1, "s1_f", empty_invariant));
-                    name_id_map.insert({"1_f", 1 + phi->max_l + 1});
-
-                    locations.push_back(monitaal::location_t(false, 1 + phi->max_l + 2, "s1_g", empty_invariant));
-                    name_id_map.insert({"1_g", 1 + phi->max_l + 2});
-
-                    if (out_format.has_value()) {
-
-                        if (out_format.value()) {
-
-                            out_str << std::endl << std::endl;
-                            out_str << "# " << "TA_" << phi->id + i << " (" << i + 1 << " / " << phi->max_l + 1 << ")" << std::endl;
-                            out_str << "# " << const_cast<MitlParser::AtomCFnContext*>(phi)->getText() << std::endl;
-                            out_str << "process:" << "TA_" << phi->id + i << std::endl;
-
-                            out_str << "location:" << "TA_" << phi->id + i << ":ell_0{initial: : labels: accept_" << phi->id + i << "}" << std::endl;
-                            for (auto j = 0; j < phi->max_l + 1; ++j) {
-                                out_str << "location:" << "TA_" << phi->id + i << ":ell_1_" << j << "{labels: accept_" << phi->id + i << "}" << std::endl;
-                            }
-
-                            out_str << "location:" << "TA_" << phi->id + i << ":ell_1_f{labels: accept_" << phi->id + i << "}" << std::endl;
-                            out_str << "location:" << "TA_" << phi->id + i << ":ell_1_g{labels: accept_" << phi->id + i << "}" << std::endl;
-
-                        }
-
-                    }
+            bdd in_null = encode(0, phi->id, phi->bits / 2 - 1);
+            bdd out_null = encode(0, phi->id + phi->bits / 2, phi->bits / 2 - 1);
+            bdd in_i;
+            bdd out_i;
+            bdd in_next_i;
+            bdd out_next_i;
+            bdd in_prev_i;
+            bdd out_prev_i;
 
 
-                    // 0 -> 0, !p1, x := 0, y := 0
-                    
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "0", "0", std::string{}, std::string{}, 3, !encode(i + 1, phi->id, phi->bits));
+            for (auto i = 0; i < phi->num_pairs; ++i) {
 
-                    // 0 -> 1_0, p1, x := 0, y := 0
-                    
-                    // 0 -> 1_1, p1, x := 0, y := 0
-                    
-                    // 0 -> 1_2, p1, x := 0, y := 0
-                   
-                    // 0 -> 1_3, p1, x := 0, y := 0
-                    
-                    for (auto j = 0; j < phi->max_l + 1; ++j) {
+                name = "TA_" + std::to_string(phi->id) + "_" + std::to_string(i);
+                in_i = encode(i + 1, phi->id, phi->bits / 2 - 1);
+                out_i = encode(i + 1, phi->id + phi->bits / 2, phi->bits / 2 - 1);
 
-                        build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "0", "1_" + std::to_string(j), std::string{}, std::string{}, 3, encode(i + 1, phi->id, phi->bits));
+                locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
+                name_id_map.insert({"0", 0});
 
-                    }
+                locations.push_back(monitaal::location_t(false, 1, "s1", empty_invariant));
+                name_id_map.insert({"1", 1});
 
+                locations.push_back(monitaal::location_t(false, 3, "s1_0", empty_invariant));
+                name_id_map.insert({"1_0", 3});
 
-                    for (auto j = 0; j < phi->max_l; ++j) {
+                locations.push_back(monitaal::location_t(false, 4, "s1_1", empty_invariant));
+                name_id_map.insert({"1_1", 4});
 
-                        // 1_j -> 1_j, !p1 && ~phi, x <= b
+                locations.push_back(monitaal::location_t(out_fin ? false : true, 2, "s2", empty_invariant));
+                name_id_map.insert({"2", 2});
 
-                        build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(j), "1_" + std::to_string(j), (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 0, !encode(i + 1, phi->id, phi->bits) & phi->atom(1)->hat);
+                if (out_format.has_value() && out_format.value()) {
 
-                        // 1_j -> 1_j, p1 && ~phi, y := 0, x <= b
+                    out_str << std::endl << std::endl;
+                    out_str << "# " << "TA_" << phi->id << "_" << i << " (" << i + 1 << " / " << phi->num_pairs << ")" << std::endl;
+                    out_str << "# " << const_cast<MitlParser::AtomCFnContext*>(phi)->getText() << std::endl;
+                    out_str << "process:" << "TA_" << phi->id << "_" << i << std::endl;
 
-                        build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(j), "1_" + std::to_string(j), (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 2, encode(i + 1, phi->id, phi->bits) & phi->atom(1)->hat);
+                    out_str << "location:" << "TA_" << phi->id << "_" << i << ":ell_0{initial: : labels: accept_" << phi->id << "_" << i << "}" << std::endl;
 
-                        // 1_j -> 1_j+1, !p1 && phi, x <= b
+                    out_str << "location:" << "TA_" << phi->id << "_" << i << ":ell_1" << "{}" << std::endl;
+                    out_str << "location:" << "TA_" << phi->id << "_" << i << ":ell_1_0" << "{}" << std::endl;
+                    out_str << "location:" << "TA_" << phi->id << "_" << i << ":ell_1_1" << "{}" << std::endl;
 
-                        build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(j), "1_" + std::to_string(j + 1), (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 0, !encode(i + 1, phi->id, phi->bits) & phi->atom(0)->hat);
-
-                        // 1_j -> 1_j+1, p1 && phi, y := 0, x <= b
-
-                        build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(j), "1_" + std::to_string(j + 1), (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 2, encode(i + 1, phi->id, phi->bits) & phi->atom(0)->hat);
-
-                    }
-
-
-                    // 1_3 -> 1_3, !p1 && ~phi && ~phi2, x <= b
-
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(phi->max_l), "1_" + std::to_string(phi->max_l), (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 0, !encode(i + 1, phi->id, phi->bits) & phi->atom(1)->hat & phi->atom(3)->hat);
-                    
-                    // 1_3 -> 1_3, p1 && ~phi && ~phi2, y := 0, x <= b
-
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(phi->max_l), "1_" + std::to_string(phi->max_l), (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 2, encode(i + 1, phi->id, phi->bits) & phi->atom(1)->hat & phi->atom(3)->hat);
-
-                    // 1_3 -> 1_f, !p1 && ~phi && phi2, x := 0, x <= b
-
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(phi->max_l), "1_f", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 1, !encode(i + 1, phi->id, phi->bits) & phi->atom(1)->hat & phi->atom(2)->hat);
-
-                    // 1_3 -> 1_f, p1 && ~phi && phi2, x := 0, y := 0, x <= b
-
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(phi->max_l), "1_f", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 3, encode(i + 1, phi->id, phi->bits) & phi->atom(1)->hat & phi->atom(2)->hat);
-
-                    // 1_f -> 1_f, !p1 && ~phi, x := 0, y < a
-
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_f", "1_f", std::string{}, (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), 1, !encode(i + 1, phi->id, phi->bits) & phi->atom(1)->hat);
-
-                    // 1_f -> 1_f, p1 && ~phi, x := 0, y := 0, y < a
-
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_f", "1_f", std::string{}, (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), 3, encode(i + 1, phi->id, phi->bits) & phi->atom(1)->hat);
-
-                    // 1_f -> 0, !p1, x := 0; y := 0, y >= a
-                    
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_f", "0", std::string{}, (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 3, !encode(i + 1, phi->id, phi->bits));
-    
-                    // 1_f -> 1_0, p1, x := 0; y := 0, y >= a
-
-                    // 1_f -> 1_1, p1, x := 0; y := 0, y >= a
-
-                    // 1_f -> 1_2, p1, x := 0; y := 0, y >= a
-
-                    // 1_f -> 1_3, p1, x := 0; y := 0, y >= a
-
-                    for (auto j = 0; j < phi->max_l + 1; ++j) {
-
-                        build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_f", "1_" + std::to_string(j), std::string{}, (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 3, encode(i + 1, phi->id, phi->bits));
-
-                    }
-
-                    // 1_3 -> 1_g, !p1 && ~phi && ~phi2, y := 0, y >= a, x <= b
-
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(phi->max_l), "1_g", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 2, !encode(i + 1, phi->id, phi->bits) & phi->atom(1)->hat & phi->atom(3)->hat);
-
-                    // 1_g -> 1_g, !p1 && ~phi && ~phi2, y := 0, x <= b
-                    
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_g", "1_g", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 2, !encode(i + 1, phi->id, phi->bits) & phi->atom(1)->hat & phi->atom(3)->hat);
-
-                    // 1_g -> 0, !p1 && phi2, x := 0, y := 0, x <= b
-
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_g", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 3, !encode(i + 1, phi->id, phi->bits) & phi->atom(2)->hat);
-
-
-
-                    components.push_back(monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0));
-                    locations.clear();
-                    name_id_map.clear();
-                    bdd_edges.clear();
+                    out_str << "location:" << "TA_" << phi->id << "_" << i << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id) + "_" + std::to_string(i)) << "}" << std::endl;
 
                 }
 
+                // 0 -> 0, !in_i & !out_i, x := 0, y := 0
 
-                clocks.clear();
-                clocks.insert({0, "x0"});        // clock 0 is needed anyway
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "0", "0", std::string{}, std::string{}, 3, !in_i & !out_i);
 
-                for (int i = 0; i < phi->max_l + 1; ++i) {
+                // 0 -> 1, in_i & !out_i, x := 0, y := 0
 
-                    locations.push_back(monitaal::location_t(true, i, "s" + std::to_string(i), empty_invariant));
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "0", "1", std::string{}, std::string{}, 3, in_i & !out_i);
 
-                }
+                // 1 -> 1, in_null & !out_i & *phi, x <= b, y <= a
 
-                if (out_format.has_value()) {
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), 0, in_null & !out_i & phi->atom(1)->star);
 
-                    if (out_format.value()) {
+                // 1 -> 1, in_i & !out_i & *phi, y := 0, x <= b, y <= a
 
-                        out_str << std::endl << std::endl;
-                        out_str << "# " << "seq_" << phi->id << std::endl;
-                        out_str << "process:" << "seq_" << phi->id << std::endl;
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), 2, in_i & !out_i & phi->atom(1)->star);
 
-                        for (int i = 0; i < phi->max_l + 1; ++i) {
-                            out_str << "location:" << "seq_" << phi->id << ":ell_" << i << "{" << (i == 0 ? "initial: : " : "") << "labels: accept_seq_" << phi->id << "}" << std::endl;
-                        }
-                    }
-                }
+                // 1 -> 0, !in_i & out_i & ^phi, x := 0, y := 0, x <= b, y > a
+
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 3, !in_i & out_i & phi->atom(1)->hat);
+
+                // 1 -> 1_0, !in_i & out_i & ^phi, x := 0, x <= b, y <= a
+
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1", "1_0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), 1, !in_i & out_i & phi->atom(1)->hat);
+
+                // 1 -> 2, in_i & out_i & ^phi, x := 0, y := 0, x <= b, y > a
+
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1", "2", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 3, in_i & out_i & phi->atom(1)->hat);
+
+                // 2 -> 1, in_null & !out_i & *phi, x <= b, y <= a
+
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "2", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), 0, in_null & !out_i & phi->atom(1)->star);
+
+                // 2 -> 1, in_i & !out_i & *phi, y := 0, x <= b, y <= a
+
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "2", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), 2, in_i & !out_i & phi->atom(1)->star);
+
+                // 2 -> 0, !in_i & out_i & ^phi, x := 0, y := 0, x <= b, y > a
+
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "2", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 3, !in_i & out_i & phi->atom(1)->hat);
+
+                // 2 -> 1_0, !in_i & out_i & ^phi, x := 0, x <= b, y <= a
+
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "2", "1_0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), 1, !in_i & out_i & phi->atom(1)->hat);
+
+                // 2 -> 2, in_i & out_i & ^phi, x := 0, y := 0, x <= b, y > a
+
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "2", "2", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 3, in_i & out_i & phi->atom(1)->hat);
 
 
-                bdd bdd_mutex = bdd_true();
+                // 1_0 -> 1_0, !in_i & out_i & ^phi, x := 0, x < 1, y <= a
 
-                bdd_mutex = bdd_mutex & ((phi->atom(0)->hat & phi->atom(1)->tilde) | (phi->atom(1)->hat & phi->atom(0)->tilde));
-                bdd_mutex = bdd_mutex & ((phi->atom(2)->hat & phi->atom(3)->tilde) | (phi->atom(3)->hat & phi->atom(2)->tilde));
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_0", "1_0", "< " + std::to_string(std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText())), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), 1, !in_i & out_i & phi->atom(1)->hat);
 
-                for (int i = 0; i < phi->max_l + 1; ++i) {
+                // 1_0 -> 1_1, !in_i & !out_i & ~phi, x < 1, y <= a
 
-                    bdd_edges.push_back(monitaal::bdd_edge_t(i, i, monitaal::constraints_t{}, monitaal::clocks_t{}, bdd_mutex & encode(0, phi->id, phi->bits) | encode(i + 1, phi->id, phi->bits)));
-                    
-                    int from = i;
-                    int to = i;
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_0", "1_1", "< " + std::to_string(std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText())), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), 0, !in_i & !out_i & phi->atom(1)->tilde);
 
-                    if (out_format.has_value()) {
+                // 1_1 -> 1_1, !in_i & !out_i & ~phi, x < 1, y <= a
 
-                        if (out_format.value()) {
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_1", "1_1", "< " + std::to_string(std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText())), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), 0, !in_i & !out_i & phi->atom(1)->tilde);
 
-                            bdd_allsat(bdd_mutex & encode(0, phi->id, phi->bits) | encode(i + 1, phi->id, phi->bits), *allsat_print_handler);
+                // 1_1 -> 1_0, !in_i & out_i & ^phi, x := 0, x < 1, y <= a
 
-                            std::stringstream p_constraint;
-                            std::string s;
-                            for (auto i = 0; i < sat_paths.size(); ++i) {
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_1", "1_0", "< " + std::to_string(std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText())), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), 1, !in_i & out_i & phi->atom(1)->hat);
 
-                                int largest = 0;
-                                for (auto j = 1; j < sat_paths[i].size(); ++j) {
-                                    if (sat_paths[i][j] != 'X' && j > largest) {
-                                        largest = j;
-                                    }
-                                }
-                                for (auto j = 1; j < sat_paths[i].size(); ++j) {
-                                    if (sat_paths[i][j] != 'X') {
-                                        p_constraint << "p_" << j << (sat_paths[i][j] == '0' ? " == 0" : " == 1");
-                                        if (j != largest) {
-                                            p_constraint << " && ";
-                                        }
-                                    }
-                                }
-                                s = s + std::string("edge:") + "seq_" + std::to_string(phi->id) + ":ell_" + std::to_string(from) + ":ell_" + std::to_string(to) + ":a{provided: turn == 1"
-                                                    + (p_constraint.str().size() ? " && " + p_constraint.str() : std::string{})
-                                                    + "}" 
-                                                    + "\n"; 
 
-                                std::stringstream().swap(p_constraint);
+                // 1_0 -> 2, in_i & out_i & ^phi, x := 0, y := 0, x < 1, y > a
 
-                            }
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_0", "2", "< " + std::to_string(std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText())), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 3, in_i & out_i & phi->atom(1)->hat);
 
-                            sat_paths.clear();
-                            out_str << s;
+                // 1_1 -> 2, in_i & out_i & ^phi, x := 0, y := 0, x < 1, y > a
 
-                        }
-                    }
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_1", "2", "< " + std::to_string(std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText())), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 3, in_i & out_i & phi->atom(1)->hat);
 
-                }
+                // 1_0 -> 0, !in_i & out_i & ^phi, x := 0, y := 0, x < 1, y > a
 
-                for (int i = 0; i < phi->max_l + 1; ++i) {
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_0", "0", "< " + std::to_string(std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText())), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 3, !in_i & out_i & phi->atom(1)->hat);
 
-                    bdd_edges.push_back(monitaal::bdd_edge_t(i, (i + 1 == phi->max_l + 1 ? 0 : i + 1), monitaal::constraints_t{}, monitaal::clocks_t{}, bdd_mutex & encode((i + 2 > phi->max_l + 1 ? 1 : i + 2), phi->id, phi->bits)));
+                // 1_1 -> 0, !in_i & out_i & ^phi, x := 0, y := 0, x < 1, y > a
 
-                    int from = i;
-                    int to = (i + 1 == phi->max_l + 1 ? 0 : i + 1);
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_1", "0", "< " + std::to_string(std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText())), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 3, !in_i & out_i & phi->atom(1)->hat);
 
-                    if (out_format.has_value()) {
 
-                        if (out_format.value()) {
-
-                            bdd_allsat(bdd_mutex & encode((i + 2 > phi->max_l + 1 ? 1 : i + 2), phi->id, phi->bits), *allsat_print_handler);
-
-                            std::stringstream p_constraint;
-                            std::string s;
-                            for (auto i = 0; i < sat_paths.size(); ++i) {
-
-                                int largest = 0;
-                                for (auto j = 1; j < sat_paths[i].size(); ++j) {
-                                    if (sat_paths[i][j] != 'X' && j > largest) {
-                                        largest = j;
-                                    }
-                                }
-                                for (auto j = 1; j < sat_paths[i].size(); ++j) {
-                                    if (sat_paths[i][j] != 'X') {
-                                        p_constraint << "p_" << j << (sat_paths[i][j] == '0' ? " == 0" : " == 1");
-                                        if (j != largest) {
-                                            p_constraint << " && ";
-                                        }
-                                    }
-                                }
-                                s = s + std::string("edge:") + "seq_" + std::to_string(phi->id) + ":ell_" + std::to_string(from) + ":ell_" + std::to_string(to) + ":a{provided: turn == 1"
-                                                    + (p_constraint.str().size() ? " && " + p_constraint.str() : std::string{})
-                                                    + "}" 
-                                                    + "\n"; 
-
-                                std::stringstream().swap(p_constraint);
-
-                            }
-
-                            sat_paths.clear();
-                            out_str << s;
-
-                        }
-                    }
-                
-                }
-
-                components.push_back(monitaal::TAwithBDDEdges("seq_" + std::to_string(phi->id), clocks, locations, bdd_edges, 0));
+                components.push_back(monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0));
                 locations.clear();
                 name_id_map.clear();
                 bdd_edges.clear();
 
-                return { components, out_str.str() };
+            }
+
+            clocks.clear();
+
+            clocks.insert({0, "x0"});        // clock 0 is needed anyway
+
+            for (int i = 0; i < phi->num_pairs; ++i) {
+
+                locations.push_back(monitaal::location_t(true, i, "h_" + std::to_string(i), empty_invariant));
+                name_id_map.insert({"h_" + std::to_string(i), i});
+                locations.push_back(monitaal::location_t(true, phi->num_pairs + i, "e_" + std::to_string(i), empty_invariant));
+                name_id_map.insert({"e_" + std::to_string(i), phi->num_pairs + i});
 
             }
+
+            if (out_format.has_value() && out_format.value()) {
+
+                    out_str << std::endl << std::endl;
+                    out_str << "# " << "seq_in_" << phi->id << std::endl;
+                    out_str << "# " << "in = " << "p" << phi->id << " to " << "p" << phi->id + phi->bits / 2 - 2 << std::endl;
+                    out_str << "# " << "out = " << "p" << phi->id + phi->bits / 2 << " to " << "p" << phi->id + phi->bits - 2 << std::endl;
+                    out_str << "process:" << "seq_in_" << phi->id << std::endl;
+
+                    for (int i = 0; i < phi->num_pairs; ++i) {
+                        out_str << "location:" << "seq_in_" << phi->id << ":h_" << i << "{" << "" << "labels: accept_seq_in_" << phi->id << "}" << std::endl;
+                    }
+                    for (int i = 0; i < phi->num_pairs; ++i) {
+                        out_str << "location:" << "seq_in_" << phi->id << ":e_" << i << "{" << (i == phi->num_pairs - 1 ? "initial: : " : "") << "labels: accept_seq_in_" << phi->id << "}" << std::endl;
+                    }
+
+            }
+
+
+            for (int i = 0; i < phi->num_pairs; ++i) {
+
+                in_i = encode(i + 1, phi->id, phi->bits / 2 - 1);
+                out_i = encode(i + 1, phi->id + phi->bits / 2, phi->bits / 2 - 1);
+
+                in_next_i = encode((i + 2 > phi->num_pairs ? 1 : i + 2), phi->id, phi->bits / 2 - 1);
+                out_next_i = encode((i + 2 > phi->num_pairs ? 1 : i + 2), phi->id + phi->bits / 2, phi->bits / 2 - 1);
+
+                in_prev_i = encode((i == 0 ? phi->num_pairs : i), phi->id, phi->bits / 2 - 1);
+                out_prev_i = encode((i == 0 ? phi->num_pairs : i), phi->id + phi->bits / 2, phi->bits / 2 - 1);
+
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_in_" + std::to_string(phi->id), "h_" + std::to_string(i), "h_" + std::to_string(i), (in_i | in_null) & !out_i);
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_in_" + std::to_string(phi->id), "h_" + std::to_string(i), "e_" + std::to_string(i), in_null & out_i);
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_in_" + std::to_string(phi->id), "h_" + std::to_string(i), "h_" + std::to_string(i + 1 == phi->num_pairs ? 0 : i + 1), in_next_i);
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_in_" + std::to_string(phi->id), "e_" + std::to_string(i), "e_" + std::to_string(i), in_null & (out_null | out_i));
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_in_" + std::to_string(phi->id), "e_" + std::to_string(i), "h_" + std::to_string(i + 1 == phi->num_pairs ? 0 : i + 1), in_next_i & !out_next_i);
+
+            }
+
+            components.push_back(monitaal::TAwithBDDEdges("seq_in_" + std::to_string(phi->id), clocks, locations, bdd_edges, name_id_map.at("e_" + std::to_string(phi->num_pairs - 1))));
+            locations.clear();
+            name_id_map.clear();
+            bdd_edges.clear();
+
+
+            for (int i = 0; i < phi->num_pairs; ++i) {
+
+                locations.push_back(monitaal::location_t(true, i, "t_" + std::to_string(i), empty_invariant));
+                name_id_map.insert({"t_" + std::to_string(i), i});
+                locations.push_back(monitaal::location_t(true, phi->num_pairs + i, "f_" + std::to_string(i), empty_invariant));
+                name_id_map.insert({"f_" + std::to_string(i), phi->num_pairs + i});
+
+            }
+
+            if (out_format.has_value() && out_format.value()) {
+
+                    out_str << std::endl << std::endl;
+                    out_str << "# " << "seq_out_" << phi->id << std::endl;
+                    out_str << "# " << "in = " << "p" << phi->id << " to " << "p" << phi->id + phi->bits / 2 - 2 << std::endl;
+                    out_str << "# " << "out = " << "p" << phi->id + phi->bits / 2 << " to " << "p" << phi->id + phi->bits - 2 << std::endl;
+                    out_str << "process:" << "seq_out_" << phi->id << std::endl;
+
+                    for (int i = 0; i < phi->num_pairs; ++i) {
+                        out_str << "location:" << "seq_out_" << phi->id << ":t_" << i << "{" << (i == 0 ? "initial: : " : "") << "labels: accept_seq_out_" << phi->id << "}" << std::endl;
+                    }
+                    for (int i = 0; i < phi->num_pairs; ++i) {
+                        out_str << "location:" << "seq_out_" << phi->id << ":f_" << i << "{" << "" << "labels: accept_seq_out_" << phi->id << "}" << std::endl;
+                    }
+
+            }
+
+
+            for (int i = 0; i < phi->num_pairs; ++i) {
+
+                in_i = encode(i + 1, phi->id, phi->bits / 2 - 1);
+                out_i = encode(i + 1, phi->id + phi->bits / 2, phi->bits / 2 - 1);
+
+                in_next_i = encode((i + 2 > phi->num_pairs ? 1 : i + 2), phi->id, phi->bits / 2 - 1);
+                out_next_i = encode((i + 2 > phi->num_pairs ? 1 : i + 2), phi->id + phi->bits / 2, phi->bits / 2 - 1);
+
+                in_prev_i = encode((i == 0 ? phi->num_pairs : i), phi->id, phi->bits / 2 - 1);
+                out_prev_i = encode((i == 0 ? phi->num_pairs : i), phi->id + phi->bits / 2, phi->bits / 2 - 1);
+
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "t_" + std::to_string(i), "t_" + std::to_string(i), out_null & !in_prev_i);
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "t_" + std::to_string(i), "f_" + std::to_string(i), out_null & in_prev_i);
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "t_" + std::to_string(i), "t_" + std::to_string(i + 1 == phi->num_pairs ? 0 : i + 1), out_i & !in_prev_i);
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "t_" + std::to_string(i), "t_" + std::to_string(i), out_i & !in_prev_i);
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "t_" + std::to_string(i), "t_" + std::to_string(i + 1 == phi->num_pairs ? 0 : i + 1), out_i & in_prev_i);
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "t_" + std::to_string(i), "f_" + std::to_string(i), out_i & in_prev_i);
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "f_" + std::to_string(i), "f_" + std::to_string(i), out_null & (in_null | in_prev_i));
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "f_" + std::to_string(i), "f_" + std::to_string(i), out_i & (in_null | in_prev_i));
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "f_" + std::to_string(i), "t_" + std::to_string(i + 1 == phi->num_pairs ? 0 : i + 1), out_i & (in_null | in_prev_i));
+                build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "f_" + std::to_string(i), "f_" + std::to_string(i + 1 == phi->num_pairs ? 0 : i + 1), out_i & in_i);
+
+            }
+
+            components.push_back(monitaal::TAwithBDDEdges("seq_out_" + std::to_string(phi->id), clocks, locations, bdd_edges, name_id_map.at("t_" + std::to_string(0))));
+            locations.clear();
+            name_id_map.clear();
+            bdd_edges.clear();
+
+
+            /***** Until
+             [l, infty) or (l, infty)
+             *****/
+
+            clocks.insert({1, "x1"});
+
+            name = "TA_" + std::to_string(phi->id) + "_" + std::to_string(phi->num_pairs);
+            in_i = bdd_ithvar(phi->id + phi->bits / 2 - 1);
+            out_i = bdd_ithvar(phi->id + phi->bits  - 1);
+
+            if (out_format.has_value() && out_format.value()) {
+
+                out_str << std::endl << std::endl;
+                out_str << "# " << "TA_" << phi->id << "_" << phi->num_pairs << std::endl;
+                // out_str << "# " << const_cast<MitlParser::AtomUContext*>(phi)->getText() << std::endl;
+                out_str << "process:" << name << std::endl;
+
+            }
+
+            locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
+            locations.push_back(monitaal::location_t(false, 1, "s1", empty_invariant));
+            locations.push_back(monitaal::location_t(out_fin ? false : true, 2, "s2", empty_invariant));
+            // locations.push_back(monitaal::location_t(false, 3, "s3", empty_invariant));
+
+            name_id_map.insert({"0", 0});
+            name_id_map.insert({"1", 1});
+            name_id_map.insert({"2", 2});
+            // name_id_map.insert({"3", 3});
+
+            if (out_format.has_value()) {
+
+                if (out_format.value()) {
+
+                    out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
+                    out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_1{}" << std::endl;
+                    out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id) + "_" + std::to_string(phi->num_pairs)) << "}" << std::endl;
+                    // out_str << "location:" << "TA_" << phi->id << ":ell_3{}" << std::endl;
+
+                }
+
+            }
+
+            // 0 -> 0, !r && *p && *q, x := 0
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "0", "0", std::string{}, std::string{}, 1, !in_i & phi->atom(0)->star & phi->atom(1)->star & !out_i);
+
+            // 0 -> 1, r && *p && *q, x := 0
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "0", "1", std::string{}, std::string{}, 1, in_i & phi->atom(0)->star & phi->atom(1)->star & !out_i);
+
+            // 1 -> 1, !r && ^p && ~q
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "1", std::string{}, std::string{}, 0, !in_i & phi->atom(0)->hat & phi->atom(1)->tilde & !out_i);
+
+            // 1 -> 1, !r && ^p && *q, x < a
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "1", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), std::string{}, 0, !in_i & phi->atom(0)->hat & phi->atom(1)->star & !out_i);
+
+            // 1 -> 1, r && ^p && ~q, x := 0
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "1", std::string{}, std::string{}, 1, in_i & phi->atom(0)->hat & phi->atom(1)->tilde & !out_i);
+
+            // 1 -> 1, r && ^p && *q, x := 0, x < a
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "1", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), std::string{}, 1, in_i & phi->atom(0)->hat & phi->atom(1)->star & !out_i);
+
+            // 2 -> 1, !r && ^p && ~q
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "2", "1", std::string{}, std::string{}, 0, !in_i & phi->atom(0)->hat & phi->atom(1)->tilde & !out_i);
+
+            // 2 -> 1, !r && ^p && *q, x < a
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "2", "1", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), std::string{}, 0, !in_i & phi->atom(0)->hat & phi->atom(1)->star & !out_i);
+
+            // 2 -> 1, r && ^p && ~q, x := 0
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "2", "1", std::string{}, std::string{}, 1, in_i & phi->atom(0)->hat & phi->atom(1)->tilde & !out_i);
+
+            // 2 -> 1, r && ^p && *q, x := 0, x < a
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "2", "1", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), std::string{}, 1, in_i & phi->atom(0)->hat & phi->atom(1)->star & !out_i);
+
+            // 1 -> 2, r && *p && ^q, x := 0, x >= a
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "2", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 1, in_i & phi->atom(0)->star & phi->atom(1)->hat & out_i);
+
+            // 1 -> 2, !r && ^p && ^q
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "2", std::string{}, std::string{}, 0, !in_i & phi->atom(0)->hat & phi->atom(1)->hat & out_i);
+
+            // 1 -> 2, r && ^p && ^q, x := 0
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "2", std::string{}, std::string{}, 1, in_i & phi->atom(0)->hat & phi->atom(1)->hat & out_i);
+
+            // 2 -> 2, r && *p && ^q, x := 0, x >= a
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "2", "2", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 1, in_i & phi->atom(0)->star & phi->atom(1)->hat & out_i);
+
+            // 2 -> 2, !r && ^p && ^q
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "2", "2", std::string{}, std::string{}, 0, !in_i & phi->atom(0)->hat & phi->atom(1)->hat & out_i);
+
+            // 2 -> 2, r && ^p && ^q, x := 0
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "2", "2", std::string{}, std::string{}, 1, in_i & phi->atom(0)->hat & phi->atom(1)->hat & out_i);
+
+            // 1 -> 0, !r && *p && ^q, x := 0, x >= a
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "0", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 1, !in_i & phi->atom(0)->star & phi->atom(1)->hat & out_i);
+
+            // 2 -> 0, !r && *p && ^q, x := 0, x >= a
+
+            build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "2", "0", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 1, !in_i & phi->atom(0)->star & phi->atom(1)->hat & out_i);
+
+
+
+            components.push_back(monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0));
+            locations.clear();
+            name_id_map.clear();
+            bdd_edges.clear();
+
+
+            return { components, out_str.str() };
 
         }
 

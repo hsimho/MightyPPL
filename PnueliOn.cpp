@@ -12,7 +12,7 @@ namespace mightypplcpp {
 
         MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)phi_;
 
-        std::string name = "TA_" + std::to_string(phi->id);
+        std::string name;
 
         if (phi->interval() == nullptr) {
 
@@ -47,8 +47,21 @@ namespace mightypplcpp {
 
                 monitaal::bdd_edges_t bdd_edges;
 
+                bdd in_null = encode(0, phi->id, phi->bits / 2);
+                bdd out_null = encode(0, phi->id + phi->bits / 2, phi->bits / 2);
+                bdd in_i;
+                bdd out_i;
+                bdd in_next_i;
+                bdd out_next_i;
+                bdd in_prev_i;
+                bdd out_prev_i;
+
 
                 for (auto i = 0; i < phi->atoms.size(); ++i) {
+
+                    name = "TA_" + std::to_string(phi->id) + "_" + std::to_string(i);
+                    in_i = encode(i + 1, phi->id, phi->bits / 2);
+                    out_i = encode(i + 1, phi->id + phi->bits / 2, phi->bits / 2);
 
                     locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
                     name_id_map.insert({"0", 0});
@@ -57,51 +70,43 @@ namespace mightypplcpp {
                         name_id_map.insert({"1_" + std::to_string(j), 1 + j});
                     }
 
-                    if (out_format.has_value()) {
+                    if (out_format.has_value() && out_format.value()) {
 
-                        if (out_format.value()) {
+                        out_str << std::endl << std::endl;
+                        out_str << "# " << "TA_" << phi->id << "_" << i << " (" << i + 1 << " / " << phi->atoms.size() << ")" << std::endl;
+                        out_str << "# " << const_cast<MitlParser::AtomOnContext*>(phi)->getText() << std::endl;
+                        out_str << "process:" << "TA_" << phi->id << "_" << i << std::endl;
 
-                            out_str << std::endl << std::endl;
-                            out_str << "# " << "TA_" << phi->id + i << " (" << i + 1 << " / " << phi->atoms.size() << ")" << std::endl;
-                            out_str << "# " << const_cast<MitlParser::AtomOnContext*>(phi)->getText() << std::endl;
-                            out_str << "process:" << "TA_" << phi->id + i << std::endl;
-
-                            out_str << "location:" << "TA_" << phi->id + i << ":ell_0{initial: : labels: accept_" << phi->id + i << "}" << std::endl;
-                            for (auto j = 0; j < phi->atoms.size(); ++j) {
-                                out_str << "location:" << "TA_" << phi->id + i << ":ell_1_" << j << "{labels: accept_" << phi->id + i << "}" << std::endl;
-                            }
-
+                        out_str << "location:" << "TA_" << phi->id << "_" << i << ":ell_0{initial: : labels: accept_" << phi->id << "_" << i << "}" << std::endl;
+                        for (auto j = 0; j < phi->atoms.size(); ++j) {
+                            out_str << "location:" << "TA_" << phi->id << "_" << i << ":ell_1_" << j << "{labels: accept_" << phi->id << "_" << i << "}" << std::endl;
                         }
 
                     }
 
-                    // 0 -> 0, !r, x := 0
+                    // 0 -> 0, !out_i, x := 0
 
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "0", "0", std::string{}, std::string{}, 1, !encode(i + 1, phi->id, phi->bits));
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "0", "0", std::string{}, std::string{}, 1, !in_i & !out_i);
 
-                    // 1_0 -> 0, r, x := 0, x <= a
+                    // 1_0 -> 0, out_i, x := 0, x <= a
 
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_0", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 1, encode(i + 1, phi->id, phi->bits));
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_0", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 1, out_i & !in_i);
 
                     for (auto j = 0; j < phi->atoms.size(); ++j) {
 
-                        // 1_j -> 1_j, !r && ~p_j
+                        // 1_j -> 1_j, !out_i && ~p_j, x <= a
 
-                        build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_" + std::to_string(j), "1_" + std::to_string(j), std::string{}, std::string{}, 0, !encode(i + 1, phi->id, phi->bits) & phi->atoms[j]->tilde);
+                        build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_" + std::to_string(j), "1_" + std::to_string(j), (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 0, (j == 0 ? (out_i | out_null) & phi->atoms[0]->star & !in_i : !out_i & phi->atoms[j]->tilde & !in_i));
 
-                        // 1_j+1 -> 1_j, !r && ^p_j (x := 0)
+                        // 1_j+1 -> 1_j, !out_i && ^p_j (x := 0), x <= a
 
-                        build_edge(bdd_edges, name_id_map, out_str, phi->id + i, (j + 1 == phi->atoms.size() ? "0" : "1_" + std::to_string(j + 1)), "1_" + std::to_string(j), std::string{}, std::string{}, (j + 1 == phi->atoms.size() ? true : false), !encode(i + 1, phi->id, phi->bits) & phi->atoms[j]->hat);
-
-                        // 1_0 -> 1_j, r && *p_j (r && ~p_j)
-
-                        build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_0", "1_" + std::to_string(j), std::string{}, std::string{}, 0, encode(i + 1, phi->id, phi->bits) & (j + 1 == phi->atoms.size() ? phi->atoms[phi->atoms.size() - 1]->tilde : phi->atoms[j]->star));
+                        build_edge(bdd_edges, name_id_map, out_str, phi->id, i, (j + 1 == phi->atoms.size() ? "0" : "1_" + std::to_string(j + 1)), "1_" + std::to_string(j), (j + 1 == phi->atoms.size() ? std::string{} : (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText()), std::string{}, (j + 1 == phi->atoms.size() ? 1 : 0), !out_i & phi->atoms[j]->hat & (j + 1 == phi->atoms.size() ? in_i : !in_i));
 
                     }
 
-                    // 1_0 -> 1_n-1, r && ^p_j, x := 0, x <= a
+                    // 1_0 -> 1_n-1, out_i && ^p_j && in_i, x := 0, x <= a
 
-                    build_edge(bdd_edges, name_id_map, out_str, phi->id + i, "1_0", "1_" + std::to_string(phi->atoms.size() - 1), (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 1, encode(i + 1, phi->id, phi->bits) & phi->atoms[phi->atoms.size() - 1]->hat);
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_0", "1_" + std::to_string(phi->atoms.size() - 1), (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), std::string{}, 1, out_i & phi->atoms[phi->atoms.size() - 1]->hat & in_i);
 
                     components.push_back(monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0));
                     locations.clear();
@@ -111,126 +116,109 @@ namespace mightypplcpp {
                 }
 
                 clocks.clear();
+
                 clocks.insert({0, "x0"});        // clock 0 is needed anyway
 
                 for (int i = 0; i < phi->atoms.size(); ++i) {
 
-                    locations.push_back(monitaal::location_t(true, i, "s" + std::to_string(i), empty_invariant));
+                    locations.push_back(monitaal::location_t(true, i, "h_" + std::to_string(i), empty_invariant));
+                    name_id_map.insert({"h_" + std::to_string(i), i});
+                    locations.push_back(monitaal::location_t(true, phi->atoms.size() + i, "e_" + std::to_string(i), empty_invariant));
+                    name_id_map.insert({"e_" + std::to_string(i), phi->atoms.size() + i});
 
                 }
 
-                if (out_format.has_value()) {
-
-                    if (out_format.value()) {
+                if (out_format.has_value() && out_format.value()) {
 
                         out_str << std::endl << std::endl;
-                        out_str << "# " << "seq_" << phi->id << std::endl;
-                        out_str << "process:" << "seq_" << phi->id << std::endl;
+                        out_str << "# " << "seq_in_" << phi->id << std::endl;
+                        out_str << "process:" << "seq_in_" << phi->id << std::endl;
 
                         for (int i = 0; i < phi->atoms.size(); ++i) {
-                            out_str << "location:" << "seq_" << phi->id << ":ell_" << i << "{" << (i == 0 ? "initial: : " : "") << "labels: accept_seq_" << phi->id << "}" << std::endl;
+                            out_str << "location:" << "seq_in_" << phi->id << ":h_" << i << "{" << "" << "labels: accept_seq_in_" << phi->id << "}" << std::endl;
                         }
-                    }
+                        for (int i = 0; i < phi->atoms.size(); ++i) {
+                            out_str << "location:" << "seq_in_" << phi->id << ":e_" << i << "{" << (i == phi->atoms.size() - 1 ? "initial: : " : "") << "labels: accept_seq_in_" << phi->id << "}" << std::endl;
+                        }
+
                 }
 
 
                 for (int i = 0; i < phi->atoms.size(); ++i) {
 
-                    bdd_edges.push_back(monitaal::bdd_edge_t(i, i, monitaal::constraints_t{}, monitaal::clocks_t{}, encode(0, phi->id, phi->bits) | encode(i + 1, phi->id, phi->bits)));
+                    in_i = encode(i + 1, phi->id, phi->bits / 2);
+                    out_i = encode(i + 1, phi->id + phi->bits / 2, phi->bits / 2);
 
-                    int from = i;
-                    int to = i;
+                    in_next_i = encode((i + 2 > phi->atoms.size() ? 1 : i + 2), phi->id, phi->bits / 2);
+                    out_next_i = encode((i + 2 > phi->atoms.size() ? 1 : i + 2), phi->id + phi->bits / 2, phi->bits / 2);
 
-                    if (out_format.has_value()) {
+                    in_prev_i = encode((i == 0 ? phi->atoms.size() : i), phi->id, phi->bits / 2);
+                    out_prev_i = encode((i == 0 ? phi->atoms.size() : i), phi->id + phi->bits / 2, phi->bits / 2);
 
-                        if (out_format.value()) {
-
-                            bdd_allsat(encode(0, phi->id, phi->bits) | encode(i + 1, phi->id, phi->bits), *allsat_print_handler);
-
-                            std::stringstream p_constraint;
-                            std::string s;
-                            for (auto i = 0; i < sat_paths.size(); ++i) {
-
-                                int largest = 0;
-                                for (auto j = 1; j < sat_paths[i].size(); ++j) {
-                                    if (sat_paths[i][j] != 'X' && j > largest) {
-                                        largest = j;
-                                    }
-                                }
-                                for (auto j = 1; j < sat_paths[i].size(); ++j) {
-                                    if (sat_paths[i][j] != 'X') {
-                                        p_constraint << "p_" << j << (sat_paths[i][j] == '0' ? " == 0" : " == 1");
-                                        if (j != largest) {
-                                            p_constraint << " && ";
-                                        }
-                                    }
-                                }
-                                s = s + std::string("edge:") + "seq_" + std::to_string(phi->id) + ":ell_" + std::to_string(from) + ":ell_" + std::to_string(to) + ":a{provided: turn == 1"
-                                                    + (p_constraint.str().size() ? " && " + p_constraint.str() : std::string{})
-                                                    + "}" 
-                                                    + "\n"; 
-
-                                std::stringstream().swap(p_constraint);
-
-                            }
-
-                            sat_paths.clear();
-                            out_str << s;
-
-                        }
-                    }
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_in_" + std::to_string(phi->id), "h_" + std::to_string(i), "h_" + std::to_string(i), in_null & !out_i);
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_in_" + std::to_string(phi->id), "h_" + std::to_string(i), "e_" + std::to_string(i), in_null & out_i);
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_in_" + std::to_string(phi->id), "h_" + std::to_string(i), "h_" + std::to_string(i + 1 == phi->atoms.size() ? 0 : i + 1), in_next_i);
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_in_" + std::to_string(phi->id), "e_" + std::to_string(i), "e_" + std::to_string(i), in_null & (out_null | out_i));
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_in_" + std::to_string(phi->id), "e_" + std::to_string(i), "h_" + std::to_string(i + 1 == phi->atoms.size() ? 0 : i + 1), in_next_i & !out_next_i);
 
                 }
+
+                components.push_back(monitaal::TAwithBDDEdges("seq_in_" + std::to_string(phi->id), clocks, locations, bdd_edges, name_id_map.at("e_" + std::to_string(phi->atoms.size() - 1))));
+                locations.clear();
+                name_id_map.clear();
+                bdd_edges.clear();
+
 
                 for (int i = 0; i < phi->atoms.size(); ++i) {
 
-                    bdd_edges.push_back(monitaal::bdd_edge_t(i, (i + 1 == phi->atoms.size() ? 0 : i + 1), monitaal::constraints_t{}, monitaal::clocks_t{}, encode((i + 2 > phi->atoms.size() ? 1 : i + 2), phi->id, phi->bits)));
+                    locations.push_back(monitaal::location_t(true, i, "t_" + std::to_string(i), empty_invariant));
+                    name_id_map.insert({"t_" + std::to_string(i), i});
+                    locations.push_back(monitaal::location_t(true, phi->atoms.size() + i, "f_" + std::to_string(i), empty_invariant));
+                    name_id_map.insert({"f_" + std::to_string(i), phi->atoms.size() + i});
 
-                    int from = i;
-                    int to = (i + 1 == phi->atoms.size() ? 0 : i + 1);
-
-                    if (out_format.has_value()) {
-
-                        if (out_format.value()) {
-
-                            bdd_allsat(encode((i + 2 > phi->atoms.size() ? 1 : i + 2), phi->id, phi->bits), *allsat_print_handler);
-
-                            std::stringstream p_constraint;
-                            std::string s;
-                            for (auto i = 0; i < sat_paths.size(); ++i) {
-
-                                int largest = 0;
-                                for (auto j = 1; j < sat_paths[i].size(); ++j) {
-                                    if (sat_paths[i][j] != 'X' && j > largest) {
-                                        largest = j;
-                                    }
-                                }
-                                for (auto j = 1; j < sat_paths[i].size(); ++j) {
-                                    if (sat_paths[i][j] != 'X') {
-                                        p_constraint << "p_" << j << (sat_paths[i][j] == '0' ? " == 0" : " == 1");
-                                        if (j != largest) {
-                                            p_constraint << " && ";
-                                        }
-                                    }
-                                }
-                                s = s + std::string("edge:") + "seq_" + std::to_string(phi->id) + ":ell_" + std::to_string(from) + ":ell_" + std::to_string(to) + ":a{provided: turn == 1"
-                                                    + (p_constraint.str().size() ? " && " + p_constraint.str() : std::string{})
-                                                    + "}" 
-                                                    + "\n"; 
-
-                                std::stringstream().swap(p_constraint);
-
-                            }
-
-                            sat_paths.clear();
-                            out_str << s;
-
-                        }
-                    }
-                
                 }
 
-                components.push_back(monitaal::TAwithBDDEdges("seq_" + std::to_string(phi->id), clocks, locations, bdd_edges, 0));
+                if (out_format.has_value() && out_format.value()) {
+
+                        out_str << std::endl << std::endl;
+                        out_str << "# " << "seq_out_" << phi->id << std::endl;
+                        out_str << "process:" << "seq_out_" << phi->id << std::endl;
+
+                        for (int i = 0; i < phi->atoms.size(); ++i) {
+                            out_str << "location:" << "seq_out_" << phi->id << ":t_" << i << "{" << (i == 0 ? "initial: : " : "") << "labels: accept_seq_out_" << phi->id << "}" << std::endl;
+                        }
+                        for (int i = 0; i < phi->atoms.size(); ++i) {
+                            out_str << "location:" << "seq_out_" << phi->id << ":f_" << i << "{" << "" << "labels: accept_seq_out_" << phi->id << "}" << std::endl;
+                        }
+
+                }
+
+
+                for (int i = 0; i < phi->atoms.size(); ++i) {
+
+                    in_i = encode(i + 1, phi->id, phi->bits / 2);
+                    out_i = encode(i + 1, phi->id + phi->bits / 2, phi->bits / 2);
+
+                    in_next_i = encode((i + 2 > phi->atoms.size() ? 1 : i + 2), phi->id, phi->bits / 2);
+                    out_next_i = encode((i + 2 > phi->atoms.size() ? 1 : i + 2), phi->id + phi->bits / 2, phi->bits / 2);
+
+                    in_prev_i = encode((i == 0 ? phi->atoms.size() : i), phi->id, phi->bits / 2);
+                    out_prev_i = encode((i == 0 ? phi->atoms.size() : i), phi->id + phi->bits / 2, phi->bits / 2);
+
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "t_" + std::to_string(i), "t_" + std::to_string(i), out_null & !in_prev_i);
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "t_" + std::to_string(i), "f_" + std::to_string(i), out_null & in_prev_i);
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "t_" + std::to_string(i), "t_" + std::to_string(i + 1 == phi->atoms.size() ? 0 : i + 1), out_i & !in_prev_i);
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "t_" + std::to_string(i), "t_" + std::to_string(i), out_i & !in_prev_i);
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "t_" + std::to_string(i), "t_" + std::to_string(i + 1 == phi->atoms.size() ? 0 : i + 1), out_i & in_prev_i);
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "t_" + std::to_string(i), "f_" + std::to_string(i), out_i & in_prev_i);
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "f_" + std::to_string(i), "f_" + std::to_string(i), out_null & in_null);
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "f_" + std::to_string(i), "f_" + std::to_string(i), out_i & in_null);
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "f_" + std::to_string(i), "t_" + std::to_string(i + 1 == phi->atoms.size() ? 0 : i + 1), out_i & in_null);
+                    build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "f_" + std::to_string(i), "f_" + std::to_string(i + 1 == phi->atoms.size() ? 0 : i + 1), out_i & in_i);
+
+                }
+
+                components.push_back(monitaal::TAwithBDDEdges("seq_out_" + std::to_string(phi->id), clocks, locations, bdd_edges, name_id_map.at("t_" + std::to_string(0))));
                 locations.clear();
                 name_id_map.clear();
                 bdd_edges.clear();

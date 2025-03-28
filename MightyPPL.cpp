@@ -4,6 +4,7 @@ namespace mightypplcpp {
 
     size_t num_all_props;
 
+
     bdd encode(const int i, const int offset, const int bits) {
 
         assert(i >= 0);
@@ -84,14 +85,60 @@ namespace mightypplcpp {
         for (int v = 0; v < size; ++v) {
             output += (varset[v] < 0 ? 'X' : (char)('0' + varset[v]));
         }
-        std::cout << std::setw(20) << output << std::setw(0) << std::endl;
+        //std::cout << std::setw(20) << output << std::setw(0) << std::endl;
 
         sat_paths.push_back(output);
 
     }
 
 
-    void build_edge(monitaal::bdd_edges_t& bdd_edges, const std::map<std::string, monitaal::location_id_t>& name_id_map, std::stringstream& out_s, const int id, const std::string& source, const std::string& target, const std::string& guard_x, const std::string& guard_y, int reset, bdd label) {
+    
+    // TODO: refactoring to avoid overlap with build_edge() below
+
+    void build_untimed_edge(monitaal::bdd_edges_t& bdd_edges, const std::map<std::string, monitaal::location_id_t>& name_id_map, std::stringstream& out_s, const std::string& automaton_name, const std::string& source, const std::string& target, bdd label) {
+
+        bdd_edges.push_back(monitaal::bdd_edge_t(name_id_map.at(source), name_id_map.at(target), monitaal::constraints_t{}, monitaal::clocks_t{}, label));
+
+        if (out_format.has_value() && out_format.value()) {
+
+            bdd_allsat(label, *allsat_print_handler);
+
+            std::stringstream p_constraint;
+            std::string s;
+            for (auto i = 0; i < sat_paths.size(); ++i) {
+
+                int largest = 0;
+                for (auto j = 1; j < sat_paths[i].size(); ++j) {
+                    if (sat_paths[i][j] != 'X' && j > largest) {
+                        largest = j;
+                    }
+                }
+                for (auto j = 1; j < sat_paths[i].size(); ++j) {
+                    if (sat_paths[i][j] != 'X') {
+                        p_constraint << "p_" << j << (sat_paths[i][j] == '0' ? " == 0" : " == 1");
+                        if (j != largest) {
+                            p_constraint << " && ";
+                        }
+                    }
+                }
+                s = s + std::string("edge:") + automaton_name + ":" + source + ":" + target + ":a{provided: turn == 1"
+                                    + (p_constraint.str().size() ? " && " + p_constraint.str() : std::string{})
+                                    + "}" 
+                                    + "\n"; 
+
+                std::stringstream().swap(p_constraint);
+
+            }
+
+            sat_paths.clear();
+            out_s << s;
+
+        }
+
+    }
+
+
+    void build_edge(monitaal::bdd_edges_t& bdd_edges, const std::map<std::string, monitaal::location_id_t>& name_id_map, std::stringstream& out_s, const int base_id, const int offset_id, const std::string& source, const std::string& target, const std::string& guard_x, const std::string& guard_y, const int reset, bdd label) {
 
         monitaal::constraints_t guard_constraints;
         monitaal::clocks_t reset_clocks;
@@ -181,57 +228,53 @@ namespace mightypplcpp {
         bdd_edges.push_back(monitaal::bdd_edge_t(name_id_map.at(source), name_id_map.at(target), guard_constraints, reset_clocks, label));
 
 
-        if (out_format.has_value()) {
+        if (out_format.has_value() && out_format.value()) {
 
-            if (out_format.value()) {
+            bdd_allsat(label, *allsat_print_handler);
 
-                bdd_allsat(label, *allsat_print_handler);
+            std::stringstream p_constraint;
+            std::string s;
+            for (auto i = 0; i < sat_paths.size(); ++i) {
 
-                std::stringstream p_constraint;
-                std::string s;
-                for (auto i = 0; i < sat_paths.size(); ++i) {
-
-                    int largest = 0;
-                    for (auto j = 1; j < sat_paths[i].size(); ++j) {
-                        if (sat_paths[i][j] != 'X' && j > largest) {
-                            largest = j;
-                        }
+                int largest = 0;
+                for (auto j = 1; j < sat_paths[i].size(); ++j) {
+                    if (sat_paths[i][j] != 'X' && j > largest) {
+                        largest = j;
                     }
-                    for (auto j = 1; j < sat_paths[i].size(); ++j) {
-                        if (sat_paths[i][j] != 'X') {
-                            p_constraint << "p_" << j << (sat_paths[i][j] == '0' ? " == 0" : " == 1");
-                            if (j != largest) {
-                                p_constraint << " && ";
-                            }
-                        }
-                    }
-                    s = s + std::string("edge:") + "TA_" + std::to_string(id) + ":ell_" + source + ":ell_" + target + ":a{provided: turn == 1"
-                                        + (p_constraint.str().size() ? " && " + p_constraint.str() : std::string{})
-                                        + (guard_x.size() ? " && x_" + std::to_string(id) + " " + guard_x : std::string{})
-                                        + (guard_y.size() ? " && y_" + std::to_string(id) + " " + guard_y : std::string{});
-                    std::string reset_clocks_str;
-
-                    if (reset == 1) {
-                        reset_clocks_str = " : do: x_" + std::to_string(id) + " = 0}";
-                    } else if (reset == 2) {
-                        reset_clocks_str = " : do: y_" + std::to_string(id) + " = 0}";
-                    } else if (reset == 3) {
-                        reset_clocks_str = " : do: x_" + std::to_string(id) + " = 0; " + "y_" + std::to_string(id) + " = 0}";
-                    } else {
-                        assert(reset == 0);
-                        reset_clocks_str = "}";
-                    }
-                    
-                    s = s + reset_clocks_str + "\n"; 
-
-                    std::stringstream().swap(p_constraint);
-
                 }
+                for (auto j = 1; j < sat_paths[i].size(); ++j) {
+                    if (sat_paths[i][j] != 'X') {
+                        p_constraint << "p_" << j << (sat_paths[i][j] == '0' ? " == 0" : " == 1");
+                        if (j != largest) {
+                            p_constraint << " && ";
+                        }
+                    }
+                }
+                s = s + std::string("edge:") + "TA_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + ":ell_" + source + ":ell_" + target + ":a{provided: turn == 1"
+                                    + (p_constraint.str().size() ? " && " + p_constraint.str() : std::string{})
+                                    + (guard_x.size() ? " && x_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + guard_x : std::string{})
+                                    + (guard_y.size() ? " && y_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + guard_y : std::string{});
+                std::string reset_clocks_str;
 
-                sat_paths.clear();
-                out_s << s;
+                if (reset == 1) {
+                    reset_clocks_str = " : do: x_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " = 0}";
+                } else if (reset == 2) {
+                    reset_clocks_str = " : do: y_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " = 0}";
+                } else if (reset == 3) {
+                    reset_clocks_str = " : do: x_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " = 0; " + "y_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " = 0}";
+                } else {
+                    assert(reset == 0);
+                    reset_clocks_str = "}";
+                }
+                
+                s = s + reset_clocks_str + "\n"; 
+
+                std::stringstream().swap(p_constraint);
 
             }
+
+            sat_paths.clear();
+            out_s << s;
 
         }
 
@@ -295,9 +338,17 @@ namespace mightypplcpp {
 
             return build_countfn(phi_);
 
+        } else if (phi_->type == COUNTON) {
+
+            return build_counton(phi_);
+
         } else if (phi_->type == COUNTGN) {
 
             return build_countgn(phi_);
+
+        } else if (phi_->type == COUNTHN) {
+
+            return build_counthn(phi_);
 
         } else {
 
@@ -359,6 +410,9 @@ namespace mightypplcpp {
 
         std::cout << nnf_formula->toStringTree(&nnf_parser, true) << std::endl << std::endl;
 
+        
+        std::cout << "\nPlease confirm that there is no parsing error?\n\n";
+        std::cin.get();
 
         std::cout << "\n<<<<<< Numbering temporal subformulae... >>>>>>\n\n";
 
@@ -787,8 +841,6 @@ namespace mightypplcpp {
 
         sat_paths.clear();
 
-        assert(("Okay until up here", false));
-
         std::cout << "\n<<<<<< Converting into TAs... >>>>>>\n\n";
 
         // auto div = monitaal::TA::time_divergence_ta(get_letters(std::string(num_all_props + 1, 'X')), true);
@@ -798,119 +850,118 @@ namespace mightypplcpp {
         std::vector<monitaal::TAwithBDDEdges> temporal_components;
         std::stringstream out_str;
 
-        if (out_format.has_value()) {
+        if (out_format.has_value() && out_format.value()) {
 
-            if (out_format.value()) {
+            out_str << "# File generated by MightyPPL" << std::endl;
+            out_str << "system:model_and_spec" << std::endl << std::endl << std::endl;
 
-                out_str << "# File generated by MightyPPL" << std::endl;
-                out_str << "system:model_and_spec" << std::endl << std::endl << std::endl;
+            out_str << "event:a" << std::endl << std::endl << std::endl;
 
-                out_str << "event:a" << std::endl << std::endl << std::endl;
+            for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
 
-                for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
-
-                    if ((*it)->type == FINALLY) {
-                        MitlParser::AtomFContext* phi = (MitlParser::AtomFContext*)(*it);
-                        if (phi->interval() != nullptr) {
-                            out_str << "clock:1:x_" << phi->id << std::endl;
-                        }
-                    } else if ((*it)->type == ONCE) {
-                        MitlParser::AtomOContext* phi = (MitlParser::AtomOContext*)(*it);
-                        if (phi->interval() != nullptr) {
-                            out_str << "clock:1:x_" << phi->id << std::endl;
-                        }
-                    } else if ((*it)->type == GLOBALLY) {
-                        MitlParser::AtomGContext* phi = (MitlParser::AtomGContext*)(*it);
-                        if (phi->interval() != nullptr) {
-                            out_str << "clock:1:x_" << phi->id << std::endl;
-                        }
-                    } else if ((*it)->type == HISTORICALLY) {
-                        MitlParser::AtomHContext* phi = (MitlParser::AtomHContext*)(*it);
-                        if (phi->interval() != nullptr) {
-                            out_str << "clock:1:x_" << phi->id << std::endl;
-                        }
-                    } else if ((*it)->type == UNTIL) {
-                        MitlParser::AtomUContext* phi = (MitlParser::AtomUContext*)(*it);
-                        if (phi->interval() != nullptr) {
-                            out_str << "clock:1:x_" << phi->id << std::endl;
-                        }
-                    } else if ((*it)->type == SINCE) {
-                        MitlParser::AtomSContext* phi = (MitlParser::AtomSContext*)(*it);
-                        if (phi->interval() != nullptr) {
-                            out_str << "clock:1:x_" << phi->id << std::endl;
-                        }
-                    } else if ((*it)->type == RELEASE) {
-                        MitlParser::AtomRContext* phi = (MitlParser::AtomRContext*)(*it);
-                        if (phi->interval() != nullptr) {
-                            out_str << "clock:1:x_" << phi->id << std::endl;
-                        }
-                    } else if ((*it)->type == TRIGGER) {
-                        MitlParser::AtomTContext* phi = (MitlParser::AtomTContext*)(*it);
-                        if (phi->interval() != nullptr) {
-                            out_str << "clock:1:x_" << phi->id << std::endl;
-                        }
-                    } else if ((*it)->type == PNUELIFN) {
-                        MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)(*it);
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-                            out_str << "clock:1:x_" << phi->id + i << std::endl;
-                        }
-                    } else if ((*it)->type == PNUELION) {
-                        MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)(*it);
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-                            out_str << "clock:1:x_" << phi->id + i << std::endl;
-                        }
-                    } else if ((*it)->type == PNUELIGN) {
-                        MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-                            out_str << "clock:1:x_" << phi->id + i << std::endl;
-                        }
-                    } else if ((*it)->type == PNUELIHN) {
-                        MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-                            out_str << "clock:1:x_" << phi->id + i << std::endl;
-                        }
-                    } else if ((*it)->type == COUNTFN) {
-                        MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
-                        for (auto i = 0; i < phi->max_l + 1; ++i) {
-                            out_str << "clock:1:x_" << phi->id + i << std::endl;
-                            out_str << "clock:1:y_" << phi->id + i << std::endl;
-                        }
-                    } else if ((*it)->type == COUNTON) {
-                        MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
-                        for (auto i = 0; i < phi->max_l + 1; ++i) {
-                            out_str << "clock:1:x_" << phi->id + i << std::endl;
-                            out_str << "clock:1:y_" << phi->id + i << std::endl;
-                        }
-                    } else if ((*it)->type == COUNTGN) {
-                        MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
-                        for (auto i = 0; i < phi->max_l + 1; ++i) {
-                            out_str << "clock:1:x_" << phi->id + i << std::endl;
-                            out_str << "clock:1:y_" << phi->id + i << std::endl;
-                        }
-                    } else if ((*it)->type == COUNTHN) {
-                        MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
-                        for (auto i = 0; i < phi->max_l + 1; ++i) {
-                            out_str << "clock:1:x_" << phi->id + i << std::endl;
-                            out_str << "clock:1:y_" << phi->id + i << std::endl;
-                        }
-                    } else {
-                        assert(false);
+                if ((*it)->type == FINALLY) {
+                    MitlParser::AtomFContext* phi = (MitlParser::AtomFContext*)(*it);
+                    if (phi->interval() != nullptr) {
+                        out_str << "clock:1:x_" << phi->id << std::endl;
                     }
-
+                } else if ((*it)->type == ONCE) {
+                    MitlParser::AtomOContext* phi = (MitlParser::AtomOContext*)(*it);
+                    if (phi->interval() != nullptr) {
+                        out_str << "clock:1:x_" << phi->id << std::endl;
+                    }
+                } else if ((*it)->type == GLOBALLY) {
+                    MitlParser::AtomGContext* phi = (MitlParser::AtomGContext*)(*it);
+                    if (phi->interval() != nullptr) {
+                        out_str << "clock:1:x_" << phi->id << std::endl;
+                    }
+                } else if ((*it)->type == HISTORICALLY) {
+                    MitlParser::AtomHContext* phi = (MitlParser::AtomHContext*)(*it);
+                    if (phi->interval() != nullptr) {
+                        out_str << "clock:1:x_" << phi->id << std::endl;
+                    }
+                } else if ((*it)->type == UNTIL) {
+                    MitlParser::AtomUContext* phi = (MitlParser::AtomUContext*)(*it);
+                    if (phi->interval() != nullptr) {
+                        out_str << "clock:1:x_" << phi->id << std::endl;
+                    }
+                } else if ((*it)->type == SINCE) {
+                    MitlParser::AtomSContext* phi = (MitlParser::AtomSContext*)(*it);
+                    if (phi->interval() != nullptr) {
+                        out_str << "clock:1:x_" << phi->id << std::endl;
+                    }
+                } else if ((*it)->type == RELEASE) {
+                    MitlParser::AtomRContext* phi = (MitlParser::AtomRContext*)(*it);
+                    if (phi->interval() != nullptr) {
+                        out_str << "clock:1:x_" << phi->id << std::endl;
+                    }
+                } else if ((*it)->type == TRIGGER) {
+                    MitlParser::AtomTContext* phi = (MitlParser::AtomTContext*)(*it);
+                    if (phi->interval() != nullptr) {
+                        out_str << "clock:1:x_" << phi->id << std::endl;
+                    }
+                } else if ((*it)->type == PNUELIFN) {
+                    MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)(*it);
+                    for (auto i = 0; i < phi->atoms.size(); ++i) {
+                        out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                    }
+                } else if ((*it)->type == PNUELION) {
+                    MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)(*it);
+                    for (auto i = 0; i < phi->atoms.size(); ++i) {
+                        out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                    }
+                } else if ((*it)->type == PNUELIGN) {
+                    MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
+                    for (auto i = 0; i < phi->atoms.size(); ++i) {
+                        out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                    }
+                } else if ((*it)->type == PNUELIHN) {
+                    MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
+                    for (auto i = 0; i < phi->atoms.size(); ++i) {
+                        out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                    }
+                } else if ((*it)->type == COUNTFN) {
+                    MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
+                    for (auto i = 0; i < phi->num_pairs; ++i) {
+                        out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                        out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
+                    }
+                    out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
+                } else if ((*it)->type == COUNTON) {
+                    MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
+                    for (auto i = 0; i < phi->num_pairs; ++i) {
+                        out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                        out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
+                    }
+                    out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
+                } else if ((*it)->type == COUNTGN) {
+                    MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
+                    for (auto i = 0; i < phi->num_pairs; ++i) {
+                        out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                        out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
+                    }
+                    out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
+                } else if ((*it)->type == COUNTHN) {
+                    MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
+                    for (auto i = 0; i < phi->num_pairs; ++i) {
+                        out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                        out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
+                    }
+                    out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
+                } else {
+                    assert(false);
                 }
-
-                out_str << "clock:1:x_div" << std::endl;
-                out_str << std::endl << std::endl;
-
-
-                for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "int:1:0:1:0:p_" << i + 1 << std::endl;
-                }
-
-                out_str << "int:1:0:1:0:turn" << std::endl;
-
 
             }
+
+            out_str << "clock:1:x_div" << std::endl;
+            out_str << std::endl << std::endl;
+
+
+            for (auto i = 0; i < num_all_props; ++i) {
+                out_str << "int:1:0:1:0:p_" << i + 1 << std::endl;
+            }
+
+            out_str << "int:1:0:1:0:turn" << std::endl;
 
         }
 
@@ -926,12 +977,11 @@ namespace mightypplcpp {
             auto [ generated_components, component_str ] = build_ta_from_atom(*it);
             temporal_components.insert(temporal_components.end(), generated_components.begin(), generated_components.end());
 
-            if (out_format.has_value()) {
+            if (out_format.has_value() && out_format.value()) {
 
                 out_str << component_str;
 
             }
-
 
             std::cout << std::endl;
 
@@ -995,94 +1045,89 @@ namespace mightypplcpp {
         locations.clear();
         bdd_edges.clear();
 
-        if (out_format.has_value()) {
+        if (out_format.has_value() && out_format.value()) {
 
-            if (out_format.value()) {
+            out_str << std::endl << std::endl;
+            out_str << "# " << "TA_0" << std::endl;
+            out_str << "# " << nnf_formula->formula()->getText() << std::endl;
+            out_str << "process:" << "TA_0" << std::endl;
 
-                out_str << std::endl << std::endl;
-                out_str << "# " << "TA_0" << std::endl;
-                out_str << "# " << nnf_formula->formula()->getText() << std::endl;
-                out_str << "process:" << "TA_0" << std::endl;
+            out_str << "location:" << "TA_0" << ":ell_0{initial: }" << std::endl;
+            out_str << "location:" << "TA_0" << ":ell_1{labels: accept_0}" << std::endl;
 
-                out_str << "location:" << "TA_0" << ":ell_0{initial: }" << std::endl;
-                out_str << "location:" << "TA_0" << ":ell_1{labels: accept_0}" << std::endl;
+            bdd label;
 
-                bdd label;
+            // 0 -> 1, varphi
 
-                // 0 -> 1, varphi
+            label = nnf_formula->formula()->hat;
 
-                label = nnf_formula->formula()->hat;
+            bdd_allsat(label, *allsat_print_handler);
 
-                bdd_allsat(label, *allsat_print_handler);
-
-                for (const auto& p : sat_paths) {
-                    for (const auto& s : get_letters(p)) {
-                        if (s[0] == '0') {  // Recall that the 0-th variable is unused
-                            if (s.size() > 1) {
-                                std::stringstream p_assignments;
-                                for (auto i = 1; i < s.size(); ++i) {
-                                    p_assignments << "p_" << i << (s[i] == '0' ? " = 0" : " = 1");
-                                    if (i != s.size() - 1) {
-                                        p_assignments << "; ";
-                                    }
+            for (const auto& p : sat_paths) {
+                for (const auto& s : get_letters(p)) {
+                    if (s[0] == '0') {  // Recall that the 0-th variable is unused
+                        if (s.size() > 1) {
+                            std::stringstream p_assignments;
+                            for (auto i = 1; i < s.size(); ++i) {
+                                p_assignments << "p_" << i << (s[i] == '0' ? " = 0" : " = 1");
+                                if (i != s.size() - 1) {
+                                    p_assignments << "; ";
                                 }
-                                out_str << "edge:" << "TA_0" << ":ell_0:ell_1:a{provided: turn == 0 : do: " << p_assignments.str() << "}" << std::endl;
-                            } else {
-                                out_str << "edge:" << "TA_0" << ":ell_0:ell_1:a{provided: turn == 0}" << std::endl;
                             }
+                            out_str << "edge:" << "TA_0" << ":ell_0:ell_1:a{provided: turn == 0 : do: " << p_assignments.str() << "}" << std::endl;
+                        } else {
+                            out_str << "edge:" << "TA_0" << ":ell_0:ell_1:a{provided: turn == 0}" << std::endl;
                         }
                     }
                 }
-
-                sat_paths.clear();
-
-                // 1 -> 1, *varphi
-
-                label = nnf_formula->formula()->star;
-
-                bdd_allsat(label, *allsat_print_handler);
-
-                for (const auto& p : sat_paths) {
-                    for (const auto& s : get_letters(p)) {
-                        if (s[0] == '0') {  // Recall that the 0-th variable is unused
-                            if (s.size() > 1) {
-                                std::stringstream p_assignments;
-                                for (auto i = 1; i < s.size(); ++i) {
-                                    p_assignments << "p_" << i << (s[i] == '0' ? " = 0" : " = 1");
-                                    if (i != s.size() - 1) {
-                                        p_assignments << "; ";
-                                    }
-                                }
-                                out_str << "edge:" << "TA_0" << ":ell_1:ell_1:a{provided: turn == 0 : do: " << p_assignments.str() << "}" << std::endl;
-                            } else {
-                                out_str << "edge:" << "TA_0" << ":ell_1:ell_1:a{provided: turn == 0}" << std::endl;
-                            }
-                        }
-                    }
-                }
-
-                sat_paths.clear();
-
-                std::cout << "\nGenerating TA_div" << "...\n";
-
-                out_str << std::endl << std::endl;
-                out_str << "# " << "TA_div" << std::endl;
-                out_str << "process:" << "TA_div" << std::endl;
-
-                out_str << "location:" << "TA_div" << ":ell_0{initial: : labels: accept_div}" << std::endl;
-                out_str << "location:" << "TA_div" << ":ell_1{" << (out_fin ? "" : "labels: accept_div") << "}" << std::endl;
-
-                out_str << "edge:" << "TA_div" << ":ell_0:ell_1:a{provided: turn == 0 : do: turn = 1}" << std::endl;
-                out_str << "edge:" << "TA_div" << ":ell_0:ell_1:a{provided: turn == 1 : do: turn = 0}" << std::endl;
-
-                out_str << "edge:" << "TA_div" << ":ell_1:ell_1:a{provided: turn == 0 && x_div < 1 : do: turn = 1}" << std::endl;
-                out_str << "edge:" << "TA_div" << ":ell_1:ell_1:a{provided: turn == 1 && x_div < 1 : do: turn = 0}" << std::endl;
-
-                out_str << "edge:" << "TA_div" << ":ell_1:ell_0:a{provided: turn == 0 && x_div >= 1 : do: turn = 1; x_div = 0}" << std::endl;
-                out_str << "edge:" << "TA_div" << ":ell_1:ell_0:a{provided: turn == 1 && x_div >= 1 : do: turn = 0; x_div = 0}" << std::endl;
-
-
             }
+
+            sat_paths.clear();
+
+            // 1 -> 1, *varphi
+
+            label = nnf_formula->formula()->star;
+
+            bdd_allsat(label, *allsat_print_handler);
+
+            for (const auto& p : sat_paths) {
+                for (const auto& s : get_letters(p)) {
+                    if (s[0] == '0') {  // Recall that the 0-th variable is unused
+                        if (s.size() > 1) {
+                            std::stringstream p_assignments;
+                            for (auto i = 1; i < s.size(); ++i) {
+                                p_assignments << "p_" << i << (s[i] == '0' ? " = 0" : " = 1");
+                                if (i != s.size() - 1) {
+                                    p_assignments << "; ";
+                                }
+                            }
+                            out_str << "edge:" << "TA_0" << ":ell_1:ell_1:a{provided: turn == 0 : do: " << p_assignments.str() << "}" << std::endl;
+                        } else {
+                            out_str << "edge:" << "TA_0" << ":ell_1:ell_1:a{provided: turn == 0}" << std::endl;
+                        }
+                    }
+                }
+            }
+
+            sat_paths.clear();
+
+            std::cout << "\nGenerating TA_div" << "...\n";
+
+            out_str << std::endl << std::endl;
+            out_str << "# " << "TA_div" << std::endl;
+            out_str << "process:" << "TA_div" << std::endl;
+
+            out_str << "location:" << "TA_div" << ":ell_0{initial: : labels: accept_div}" << std::endl;
+            out_str << "location:" << "TA_div" << ":ell_1{" << (out_fin ? "" : "labels: accept_div") << "}" << std::endl;
+
+            out_str << "edge:" << "TA_div" << ":ell_0:ell_1:a{provided: turn == 0 : do: turn = 1}" << std::endl;
+            out_str << "edge:" << "TA_div" << ":ell_0:ell_1:a{provided: turn == 1 : do: turn = 0}" << std::endl;
+
+            out_str << "edge:" << "TA_div" << ":ell_1:ell_1:a{provided: turn == 0 && x_div < 1 : do: turn = 1}" << std::endl;
+            out_str << "edge:" << "TA_div" << ":ell_1:ell_1:a{provided: turn == 1 && x_div < 1 : do: turn = 0}" << std::endl;
+
+            out_str << "edge:" << "TA_div" << ":ell_1:ell_0:a{provided: turn == 0 && x_div >= 1 : do: turn = 1; x_div = 0}" << std::endl;
+            out_str << "edge:" << "TA_div" << ":ell_1:ell_0:a{provided: turn == 1 && x_div >= 1 : do: turn = 0; x_div = 0}" << std::endl;
 
         }
 
@@ -1120,148 +1165,15 @@ namespace mightypplcpp {
         locations.clear();
         bdd_edges.clear();
 
-        if (out_format.has_value()) {
+        if (out_format.has_value() && out_format.value()) {
 
-            if (out_format.value()) {
+            out_str << std::endl << std::endl;
+            out_str << "# " << "M" << std::endl;
+            out_str << "process:" << "M" << std::endl;
 
-                out_str << std::endl << std::endl;
-                out_str << "# " << "M" << std::endl;
-                out_str << "process:" << "M" << std::endl;
+            out_str << "location:" << "M" << ":ell_0{initial: : labels: accept_M}" << std::endl;
 
-                out_str << "location:" << "M" << ":ell_0{initial: : labels: accept_M}" << std::endl;
-
-                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: turn == 1}" << std::endl;
-
-                // std::cout << "\nGenerating sync constraints" << "...\n";
-
-                out_str << std::endl << std::endl;
-                out_str << "# " << "sync constraints" << std::endl;
-                out_str << "sync:TA_div@a:TA_0@a" << std::endl;
-
-                out_str << "sync:TA_div@a:M@a:";
-
-                for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
-
-
-                    if ((*it)->type == PNUELIFN) {
-
-                        MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)(*it);
-
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-
-                            out_str << "TA_" << (*it)->id + i << "@a";
-                            out_str << ":";
-
-                        }
-
-                        out_str << "seq_" << (*it)->id << "@a";
-
-                    } else if ((*it)->type == PNUELION) {
-
-                        MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)(*it);
-
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-
-                            out_str << "TA_" << (*it)->id + i << "@a";
-                            out_str << ":";
-
-                        }
-
-                        out_str << "seq_" << (*it)->id << "@a";
-
-                    } else if ((*it)->type == PNUELIGN) {
-
-                        MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
-
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-
-                            out_str << "TA_" << (*it)->id + i << "@a";
-                            out_str << ":";
-
-                        }
-
-                        out_str << "seq_" << (*it)->id << "@a";
-
-                    } else if ((*it)->type == PNUELIHN) {
-
-                        MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
-
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-
-                            out_str << "TA_" << (*it)->id + i << "@a";
-                            out_str << ":";
-
-                        }
-
-                        out_str << "seq_" << (*it)->id << "@a";
-
-                    } else if ((*it)->type == COUNTFN) {
-
-                        MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
-
-                        for (auto i = 0; i < (*it)->max_l + 1; ++i) {
-
-                            out_str << "TA_" << (*it)->id + i << "@a";
-                            out_str << ":";
-
-                        }
-
-                        out_str << "seq_" << (*it)->id << "@a";
-
-                    } else if ((*it)->type == COUNTON) {
-
-                        MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
-
-                        for (auto i = 0; i < (*it)->max_l + 1; ++i) {
-
-                            out_str << "TA_" << (*it)->id + i << "@a";
-                            out_str << ":";
-
-                        }
-
-                        out_str << "seq_" << (*it)->id << "@a";
-
-                    } else if ((*it)->type == COUNTGN) {
-
-                        MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
-
-                        for (auto i = 0; i < (*it)->max_l + 1; ++i) {
-
-                            out_str << "TA_" << (*it)->id + i << "@a";
-                            out_str << ":";
-
-                        }
-
-                        out_str << "seq_" << (*it)->id << "@a";
-
-                    } else if ((*it)->type == COUNTHN) {
-
-                        MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
-
-                        for (auto i = 0; i < (*it)->max_l + 1; ++i) {
-
-                            out_str << "TA_" << (*it)->id + i << "@a";
-                            out_str << ":";
-
-                        }
-
-                        out_str << "seq_" << (*it)->id << "@a";
-
-                    } else {
-
-                        out_str << "TA_" << (*it)->id << "@a";
-
-                    }
-
-                    if (std::next(it) != temporal_atoms.end()) {
-                        out_str << ":";
-                    }
-
-
-                }
-                out_str << std::endl;
-
-            }
+            out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: turn == 1}" << std::endl;
 
         }
 
@@ -1280,7 +1192,162 @@ namespace mightypplcpp {
 
         }
 
+        if (out_format.has_value() && out_format.value()) {
 
+            // std::cout << "\nGenerating sync constraints" << "...\n";
+
+            out_str << std::endl << std::endl;
+            out_str << "# " << "sync constraints" << std::endl;
+            out_str << "sync:TA_div@a:TA_0@a" << std::endl;
+
+            out_str << "sync:TA_div@a:M@a:";
+
+            for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
+
+
+                if ((*it)->type == PNUELIFN) {
+
+                    MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)(*it);
+
+                    for (auto i = 0; i < phi->atoms.size(); ++i) {
+
+                        out_str << "TA_" << (*it)->id << "_" << i << "@a";
+                        out_str << ":";
+
+                    }
+
+                    out_str << "seq_in_" << (*it)->id << "@a";
+                    out_str << ":";
+                    out_str << "seq_out_" << (*it)->id << "@a";
+
+                } else if ((*it)->type == PNUELION) {
+
+                    MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)(*it);
+
+                    for (auto i = 0; i < phi->atoms.size(); ++i) {
+
+                        out_str << "TA_" << (*it)->id << "_" << i << "@a";
+                        out_str << ":";
+
+                    }
+
+                    out_str << "seq_in_" << (*it)->id << "@a";
+                    out_str << ":";
+                    out_str << "seq_out_" << (*it)->id << "@a";
+
+                } else if ((*it)->type == PNUELIGN) {
+
+                    MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
+
+                    for (auto i = 0; i < phi->atoms.size(); ++i) {
+
+                        out_str << "TA_" << (*it)->id << "_" << i << "@a";
+                        out_str << ":";
+
+                    }
+
+                    out_str << "seq_in_" << (*it)->id << "@a";
+                    out_str << ":";
+                    out_str << "seq_out_" << (*it)->id << "@a";
+
+                } else if ((*it)->type == PNUELIHN) {
+
+                    MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
+
+                    for (auto i = 0; i < phi->atoms.size(); ++i) {
+
+                        out_str << "TA_" << (*it)->id << "_" << i << "@a";
+                        out_str << ":";
+
+                    }
+
+                    out_str << "seq_in_" << (*it)->id << "@a";
+                    out_str << ":";
+                    out_str << "seq_out_" << (*it)->id << "@a";
+
+                } else if ((*it)->type == COUNTFN) {
+
+                    MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
+
+                    for (auto i = 0; i < (*it)->num_pairs; ++i) {
+
+                        out_str << "TA_" << (*it)->id << "_" << i << "@a";
+                        out_str << ":";
+
+                    }
+
+                    out_str << "seq_in_" << (*it)->id << "@a";
+                    out_str << ":";
+                    out_str << "seq_out_" << (*it)->id << "@a";
+                    out_str << ":";
+                    out_str << "TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a";
+
+                } else if ((*it)->type == COUNTON) {
+
+                    MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
+
+                    for (auto i = 0; i < (*it)->num_pairs; ++i) {
+
+                        out_str << "TA_" << (*it)->id << "_" << i << "@a";
+                        out_str << ":";
+
+                    }
+
+                    out_str << "seq_in_" << (*it)->id << "@a";
+                    out_str << ":";
+                    out_str << "seq_out_" << (*it)->id << "@a";
+                    out_str << ":";
+                    out_str << "TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a";
+
+                } else if ((*it)->type == COUNTGN) {
+
+                    MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
+
+                    for (auto i = 0; i < (*it)->num_pairs; ++i) {
+
+                        out_str << "TA_" << (*it)->id << "_" << i << "@a";
+                        out_str << ":";
+
+                    }
+
+                    out_str << "seq_in_" << (*it)->id << "@a";
+                    out_str << ":";
+                    out_str << "seq_out_" << (*it)->id << "@a";
+                    out_str << ":";
+                    out_str << "TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a";
+
+                } else if ((*it)->type == COUNTHN) {
+
+                    MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
+
+                    for (auto i = 0; i < (*it)->num_pairs; ++i) {
+
+                        out_str << "TA_" << (*it)->id << "_" << i << "@a";
+                        out_str << ":";
+
+                    }
+
+                    out_str << "seq_in_" << (*it)->id << "@a";
+                    out_str << ":";
+                    out_str << "seq_out_" << (*it)->id << "@a";
+                    out_str << ":";
+                    out_str << "TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a";
+
+                } else {
+
+                    out_str << "TA_" << (*it)->id << "@a";
+
+                }
+
+                if (std::next(it) != temporal_atoms.end()) {
+                    out_str << ":";
+                }
+
+
+            }
+            out_str << std::endl;
+
+        }
 
         if (!out_format.has_value() || (out_format.has_value() && out_flatten)) {
 
@@ -1350,11 +1417,12 @@ namespace mightypplcpp {
 
                         for (auto i = 0; i < phi->atoms.size(); ++i) {
 
-                            std::cout << "accept_" << (*it)->id + i << ",";
+                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
 
                         }
 
-                        std::cout << "accept_seq_" << (*it)->id << ",";
+                        std::cout << "accept_seq_in_" << (*it)->id << ",";
+                        std::cout << "accept_seq_out_" << (*it)->id << ",";
 
                     } else if ((*it)->type == PNUELION) {
 
@@ -1362,11 +1430,12 @@ namespace mightypplcpp {
 
                         for (auto i = 0; i < phi->atoms.size(); ++i) {
 
-                            std::cout << "accept_" << (*it)->id + i << ",";
+                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
 
                         }
 
-                        std::cout << "accept_seq_" << (*it)->id << ",";
+                        std::cout << "accept_seq_in_" << (*it)->id << ",";
+                        std::cout << "accept_seq_out_" << (*it)->id << ",";
 
                     } else if ((*it)->type == PNUELIGN) {
 
@@ -1374,11 +1443,12 @@ namespace mightypplcpp {
 
                         for (auto i = 0; i < phi->atoms.size(); ++i) {
 
-                            std::cout << "accept_" << (*it)->id + i << ",";
+                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
 
                         }
 
-                        std::cout << "accept_seq_" << (*it)->id << ",";
+                        std::cout << "accept_seq_in_" << (*it)->id << ",";
+                        std::cout << "accept_seq_out_" << (*it)->id << ",";
 
                     } else if ((*it)->type == PNUELIHN) {
 
@@ -1386,59 +1456,68 @@ namespace mightypplcpp {
 
                         for (auto i = 0; i < phi->atoms.size(); ++i) {
 
-                            std::cout << "accept_" << (*it)->id + i << ",";
+                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
 
                         }
 
-                        std::cout << "accept_seq_" << (*it)->id << ",";
+                        std::cout << "accept_seq_in_" << (*it)->id << ",";
+                        std::cout << "accept_seq_out_" << (*it)->id << ",";
 
                     } else if ((*it)->type == COUNTFN) {
 
                         MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
 
-                        for (auto i = 0; i < phi->max_l + 1; ++i) {
+                        for (auto i = 0; i < phi->num_pairs; ++i) {
 
-                            std::cout << "accept_" << (*it)->id + i << ",";
+                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
 
                         }
 
-                        std::cout << "accept_seq_" << (*it)->id << ",";
+                        std::cout << "accept_seq_in_" << (*it)->id << ",";
+                        std::cout << "accept_seq_out_" << (*it)->id << ",";
+                        std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
 
                     } else if ((*it)->type == COUNTON) {
 
                         MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
 
-                        for (auto i = 0; i < phi->max_l + 1; ++i) {
+                        for (auto i = 0; i < phi->num_pairs; ++i) {
 
-                            std::cout << "accept_" << (*it)->id + i << ",";
+                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
 
                         }
 
-                        std::cout << "accept_seq_" << (*it)->id << ",";
+                        std::cout << "accept_seq_in_" << (*it)->id << ",";
+                        std::cout << "accept_seq_out_" << (*it)->id << ",";
+                        std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
 
                     } else if ((*it)->type == COUNTGN) {
 
                         MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
 
-                        for (auto i = 0; i < phi->max_l + 1; ++i) {
+                        for (auto i = 0; i < phi->num_pairs; ++i) {
 
-                            std::cout << "accept_" << (*it)->id + i << ",";
+                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
 
                         }
 
-                        std::cout << "accept_seq_" << (*it)->id << ",";
+                        std::cout << "accept_seq_in_" << (*it)->id << ",";
+                        std::cout << "accept_seq_out_" << (*it)->id << ",";
+                        std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
 
                     } else if ((*it)->type == COUNTHN) {
 
                         MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
 
-                        for (auto i = 0; i < phi->max_l + 1; ++i) {
+                        for (auto i = 0; i < phi->num_pairs; ++i) {
 
-                            std::cout << "accept_" << (*it)->id + i << ",";
+                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
 
                         }
 
-                        std::cout << "accept_seq_" << (*it)->id << ",";
+                        std::cout << "accept_seq_in_" << (*it)->id << ",";
+                        std::cout << "accept_seq_out_" << (*it)->id << ",";
+                        std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
 
                     } else {
 
