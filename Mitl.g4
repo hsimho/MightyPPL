@@ -33,7 +33,7 @@ interval
     | LParen bound Comma bound RParen
 ;
 
-atom locals [size_t max_l; size_t num_pairs = 0; size_t bits = 1; size_t id; bool uni = true; enum_atoms type = UNKNOWN; 
+atom locals [size_t num_pairs = 0; size_t bits = 1; size_t id; bool uni = true; enum_atoms type = UNKNOWN; 
              bool negated = false; bdd overline; bdd star; bdd tilde; bdd hat]
     : Finally interval? atom                                                        #AtomF
     | Once interval? atom                                                           #AtomO
