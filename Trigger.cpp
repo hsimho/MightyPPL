@@ -47,9 +47,9 @@ namespace mightypplcpp {
 
             if (out_format.has_value() && out_format.value() && !out_flatten) {
 
-                out_str << "location:" << "TA_" << phi->id << ":ell_0i{initial: }" << std::endl;
-                out_str << "location:" << "TA_" << phi->id << ":ell_0{labels: accept_" << phi->id << "}" << std::endl;
-                out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
+                out_str << "location:" << "TA_" << phi->id << "_0" << ":ell_0i{initial: }" << std::endl;
+                out_str << "location:" << "TA_" << phi->id << "_0" << ":ell_0{labels: accept_" << phi->id << "}" << std::endl;
+                out_str << "location:" << "TA_" << phi->id << "_0" << ":ell_1{labels: accept_" << phi->id << "}" << std::endl;
 
             }
 

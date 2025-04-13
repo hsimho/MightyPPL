@@ -1357,7 +1357,7 @@ namespace mightypplcpp {
 
                 } else {
 
-                    out_str << "TA_" << (*it)->id << "@a";
+                    out_str << "TA_" << (*it)->id << "_" << "0" << "@a";
 
                 }
 
