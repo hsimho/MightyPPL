@@ -24,6 +24,7 @@ Fn[0, 5](p1, p2, p3) && G(p1 -> G[0, 3](!p2)) && G(p2 -> G[0, 3](!p3))
 See the grammar file `Mitl.g4` for supported modalities, but in short: `F`, `G`, `U`, `R` as usual,
 `O` (once) is the past version of `F`, `H` (historically) is the past version of `G`,
 `S` (since) is the past version of `U`, and `T` (trigger) is the past version of `R`.
+Pnueli modalities (and their past and dual versions) are denoted by `Fn`, `On`, `Gn` and `Hn`.
 
 ## Technical details
 
