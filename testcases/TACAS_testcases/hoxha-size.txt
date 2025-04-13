@@ -1,0 +1,100 @@
+
+size 1...
+clocks.size() == 4
+locations.size() == 12
+bdd_edges.size() == 31
+
+real	0m0.007s
+user	0m0.008s
+sys	0m0.003s
+
+
+size 2...
+clocks.size() == 5
+locations.size() == 14
+bdd_edges.size() == 37
+
+real	0m0.007s
+user	0m0.009s
+sys	0m0.000s
+
+
+size 3...
+clocks.size() == 8
+locations.size() == 216
+bdd_edges.size() == 2717
+
+real	0m0.179s
+user	0m0.140s
+sys	0m0.049s
+
+
+size 4...
+clocks.size() == 5
+locations.size() == 16
+bdd_edges.size() == 46
+
+real	0m0.009s
+user	0m0.011s
+sys	0m0.000s
+
+
+size 5...
+clocks.size() == 6
+locations.size() == 31
+bdd_edges.size() == 128
+
+real	0m0.011s
+user	0m0.013s
+sys	0m0.000s
+
+
+size 1p...
+clocks.size() == 4
+locations.size() == 40
+bdd_edges.size() == 163
+
+real	0m0.013s
+user	0m0.004s
+sys	0m0.011s
+
+
+size 2p...
+clocks.size() == 5
+locations.size() == 73
+bdd_edges.size() == 320
+
+real	0m0.026s
+user	0m0.032s
+sys	0m0.000s
+
+
+size 3p...
+clocks.size() == 8
+locations.size() == 1076
+bdd_edges.size() == 25088
+
+real	0m2.384s
+user	0m1.949s
+sys	0m0.549s
+
+
+size 4p...
+clocks.size() == 5
+locations.size() == 91
+bdd_edges.size() == 464
+
+real	0m0.030s
+user	0m0.017s
+sys	0m0.016s
+
+
+size 5p...
+clocks.size() == 6
+locations.size() == 181
+bdd_edges.size() == 1426
+
+real	0m0.091s
+user	0m0.080s
+sys	0m0.017s
+

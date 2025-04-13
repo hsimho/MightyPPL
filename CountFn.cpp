@@ -73,7 +73,7 @@ namespace mightypplcpp {
                 locations.push_back(monitaal::location_t(out_fin ? false : true, 2, "s2", empty_invariant));
                 name_id_map.insert({"2", 2});
 
-                if (out_format.has_value() && out_format.value()) {
+                if (out_format.has_value() && out_format.value() && !out_flatten) {
 
                     out_str << std::endl << std::endl;
                     out_str << "# " << "TA_" << phi->id << "_" << i << " (" << i + 1 << " / " << phi->num_pairs << ")" << std::endl;
@@ -193,7 +193,7 @@ namespace mightypplcpp {
 
             }
 
-            if (out_format.has_value() && out_format.value()) {
+            if (out_format.has_value() && out_format.value() && !out_flatten) {
 
                     out_str << std::endl << std::endl;
                     out_str << "# " << "seq_in_" << phi->id << std::endl;
@@ -245,7 +245,7 @@ namespace mightypplcpp {
 
             }
 
-            if (out_format.has_value() && out_format.value()) {
+            if (out_format.has_value() && out_format.value() && !out_flatten) {
 
                     out_str << std::endl << std::endl;
                     out_str << "# " << "seq_out_" << phi->id << std::endl;
@@ -303,7 +303,7 @@ namespace mightypplcpp {
             in_i = bdd_ithvar(phi->id + phi->bits / 2 - 1);
             out_i = bdd_ithvar(phi->id + phi->bits  - 1);
 
-            if (out_format.has_value() && out_format.value()) {
+            if (out_format.has_value() && out_format.value() && !out_flatten) {
 
                 out_str << std::endl << std::endl;
                 out_str << "# " << "TA_" << phi->id << "_" << phi->num_pairs << std::endl;
@@ -322,16 +322,12 @@ namespace mightypplcpp {
             name_id_map.insert({"2", 2});
             // name_id_map.insert({"3", 3});
 
-            if (out_format.has_value()) {
+            if (out_format.has_value() && out_format.value() && !out_flatten) {
 
-                if (out_format.value()) {
-
-                    out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
-                    out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_1{}" << std::endl;
-                    out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id) + "_" + std::to_string(phi->num_pairs)) << "}" << std::endl;
-                    // out_str << "location:" << "TA_" << phi->id << ":ell_3{}" << std::endl;
-
-                }
+                out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
+                out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_1{}" << std::endl;
+                out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id) + "_" + std::to_string(phi->num_pairs)) << "}" << std::endl;
+                // out_str << "location:" << "TA_" << phi->id << ":ell_3{}" << std::endl;
 
             }
 
@@ -414,8 +410,11 @@ namespace mightypplcpp {
             name_id_map.clear();
             bdd_edges.clear();
 
-
-            return { components, out_str.str() };
+            if (out_flatten) {
+                return { { monitaal::TAwithBDDEdges::intersection(components) }, out_str.str() };
+            } else {
+                return { components, out_str.str() };
+            }
 
         }
 

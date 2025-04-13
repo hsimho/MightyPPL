@@ -48,6 +48,7 @@ namespace mightypplcpp {
     extern std::optional<bool> out_format;
     extern bool out_flatten;
     extern bool out_fin;
+    extern bool debug;
 
     extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_finally(const MitlParser::AtomContext*);
     extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_once(const MitlParser::AtomContext*);

@@ -73,7 +73,7 @@ namespace mightypplcpp {
                     locations.push_back(monitaal::location_t(out_fin ? false : true, 1 + phi->atoms.size(), "s2", empty_invariant));
                     name_id_map.insert({"2", 1 + phi->atoms.size()});
 
-                    if (out_format.has_value() && out_format.value()) {
+                    if (out_format.has_value() && out_format.value() && !out_flatten) {
 
                         out_str << std::endl << std::endl;
                         out_str << "# " << "TA_" << phi->id << "_" << i << " (" << i + 1 << " / " << phi->atoms.size() << ")" << std::endl;
@@ -142,7 +142,7 @@ namespace mightypplcpp {
 
                 }
 
-                if (out_format.has_value() && out_format.value()) {
+                if (out_format.has_value() && out_format.value() && !out_flatten) {
 
                         out_str << std::endl << std::endl;
                         out_str << "# " << "seq_in_" << phi->id << std::endl;
@@ -192,7 +192,7 @@ namespace mightypplcpp {
 
                 }
 
-                if (out_format.has_value() && out_format.value()) {
+                if (out_format.has_value() && out_format.value() && !out_flatten) {
 
                         out_str << std::endl << std::endl;
                         out_str << "# " << "seq_out_" << phi->id << std::endl;
@@ -233,7 +233,11 @@ namespace mightypplcpp {
                 name_id_map.clear();
                 bdd_edges.clear();
 
-                return { components, out_str.str() };
+                if (out_flatten) {
+                    return { { monitaal::TAwithBDDEdges::intersection(components) }, out_str.str() };
+                } else {
+                    return { components, out_str.str() };
+                }
 
             } else {
 

@@ -1,0 +1,163 @@
+
+components p-X-2-02...
+CYCLE false
+MEMORY_MAX_RSS 37152
+RUNNING_TIME_SECONDS 48.9836
+STORED_STATES 101777
+VISITED_STATES 101777
+VISITED_TRANSITIONS 208904
+
+real	0m49.092s
+user	0m49.008s
+sys	0m0.070s
+reach tck p-X-2-02...
+CYCLE false
+MEMORY_MAX_RSS 18088
+RUNNING_TIME_SECONDS 0.0737816
+STORED_STATES 1080
+VISITED_STATES 1080
+VISITED_TRANSITIONS 2778
+
+real	0m0.238s
+user	0m0.205s
+sys	0m0.038s
+reach nfp p-X-2-02...
+[31mNOT SATISFIABLE[0m
+
+
+Fixpoint took = 34[ms]
+
+real	0m0.115s
+user	0m0.095s
+sys	0m0.022s
+
+
+components p-X-2-2i...
+CYCLE false
+MEMORY_MAX_RSS 21660
+RUNNING_TIME_SECONDS 2.21686
+STORED_STATES 14207
+VISITED_STATES 14207
+VISITED_TRANSITIONS 85891
+
+real	0m2.245s
+user	0m2.244s
+sys	0m0.001s
+reach tck p-X-2-2i...
+CYCLE false
+MEMORY_MAX_RSS 22572
+RUNNING_TIME_SECONDS 0.283795
+STORED_STATES 4540
+VISITED_STATES 4540
+VISITED_TRANSITIONS 28147
+
+real	0m0.451s
+user	0m0.424s
+sys	0m0.035s
+reach nfp p-X-2-2i...
+[31mNOT SATISFIABLE[0m
+
+
+Fixpoint took = 33[ms]
+
+real	0m0.124s
+user	0m0.104s
+sys	0m0.021s
+
+
+components p-X-3-02...
+./run-para-unsat.sh: line 14: 11520 Killed                  timeout -s SIGKILL 300 $(timeout -s SIGKILL 300 ../MightyPPL_tck/build/demo ./parametric/unsat/$f.mitl out.tck |& tail -n 1)
+
+real	5m0.012s
+user	0m0.005s
+sys	0m0.007s
+reach tck p-X-3-02...
+CYCLE false
+MEMORY_MAX_RSS 278180
+RUNNING_TIME_SECONDS 29.0469
+STORED_STATES 28730
+VISITED_STATES 28730
+VISITED_TRANSITIONS 89148
+
+real	0m32.675s
+user	0m32.345s
+sys	0m0.389s
+reach nfp p-X-3-02...
+[31mNOT SATISFIABLE[0m
+
+
+Fixpoint took = 440[ms]
+
+real	0m1.451s
+user	0m1.261s
+sys	0m0.190s
+
+
+components p-X-3-2i...
+./run-para-unsat.sh: line 14: 11540 Killed                  timeout -s SIGKILL 300 $(timeout -s SIGKILL 300 ../MightyPPL_tck/build/demo ./parametric/unsat/$f.mitl out.tck |& tail -n 1)
+
+real	5m0.010s
+user	0m0.010s
+sys	0m0.000s
+reach tck p-X-3-2i...
+./run-para-unsat.sh: line 16: 11550 Killed                  timeout -s SIGKILL 300 $(timeout -s SIGKILL 300 ../MightyPPL_reach/build/demo ./parametric/unsat/$f.mitl out.tck |& tail -n 1)
+
+real	5m1.669s
+user	0m1.463s
+sys	0m0.277s
+reach nfp p-X-3-2i...
+[31mNOT SATISFIABLE[0m
+
+
+Fixpoint took = 510[ms]
+
+real	0m1.887s
+user	0m1.737s
+sys	0m0.150s
+
+
+components p-X-4-02...
+./run-para-unsat.sh: line 14: 11562 Killed                  timeout -s SIGKILL 300 $(timeout -s SIGKILL 300 ../MightyPPL_tck/build/demo ./parametric/unsat/$f.mitl out.tck |& tail -n 1)
+
+real	5m0.025s
+user	0m0.015s
+sys	0m0.010s
+reach tck p-X-4-02...
+./run-para-unsat.sh: line 16: 11570 Killed                  timeout -s SIGKILL 300 $(timeout -s SIGKILL 300 ../MightyPPL_reach/build/demo ./parametric/unsat/$f.mitl out.tck |& tail -n 1)
+
+real	5m15.272s
+user	0m13.998s
+sys	0m1.579s
+reach nfp p-X-4-02...
+[31mNOT SATISFIABLE[0m
+
+
+Fixpoint took = 4963[ms]
+
+real	0m20.116s
+user	0m18.827s
+sys	0m1.226s
+
+
+components p-X-4-2i...
+./run-para-unsat.sh: line 14: 11582 Killed                  timeout -s SIGKILL 300 $(timeout -s SIGKILL 300 ../MightyPPL_tck/build/demo ./parametric/unsat/$f.mitl out.tck |& tail -n 1)
+
+real	5m0.041s
+user	0m0.019s
+sys	0m0.012s
+reach tck p-X-4-2i...
+./run-para-unsat.sh: line 16: 11590 Killed                  timeout -s SIGKILL 300 $(timeout -s SIGKILL 300 ../MightyPPL_reach/build/demo ./parametric/unsat/$f.mitl out.tck |& tail -n 1)
+
+real	5m30.313s
+user	0m27.845s
+sys	0m3.195s
+reach nfp p-X-4-2i...
+[31mNOT SATISFIABLE[0m
+
+
+Fixpoint took = 7259[ms]
+
+real	0m34.955s
+user	0m32.390s
+sys	0m2.488s
+

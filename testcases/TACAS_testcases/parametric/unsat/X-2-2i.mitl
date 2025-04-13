@@ -1,0 +1,3 @@
+F(2, infty) p1 && F(2, infty) p2
+&&
+G(2, infty) (!p1) && G(2, infty) (!p2)

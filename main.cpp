@@ -31,6 +31,8 @@ namespace mightypplcpp {
     std::optional<bool> out_format = std::nullopt;    // true: tck, false: xml
     bool out_flatten = true;
     bool out_fin = false;
+    bool debug = false;
+    bool back = true;
 
 } // namespace mightypplcpp
 
@@ -66,39 +68,182 @@ int main(int argc, const char ** argv) {
 
                 if (argc >= 5) {
 
-                    out_file = argv[3]; 
+                    if (argc > 5) {
+                    
+                        out_file = argv[3]; 
 
-                    if (std::string_view(argv[4]) == "--tck") {
+                        if (std::string_view(argv[4]) == "--tck") {
 
-                        out_format = true;
+                            out_format = true;
 
-                    } else if (std::string_view(argv[4]) == "--xml") {
+                        } else if (std::string_view(argv[4]) == "--xml") {
 
-                        out_format = false;
-
-                    } else {
-
-                        throw std::invalid_argument("Wrong output format specified"); 
-
-                    }
-
-                    if (argc >= 6) {
-
-                        if (std::string_view(argv[5]) == "--noflatten") {
-
-                            out_flatten = false;
+                            out_format = false;
 
                         } else {
 
-                            throw std::invalid_argument("Wrong output type specified"); 
+                            throw std::invalid_argument("Wrong output format specified (--tck or --xml?)"); 
+
+                        }
+
+
+                        if (argc > 8) {
+
+                            throw std::invalid_argument("Too many arguments");
+
+                        } else if (argc == 8) {
+
+                            if (std::string_view(argv[5]) == "--noflatten") {
+
+                                out_flatten = false;
+
+                            } else {
+
+                                throw std::invalid_argument("One of the last 3 arguments was wrong");
+
+                            }
+
+                            if (std::string_view(argv[6]) == "--debug") {
+
+                                debug = true;
+
+                            } else {
+
+                                throw std::invalid_argument("One of the last 3 arguments was wrong");
+
+                            }
+
+                            if (std::string_view(argv[7]) == "--noback") {
+
+                                back = false;
+
+                            } else {
+
+                                throw std::invalid_argument("One of the last 3 arguments was wrong");
+
+                            }
+
+                        } else if (argc == 7) {
+
+                            if (std::string_view(argv[5]) == "--noflatten") {
+
+                                out_flatten = false;
+
+                                if (std::string_view(argv[6]) == "--debug") {
+
+                                    debug = true;
+
+                                } else if (std::string_view(argv[6]) == "--noback") {
+
+                                    back = false;
+
+                                } else {
+
+                                    throw std::invalid_argument("Last argument was wrong");
+
+                                }
+
+                            } else {
+
+                                if (std::string_view(argv[5]) == "--debug") {
+
+                                    debug = true;
+
+                                } else {
+
+                                    throw std::invalid_argument("One of the last 2 arguments was wrong");
+
+                                }
+
+                                if (std::string_view(argv[6]) == "--noback") {
+
+                                    back = false;
+
+                                } else {
+
+                                    throw std::invalid_argument("One of the last 2 arguments was wrong");
+
+                                }
+
+                            }
+
+
+                        } else if (argc == 6) {
+
+                            if (std::string_view(argv[5]) == "--noflatten") {
+
+                                out_flatten = false;
+
+                            } else if (std::string_view(argv[5]) == "--debug") {
+
+                                debug = true;
+
+                            } else if (std::string_view(argv[5]) == "--noback") {
+
+                                back = false;
+
+                            } else {
+
+                                throw std::invalid_argument("The last argument was wrong");
+
+                            }
+
+                        }
+
+                    } else {    // argc == 5
+                            
+
+                        if (std::string_view(argv[3]) == "--debug") {
+
+                            debug = true;
+
+                            if (std::string_view(argv[4]) == "--noback") {
+
+                                back = false;
+
+                            } else {
+
+                                throw std::invalid_argument("The last argument was wrong");
+
+                            }
+
+                        } else {
+
+                            out_file = argv[3]; 
+
+                            if (std::string_view(argv[4]) == "--tck") {
+
+                                out_format = true;
+
+                            } else if (std::string_view(argv[4]) == "--xml") {
+
+                                out_format = false;
+
+                            } else {
+
+                                throw std::invalid_argument("Wrong output format specified (--tck or --xml?)"); 
+
+                            }
 
                         }
 
                     }
 
-                } else {
+                } else {    // argc == 4
 
-                    throw std::invalid_argument("No output format specified"); 
+                    if (std::string_view(argv[3]) == "--debug") {
+
+                        debug = true;
+
+                    } else if (std::string_view(argv[3]) == "--noback") {
+
+                        back = false;
+
+                    } else {
+
+                        throw std::invalid_argument("No output format specified (--tck or --xml?)"); 
+
+                    }
 
                 }
 
@@ -109,7 +254,11 @@ int main(int argc, const char ** argv) {
     } catch (const std::invalid_argument& e) {
 
         std::cerr << e.what() << std::endl;
-        std::cerr << "Usage: demo <in_spec_file> --{fin|inf} [out_file --{tck|xml} [--noflatten]]" << std::endl;
+        std::cerr << "Usage: demo <in_spec_file> --{fin|inf} [out_file --{tck|xml} [--noflatten]] [--debug] [--noback]" << std::endl << std::endl;
+
+        std::cerr << "--debug: pauses to see diagostic info" << std::endl;
+        std::cerr << "--noback: disables symbolic backward analysis for components" << std::endl;
+        std::cerr << "(only relevant for Pnueli modalities, or MITL modalities with <l, u>, and when --noflatten is not used)" << std::endl << std::endl;
         std::cerr << "If [out_file ...] unspecified, the built-in fixpoint algorithm based on DBMs\n"
                   << "(PARDIBAAL) checks the (Buechi) emptiness of a flattened automaton (i.e. the\n"
                   << "satisfiability of the input formula && TA_div && model M)." << std::endl;
@@ -162,6 +311,7 @@ int main(int argc, const char ** argv) {
 
         if (out_fin) {
 
+            // Note that we assume the finite timed word accepted is of length >= 1 (as enforced by the acc. condition of TA_0)
             if (initial_state.is_included_in(monitaal::Fixpoint::reach(monitaal::Fixpoint::accept_states(pos), pos))) {
 
                 std::cout << "\n\n\033[32mSATISFIABLE (by a \033[1mfinite\033[22m timed word)\033[0m\n\n" << std::endl;
