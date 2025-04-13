@@ -5,31 +5,25 @@ partially based on the original OCaml version of MightyL
 (can be found [here](https://verif.ulb.ac.be/mightyl/)) described in
 the CAV 2017 paper "[MightyL: A Compositional Translation from MITL to Timed Automata](https://hal.science/hal-01525524)".  
 
-MightyPPL currently supports only *unilateral* constraints (the PSPACE fragment of MITL), so things such
-as ```G (p -> F [0, 20) q && F (30, infty) r)``` are allowed but not ```F [10, 20] r```.
-Another notable difference is that it adopts the *strict-future* semantics for the until and release operators, so we don't need the "next" operator ```X```.
+MightyPPL supports the full fragment of MITL (future and past modalities), together with Pnueli
+modalities of the form $\mathsf{Pn}_{[0, u]}(\phi_1, \dots, \phi_n)$.
+Please note that  adopts the *strict-future* semantics for all the temporal modalities, so we don't need the "next" operator ```X```.
 
 ## Technical details
 
-MightyPPL uses the TA and DBM representations provided by 
+Internally MightyPPL uses TA and DBM representations provided by 
 [MoniTAal](https://github.com/DEIS-Tools/MoniTAal) and [PARDIBAAL](https://github.com/DEIS-Tools/PARDIBAAL).
-It uses a *semi-symbolic* representation where
-each transition in a TA is labelled with a BDD representing a Boolean formula over propositions
+In particular, TA are represented *semi-symbolically* where
+each transition is labelled with a BDD representing a Boolean formula over propositions
 (instead of a single letter).
-The output can be provided
+The output can be
 
-- as individual component TAs; or 
-- as the product of component TAs; for performance considerations MightyPPL only constructs
-(untimely) reachable locations and transitions.
+- individual component TAs (one or several for each temporal subformula); or 
+- a single monolithic TA, which is the synchronous product of component TAs. For performance reasons MightyPPL constructs only (forward-)reachable state space and transitions.
 
 In the former case, the constructed TAs can then be used with [TChecker](https://github.com/ticktac-project/tchecker).
-In the latter case, the product TA can be analysed with [TChecker](https://github.com/ticktac-project/tchecker), or the built-in standard backward fixpoint algoritihm
-for Buechi emptiness.
-
-Improvements planned:
-- ~~Support of past modalities?~~ done
-- CLI for options (choose the backend, etc.)
-- CLI for model file?
+In the latter case, the product TA can be analysed with [TChecker](https://github.com/ticktac-project/tchecker),
+[Uppaal](https://uppaal.org/) (for the finite-word case), [LTSmin](https://ltsmin.utwente.nl) (for the infinite-word case), or the built-in standard backward fixpoint algoritihm for (Buechi) emptiness.
 
 ## Build MightyPPL
 [Boost](https://www.boost.org/) ```>= 1.40```, which is needed by [MoniTAal](https://github.com/DEIS-Tools/MoniTAal).
@@ -55,17 +49,7 @@ $ make
 
 ## Cite MightyPPL 
 
-```latex
-@inproceedings{CAV-2017-BrihayeGHM,
-	author        = {Thomas Brihaye and Gilles Geeraerts and Hsi-Ming Ho and Benjamin Monmege},
-	booktitle     = {Proceedings of the 29th International Conference on Computer Aided Verification, Part I},
-	doi           = {10.1007/978-3-319-63387-9_21},
-	pages         = {421--440},
-	publisher     = {Springer},
-	title         = {MightyL: A Compositional Translation from MITL to Timed Automata},
-	year          = 2017,
-}
-```
+Tech report will soon be made available.
 
 ## License
 
