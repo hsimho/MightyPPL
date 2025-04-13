@@ -6,9 +6,9 @@ partially based on the original OCaml version of MightyL
 the CAV 2017 paper "[MightyL: A Compositional Translation from MITL to Timed Automata](https://hal.science/hal-01525524)".  
 
 MightyPPL supports the full fragment of MITL (future and past modalities) with Pnueli
-modalities of the form $\mathsf{Pn}_{[0, u]}(\phi_1, \dots, \phi_n)$ (and the past counterparts).
+modalities of the form $\mathbf{Pn}_{[0, u]}(\phi_1, \dots, \phi_n)$ (and the past counterparts).
 Please note that MightyPPL adopts the *strict-future* semantics for all the temporal modalities, so we don't need
-the "next" operator $X$ and the "yesterday" operator $Y$.
+the "next" operator $\mathbf{X}$ and the "yesterday" operator $\mathbf{Y}$.
 Below are some example formulae supported by MightyPPL (all unsatisfiable):
 
 ```
@@ -20,6 +20,10 @@ F( !((p1 -> (p1 && H [0, 20] p1)) || O [0, 30] (p1 -> (p1 && H [0, 20] p1))) )
 ```
 Fn[0, 5](p1, p2, p3) && G(p1 -> G[0, 3](!p2)) && G(p2 -> G[0, 3](!p3))
 ```
+
+See the grammar file `Mitl.g4` for supported modalities, but in short: `F`, `G`, `U`, `R` as usual,
+`O` (once) is the past version of `F`, `H` (historically) is the past version of `G`,
+`S` (since) is the past version of `U`, and `T` (trigger) is the past version of `R`.
 
 ## Technical details
 
