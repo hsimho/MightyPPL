@@ -272,10 +272,10 @@ namespace mightypplcpp {
 
             if (out_format.has_value() && out_format.value() && !out_flatten) {
 
-                out_str << "location:" << "TA_" << phi->id << ":ell_0i{initial: }" << std::endl;
-                out_str << "location:" << "TA_" << phi->id << ":ell_0{labels: accept_" << phi->id << "_" << phi->num_pairs << "}" << std::endl;
-                out_str << "location:" << "TA_" << phi->id << ":ell_1{labels: accept_" << phi->id << "_" << phi->num_pairs << "}" << std::endl;
-                out_str << "location:" << "TA_" << phi->id << ":ell_2{labels: accept_" << phi->id << "_" << phi->num_pairs << "}" << std::endl;
+                out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_0i{initial: }" << std::endl;
+                out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_0{labels: accept_" << phi->id << "_" << phi->num_pairs << "}" << std::endl;
+                out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_1{labels: accept_" << phi->id << "_" << phi->num_pairs << "}" << std::endl;
+                out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_2{labels: accept_" << phi->id << "_" << phi->num_pairs << "}" << std::endl;
 
             }
 

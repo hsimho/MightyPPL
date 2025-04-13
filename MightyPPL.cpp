@@ -869,42 +869,42 @@ namespace mightypplcpp {
                 if ((*it)->type == FINALLY) {
                     MitlParser::AtomFContext* phi = (MitlParser::AtomFContext*)(*it);
                     if (phi->interval() != nullptr) {
-                        out_str << "clock:1:x_" << phi->id << std::endl;
+                        out_str << "clock:1:x_" << phi->id << "_0" << std::endl;
                     }
                 } else if ((*it)->type == ONCE) {
                     MitlParser::AtomOContext* phi = (MitlParser::AtomOContext*)(*it);
                     if (phi->interval() != nullptr) {
-                        out_str << "clock:1:x_" << phi->id << std::endl;
+                        out_str << "clock:1:x_" << phi->id << "_0" << std::endl;
                     }
                 } else if ((*it)->type == GLOBALLY) {
                     MitlParser::AtomGContext* phi = (MitlParser::AtomGContext*)(*it);
                     if (phi->interval() != nullptr) {
-                        out_str << "clock:1:x_" << phi->id << std::endl;
+                        out_str << "clock:1:x_" << phi->id << "_0" << std::endl;
                     }
                 } else if ((*it)->type == HISTORICALLY) {
                     MitlParser::AtomHContext* phi = (MitlParser::AtomHContext*)(*it);
                     if (phi->interval() != nullptr) {
-                        out_str << "clock:1:x_" << phi->id << std::endl;
+                        out_str << "clock:1:x_" << phi->id << "_0" << std::endl;
                     }
                 } else if ((*it)->type == UNTIL) {
                     MitlParser::AtomUContext* phi = (MitlParser::AtomUContext*)(*it);
                     if (phi->interval() != nullptr) {
-                        out_str << "clock:1:x_" << phi->id << std::endl;
+                        out_str << "clock:1:x_" << phi->id << "_0" << std::endl;
                     }
                 } else if ((*it)->type == SINCE) {
                     MitlParser::AtomSContext* phi = (MitlParser::AtomSContext*)(*it);
                     if (phi->interval() != nullptr) {
-                        out_str << "clock:1:x_" << phi->id << std::endl;
+                        out_str << "clock:1:x_" << phi->id << "_0" << std::endl;
                     }
                 } else if ((*it)->type == RELEASE) {
                     MitlParser::AtomRContext* phi = (MitlParser::AtomRContext*)(*it);
                     if (phi->interval() != nullptr) {
-                        out_str << "clock:1:x_" << phi->id << std::endl;
+                        out_str << "clock:1:x_" << phi->id << "_0" << std::endl;
                     }
                 } else if ((*it)->type == TRIGGER) {
                     MitlParser::AtomTContext* phi = (MitlParser::AtomTContext*)(*it);
                     if (phi->interval() != nullptr) {
-                        out_str << "clock:1:x_" << phi->id << std::endl;
+                        out_str << "clock:1:x_" << phi->id << "_0" << std::endl;
                     }
                 } else if ((*it)->type == PNUELIFN) {
                     MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)(*it);

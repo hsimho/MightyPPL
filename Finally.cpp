@@ -123,9 +123,9 @@ namespace mightypplcpp {
 
                 if (out_format.has_value() && out_format.value() && !out_flatten) {
 
-                        out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
-                        out_str << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
-                        out_str << "location:" << "TA_" << phi->id << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
+                        out_str << "location:" << "TA_" << phi->id << "_0" << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
+                        out_str << "location:" << "TA_" << phi->id << "_0" << ":ell_1{}" << std::endl;
+                        out_str << "location:" << "TA_" << phi->id << "_0" << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
 
                 }
 
@@ -191,10 +191,10 @@ namespace mightypplcpp {
 
                 if (out_format.has_value() && out_format.value() && !out_flatten) {
 
-                    out_str << "location:" << "TA_" << phi->id << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
-                    out_str << "location:" << "TA_" << phi->id << ":ell_1{}" << std::endl;
-                    out_str << "location:" << "TA_" << phi->id << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
-                    // out_str << "location:" << "TA_" << phi->id << ":ell_3{}" << std::endl;
+                    out_str << "location:" << "TA_" << phi->id << "_0" << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
+                    out_str << "location:" << "TA_" << phi->id << "_0" << ":ell_1{}" << std::endl;
+                    out_str << "location:" << "TA_" << phi->id << "_0" << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id)) << "}" << std::endl;
+                    // out_str << "location:" << "TA_" << phi->id << "_0" << ":ell_3{}" << std::endl;
 
                 }
 
