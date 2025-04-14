@@ -324,7 +324,7 @@ namespace mightypplcpp {
 
             if (out_format.has_value() && out_format.value() && !out_flatten) {
 
-                out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_0{initial: : labels: accept_" << phi->id << "}" << std::endl;
+                out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_0{initial: : labels: accept_" << phi->id << "_" << phi->num_pairs << "}" << std::endl;
                 out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_1{}" << std::endl;
                 out_str << "location:" << "TA_" << phi->id << "_" << phi->num_pairs << ":ell_2{" << (out_fin ? "" : "labels: accept_" + std::to_string(phi->id) + "_" + std::to_string(phi->num_pairs)) << "}" << std::endl;
                 // out_str << "location:" << "TA_" << phi->id << ":ell_3{}" << std::endl;
