@@ -320,6 +320,7 @@ namespace mightypplcpp {
             bdd_edges.clear();
 
             if (out_flatten) {
+                components.push_back(varphi);
                 return { { monitaal::TAwithBDDEdges::intersection(components) }, out_str.str() };
             } else {
                 return { components, out_str.str() };

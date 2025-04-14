@@ -50,6 +50,8 @@ namespace mightypplcpp {
     extern bool out_fin;
     extern bool debug;
 
+    extern monitaal::TAwithBDDEdges varphi;
+
     extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_finally(const MitlParser::AtomContext*);
     extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_once(const MitlParser::AtomContext*);
     extern std::pair<std::vector<monitaal::TAwithBDDEdges>, std::string> build_globally(const MitlParser::AtomContext*);

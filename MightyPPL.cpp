@@ -973,64 +973,6 @@ namespace mightypplcpp {
         }
 
 
-        for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
-
-            if ((*it)->type == PNUELIFN || (*it)->type == PNUELION || (*it)->type == PNUELIGN || (*it)->type == PNUELIHN
-                    || (*it)->type == COUNTFN || (*it)->type == COUNTON || (*it)->type == COUNTGN || (*it)->type == COUNTHN) {
-                std::cout << "\nGenerating TA_" << (*it)->id << " (and other sub-components)...\n";
-            } else {
-                std::cout << "\nGenerating TA_" << (*it)->id << "...\n";
-            }
-            auto [ generated_components, component_str ] = build_ta_from_atom(*it);
-            temporal_components.insert(temporal_components.end(), generated_components.begin(), generated_components.end());
-
-            if (out_format.has_value() && out_format.value() && !out_flatten) {
-
-                out_str << component_str;
-
-            }
-
-            if ((*it)->type == PNUELIFN || (*it)->type == PNUELION || (*it)->type == PNUELIGN || (*it)->type == PNUELIHN
-                    || (*it)->type == COUNTFN || (*it)->type == COUNTON || (*it)->type == COUNTGN || (*it)->type == COUNTHN) {
-                std::cout << "\nGenerated TA_" << (*it)->id << " (and other sub-components)\n";
-            } else {
-                std::cout << "\nGenerated TA_" << (*it)->id << "\n";
-            }
-
-            std::cout << std::endl;
-
-            std::cout << std::setw(20) << "# of locations: " << std::setw(10) << temporal_components.back().locations().size() << std::setw(0) << std::endl;
-            std::cout << std::setw(20) << "# of clocks: " << std::setw(10) << temporal_components.back().number_of_clocks() << std::setw(0) << std::endl;
-
-            // for (auto i = 0; i < temporal_components.back().number_of_clocks(); ++i) {
-            //     std::cout << std::setw(20) << temporal_components.back().clock_name(i) << std::setw(0) << std::endl;
-            // }
-
-            std::cout << std::endl;
-
-            for (const auto & [k, v] : temporal_components.back().locations()) {
-
-                std::cout << std::setw(12) << "location: " << std::setw(10) << v.id() << " (" << v.name() << ")" << (v.is_accept() ? " *ACCEPTING*" : "") << std::setw(0) << std::endl;
-                std::cout << std::setw(20) << "# outgoing: " << std::setw(10) << temporal_components.back().bdd_edges_from(k).size() << std::setw(0) << std::endl;
-                // for (const auto& e : temporal_components.back().bdd_edges_from(k)) {
-                //     std::cout << e.from() << " -> " << e.to() << ": " << std::endl;
-                //     bdd_printset(e.bdd_label());
-                //     std::cout << std::endl;
-                // }
-                std::cout << std::setw(20) << "# incoming: " << std::setw(10) << temporal_components.back().bdd_edges_to(k).size() << std::setw(0) << std::endl;
-
-            }
-
-            if (debug) {
-
-                std::cout << "\nSee the component above\n";
-                std::cout << "\nPress any key to continue . . .\n";
-                std::cin.get();
-
-            }
-
-        }
-
         std::cout << "\nGenerating TA_0" << "...\n";
 
         std::string name = "TA_0";
@@ -1062,7 +1004,7 @@ namespace mightypplcpp {
 
         bdd_edges.push_back(monitaal::bdd_edge_t(1, 1, guard, reset, label));
 
-        auto varphi = monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0);   // last arg: initial location id
+        varphi = monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0);   // last arg: initial location id
         clocks.clear();
         locations.clear();
         bdd_edges.clear();
@@ -1167,6 +1109,73 @@ namespace mightypplcpp {
             std::cout << std::setw(20) << "# incoming: " << std::setw(10) << varphi.bdd_edges_to(k).size() << std::setw(0) << std::endl;
 
         }
+
+        if (debug) {
+
+            std::cout << "\nSee the component above\n";
+            std::cout << "\nPress any key to continue . . .\n";
+            std::cin.get();
+
+        }
+
+        for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
+
+            if ((*it)->type == PNUELIFN || (*it)->type == PNUELION || (*it)->type == PNUELIGN || (*it)->type == PNUELIHN
+                    || (*it)->type == COUNTFN || (*it)->type == COUNTON || (*it)->type == COUNTGN || (*it)->type == COUNTHN) {
+                std::cout << "\nGenerating TA_" << (*it)->id << " (and other sub-components)...\n";
+            } else {
+                std::cout << "\nGenerating TA_" << (*it)->id << "...\n";
+            }
+            auto [ generated_components, component_str ] = build_ta_from_atom(*it);
+            temporal_components.insert(temporal_components.end(), generated_components.begin(), generated_components.end());
+
+            if (out_format.has_value() && out_format.value() && !out_flatten) {
+
+                out_str << component_str;
+
+            }
+
+            if ((*it)->type == PNUELIFN || (*it)->type == PNUELION || (*it)->type == PNUELIGN || (*it)->type == PNUELIHN
+                    || (*it)->type == COUNTFN || (*it)->type == COUNTON || (*it)->type == COUNTGN || (*it)->type == COUNTHN) {
+                std::cout << "\nGenerated TA_" << (*it)->id << " (and other sub-components)\n";
+            } else {
+                std::cout << "\nGenerated TA_" << (*it)->id << "\n";
+            }
+
+            std::cout << std::endl;
+
+            std::cout << std::setw(20) << "# of locations: " << std::setw(10) << temporal_components.back().locations().size() << std::setw(0) << std::endl;
+            std::cout << std::setw(20) << "# of clocks: " << std::setw(10) << temporal_components.back().number_of_clocks() << std::setw(0) << std::endl;
+
+            // for (auto i = 0; i < temporal_components.back().number_of_clocks(); ++i) {
+            //     std::cout << std::setw(20) << temporal_components.back().clock_name(i) << std::setw(0) << std::endl;
+            // }
+
+            std::cout << std::endl;
+
+            for (const auto & [k, v] : temporal_components.back().locations()) {
+
+                std::cout << std::setw(12) << "location: " << std::setw(10) << v.id() << " (" << v.name() << ")" << (v.is_accept() ? " *ACCEPTING*" : "") << std::setw(0) << std::endl;
+                std::cout << std::setw(20) << "# outgoing: " << std::setw(10) << temporal_components.back().bdd_edges_from(k).size() << std::setw(0) << std::endl;
+                // for (const auto& e : temporal_components.back().bdd_edges_from(k)) {
+                //     std::cout << e.from() << " -> " << e.to() << ": " << std::endl;
+                //     bdd_printset(e.bdd_label());
+                //     std::cout << std::endl;
+                // }
+                std::cout << std::setw(20) << "# incoming: " << std::setw(10) << temporal_components.back().bdd_edges_to(k).size() << std::setw(0) << std::endl;
+
+            }
+
+            if (debug) {
+
+                std::cout << "\nSee the component above\n";
+                std::cout << "\nPress any key to continue . . .\n";
+                std::cin.get();
+
+            }
+
+        }
+
 
         std::cout << "\nGenerating M" << "...\n";
 

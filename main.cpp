@@ -34,6 +34,9 @@ namespace mightypplcpp {
     bool debug = false;
     bool back = true;
 
+
+    monitaal::TAwithBDDEdges varphi = monitaal::TAwithBDDEdges("dummy", {}, {}, {}, 0);
+                                                                                     //
 } // namespace mightypplcpp
 
 int main(int argc, const char ** argv) {
