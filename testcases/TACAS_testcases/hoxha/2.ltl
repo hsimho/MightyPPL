@@ -1,2 +1,0 @@
-!(([] <> TA_prop1_div == 0) && ([] <> TA_prop2_loc == 0)
- && ([] <> TA_prop4_loc == 0))
