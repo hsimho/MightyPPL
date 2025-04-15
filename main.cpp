@@ -301,8 +301,11 @@ int main(int argc, const char ** argv) {
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
    
-    std::cout << "Constructing TA (with BDD transitions) took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
-    // std::cout << pos << std::endl;
+    if (out_flatten) {
+
+        std::cout << "Constructing TA (with BDD transitions) took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+
+    }
 
 
     if (!out_format.has_value()) {
