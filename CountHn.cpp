@@ -91,9 +91,9 @@ namespace mightypplcpp {
                 build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "> " : ">= ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 3, out_i & !in_i);
 
 
-                // 1 -> 1, out_null & !in_i & *phi
+                // 1 -> 1, !out_i & !in_i & *phi
 
-                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1", "1", std::string{}, std::string{}, 0, out_null & !in_i & phi->atom(1)->star);
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1", "1", std::string{}, std::string{}, 0, !out_i & !in_i & phi->atom(1)->star);
 
                 // 1 -> 1, out_i & !in_i & *phi, x > b
 
