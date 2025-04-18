@@ -25,13 +25,13 @@ do
     printf "\n"
     printf "\n"
     echo "size $f..."
-    (timeout -s SIGKILL 300 ../build/demo ./general/$f.mitl --inf out.tck --tck) |& tail -n 9 |& head -n 5
+    (timeout -s SIGKILL 300 ../build/mitppl ./general/$f.mitl --inf out.tck --tck) |& tail -n 9 |& head -n 5
     printf "\n"
     echo "tck flat $f..."
-    (time timeout -s SIGKILL 300 $(timeout -s SIGKILL 300 ../build/demo ./general/$f.mitl --inf out.tck --tck |& tail -n 1)) |& tail -n 10
+    (time timeout -s SIGKILL 300 $(timeout -s SIGKILL 300 ../build/mitppl ./general/$f.mitl --inf out.tck --tck |& tail -n 1)) |& tail -n 10
     printf "\n"
     echo "tck flat noback $f..."
-    (time timeout -s SIGKILL 300 $(timeout -s SIGKILL 300 ../build/demo ./general/$f.mitl --inf out.tck --tck --noback |& tail -n 1)) |& tail -n 10
+    (time timeout -s SIGKILL 300 $(timeout -s SIGKILL 300 ../build/mitppl ./general/$f.mitl --inf out.tck --tck --noback |& tail -n 1)) |& tail -n 10
     printf "\n"
     printf "\n"
 done

@@ -257,7 +257,7 @@ int main(int argc, const char ** argv) {
     } catch (const std::invalid_argument& e) {
 
         std::cerr << e.what() << std::endl;
-        std::cerr << "Usage: demo <in_spec_file> --{fin|inf} [out_file --{tck|xml} [--noflatten]] [--debug] [--noback]" << std::endl << std::endl;
+        std::cerr << "Usage: mitppl <in_spec_file> --{fin|inf} [out_file --{tck|xml} [--noflatten]] [--debug] [--noback]" << std::endl << std::endl;
 
         std::cerr << "--debug: pauses to see diagostic info" << std::endl;
         std::cerr << "--noback: disables symbolic backward analysis for components" << std::endl;

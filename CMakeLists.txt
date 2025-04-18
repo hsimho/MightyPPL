@@ -73,7 +73,7 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/build/monitaal-prefix/src/monitaal-
 
 
 # add generated grammar to demo binary target
-add_executable(demo main.cpp
+add_executable(mitppl main.cpp
                MitlFormulaVisitor.cpp
                MitlTypingVisitor.cpp
                MitlCheckNNFVisitor.cpp
@@ -102,7 +102,7 @@ add_executable(demo main.cpp
                ${ANTLR_MitlGrammar_CXX_OUTPUTS})
 
 
-target_link_libraries(demo antlr4_static buddy MoniTAal pugixml pardibaal)
+target_link_libraries(mitppl antlr4_static buddy MoniTAal pugixml pardibaal)
 
 
 if (CMAKE_HOST_UNIX)
@@ -112,9 +112,9 @@ if (CMAKE_HOST_UNIX)
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
 
-  if (TARGET demo)
-    target_link_libraries(demo Threads::Threads)
-    message(STATUS "demo Linked with Threads!")
+  if (TARGET mitppl)
+    target_link_libraries(mitppl Threads::Threads)
+    message(STATUS "mitppl Linked with Threads!")
   endif()
 
 endif()
