@@ -1,0 +1,3 @@
+!(([] <> (TA_prop2_loc == 0 || TA_prop2_loc == 2))
+ && ([] <> (TA_prop3_loc == 0 || TA_prop3_loc == 2))
+ && ([] <> (TA_prop4_loc == 0 || TA_prop4_loc == 2)))
