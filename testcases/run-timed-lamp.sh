@@ -5,6 +5,15 @@ FILES="
 3
 4
 "
+
+echo "Compiling the version of MightyPPL with model..."
+cp -f ../MightyPPL_lamp.cpp ../MightyPPL.cpp
+cd ../build && make
+cd ../testcases
+printf "\n"
+
+sleep 2
+
 for f in $FILES
 do
     printf "\n"
@@ -23,4 +32,11 @@ do
     printf "\n"
     printf "\n"
 done
+
+
+echo "Revert to the original version of MightyPPL..."
+cp -f ../MightyPPL_original.cpp ../MightyPPL.cpp
+cd ../build && make
+cd ../testcases
+printf "\n"
 
