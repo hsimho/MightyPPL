@@ -1022,17 +1022,22 @@ namespace mightypplcpp {
                          || static_cast<MitlParser::AtomContext*>(ancestor)->type == ONCE
                          || static_cast<MitlParser::AtomContext*>(ancestor)->type == GLOBALLY
                          || static_cast<MitlParser::AtomContext*>(ancestor)->type == HISTORICALLY
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == UNTIL
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == SINCE
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == RELEASE
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == TRIGGER
                          || static_cast<MitlParser::AtomContext*>(ancestor)->type == PNUELIFN
                          || static_cast<MitlParser::AtomContext*>(ancestor)->type == PNUELION
                          || static_cast<MitlParser::AtomContext*>(ancestor)->type == PNUELIGN
-                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == PNUELIFN)) {
-                //    std::cout << "(this is an Atom in F O G H Fn On Gn Hn)" << std::endl << std::flush;
+                         || static_cast<MitlParser::AtomContext*>(ancestor)->type == PNUELIHN)) {
+
                     paren = true;
                     ancestor = nullptr;
 
                 } else {
                 //    std::cout << "go further up" << std::endl << std::flush;
                     ancestor = static_cast<antlr4::RuleContext*>(ancestor->parent);
+
                 }
 
             }

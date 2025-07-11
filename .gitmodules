@@ -1,6 +1,8 @@
 [submodule "external/buddy"]
+	branch = main
 	path = external/buddy
 	url = https://github.com/SSoelvsten/buddy
 [submodule "external/monitaal"]
+	branch = main
 	path = external/monitaal
 	url = https://github.com/DEIS-Tools/MoniTAal
