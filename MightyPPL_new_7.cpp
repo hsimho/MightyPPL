@@ -1052,6 +1052,7 @@ namespace mightypplcpp {
                 out_str << "event:a" << std::endl << std::endl << std::endl;
 
                 out_str << "clock:1:g" << std::endl;
+                out_str << "clock:1:x" << std::endl;        // for pinwheel
 
                 for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
 
@@ -1730,206 +1731,64 @@ namespace mightypplcpp {
         name = "M";
 
         clocks.insert({0, "x0"});        // clock 0 is needed anyway
-        clocks.insert({1, "x"});
+        clocks.insert({1, "x"});        // for pinwheel
 
-        locations.push_back(monitaal::location_t(true, 0, "ell_0", empty_invariant));
-        locations.push_back(monitaal::location_t(true, 1, "ell_1", empty_invariant));
-        locations.push_back(monitaal::location_t(true, 2, "ell_2", empty_invariant));
-        locations.push_back(monitaal::location_t(true, 3, "ell_p", empty_invariant));
-        locations.push_back(monitaal::location_t(true, 4, "ell_b", empty_invariant));
-        locations.push_back(monitaal::location_t(true, 5, "ell_c", empty_invariant));
+        locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
 
-
-        label = bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & !bdd_ithvar(nnf_formula->props.at("p_p"))
-            & !bdd_ithvar(nnf_formula->props.at("p_b"))
-            & !bdd_ithvar(nnf_formula->props.at("p_c"));
+        label = bdd_ithvar(nnf_formula->props.at("p1")) & !bdd_ithvar(nnf_formula->props.at("p2")) & !bdd_ithvar(nnf_formula->props.at("p3")) & !bdd_ithvar(nnf_formula->props.at("p4")) & !bdd_ithvar(nnf_formula->props.at("p5")) & !bdd_ithvar(nnf_formula->props.at("p6")) & !bdd_ithvar(nnf_formula->props.at("p7"));
         reset.push_back(1);
-        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
+        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
         bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
         guard.clear();
         reset.clear();
 
-        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & !bdd_ithvar(nnf_formula->props.at("p_p"))
-            & !bdd_ithvar(nnf_formula->props.at("p_b"))
-            & !bdd_ithvar(nnf_formula->props.at("p_c"));
-        reset.push_back(1);
-        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
-        bdd_edges.push_back(monitaal::bdd_edge_t(1, 1, guard, reset, label));
-        guard.clear();
-        reset.clear();
-
-        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & !bdd_ithvar(nnf_formula->props.at("p_p"))
-            & !bdd_ithvar(nnf_formula->props.at("p_b"))
-            & !bdd_ithvar(nnf_formula->props.at("p_c"));
-        reset.push_back(1);
-        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
-        bdd_edges.push_back(monitaal::bdd_edge_t(2, 2, guard, reset, label));
-        guard.clear();
-        reset.clear();
-
-        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & bdd_ithvar(nnf_formula->props.at("p_p"))
-            & !bdd_ithvar(nnf_formula->props.at("p_b"))
-            & !bdd_ithvar(nnf_formula->props.at("p_c"));
-        reset.push_back(1);
-        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
-        bdd_edges.push_back(monitaal::bdd_edge_t(3, 3, guard, reset, label));
-        guard.clear();
-        reset.clear();
-
-        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & !bdd_ithvar(nnf_formula->props.at("p_p"))
-            & bdd_ithvar(nnf_formula->props.at("p_b"))
-            & !bdd_ithvar(nnf_formula->props.at("p_c"));
-        reset.push_back(1);
-        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
-        bdd_edges.push_back(monitaal::bdd_edge_t(4, 4, guard, reset, label));
-        guard.clear();
-        reset.clear();
-
-        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & !bdd_ithvar(nnf_formula->props.at("p_p"))
-            & !bdd_ithvar(nnf_formula->props.at("p_b"))
-            & bdd_ithvar(nnf_formula->props.at("p_c"));
-        reset.push_back(1);
-        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
-        bdd_edges.push_back(monitaal::bdd_edge_t(5, 5, guard, reset, label));
-        guard.clear();
-        reset.clear();
-
-
-
-        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & bdd_ithvar(nnf_formula->props.at("p_p"))
-            & !bdd_ithvar(nnf_formula->props.at("p_b"))
-            & !bdd_ithvar(nnf_formula->props.at("p_c"));
-        reset.push_back(1);
-        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 5));
-        bdd_edges.push_back(monitaal::bdd_edge_t(0, 3, guard, reset, label));
-        guard.clear();
-        reset.clear();
-
-        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & !bdd_ithvar(nnf_formula->props.at("p_p"))
-            & bdd_ithvar(nnf_formula->props.at("p_b"))
-            & !bdd_ithvar(nnf_formula->props.at("p_c"));
-        reset.push_back(1);
-        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 7));
-        bdd_edges.push_back(monitaal::bdd_edge_t(0, 4, guard, reset, label));
-        guard.clear();
-        reset.clear();
-
-        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & !bdd_ithvar(nnf_formula->props.at("p_p"))
-            & bdd_ithvar(nnf_formula->props.at("p_b"))
-            & !bdd_ithvar(nnf_formula->props.at("p_c"));
-        reset.push_back(1);
-        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 3));
-        bdd_edges.push_back(monitaal::bdd_edge_t(3, 4, guard, reset, label));
-        guard.clear();
-        reset.clear();
-
-        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & !bdd_ithvar(nnf_formula->props.at("p_p"))
-            & !bdd_ithvar(nnf_formula->props.at("p_b"))
-            & bdd_ithvar(nnf_formula->props.at("p_c"));
-        reset.push_back(1);
-        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 3));
-        bdd_edges.push_back(monitaal::bdd_edge_t(3, 5, guard, reset, label));
-        guard.clear();
-        reset.clear();
-
-        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & !bdd_ithvar(nnf_formula->props.at("p_p"))
-            & !bdd_ithvar(nnf_formula->props.at("p_b"))
-            & bdd_ithvar(nnf_formula->props.at("p_c"));
+        label = !bdd_ithvar(nnf_formula->props.at("p1")) & bdd_ithvar(nnf_formula->props.at("p2")) & !bdd_ithvar(nnf_formula->props.at("p3")) & !bdd_ithvar(nnf_formula->props.at("p4")) & !bdd_ithvar(nnf_formula->props.at("p5")) & !bdd_ithvar(nnf_formula->props.at("p6")) & !bdd_ithvar(nnf_formula->props.at("p7"));
         reset.push_back(1);
         guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
-        bdd_edges.push_back(monitaal::bdd_edge_t(4, 5, guard, reset, label));
+        bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
         guard.clear();
         reset.clear();
 
-        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & !bdd_ithvar(nnf_formula->props.at("p_p"))
-            & !bdd_ithvar(nnf_formula->props.at("p_b"))
-            & !bdd_ithvar(nnf_formula->props.at("p_c"));
-        reset.push_back(1);
-        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 2));
-        bdd_edges.push_back(monitaal::bdd_edge_t(4, 1, guard, reset, label));
-        guard.clear();
-        reset.clear();
-
-        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & !bdd_ithvar(nnf_formula->props.at("p_p"))
-            & !bdd_ithvar(nnf_formula->props.at("p_b"))
-            & !bdd_ithvar(nnf_formula->props.at("p_c"));
-        reset.push_back(1);
-        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 3));
-        bdd_edges.push_back(monitaal::bdd_edge_t(5, 2, guard, reset, label));
-        guard.clear();
-        reset.clear();
-
-        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & !bdd_ithvar(nnf_formula->props.at("p_p"))
-            & !bdd_ithvar(nnf_formula->props.at("p_b"))
-            & !bdd_ithvar(nnf_formula->props.at("p_c"));
+        label = !bdd_ithvar(nnf_formula->props.at("p1")) & !bdd_ithvar(nnf_formula->props.at("p2")) & bdd_ithvar(nnf_formula->props.at("p3")) & !bdd_ithvar(nnf_formula->props.at("p4")) & !bdd_ithvar(nnf_formula->props.at("p5")) & !bdd_ithvar(nnf_formula->props.at("p6")) & !bdd_ithvar(nnf_formula->props.at("p7"));
         reset.push_back(1);
         guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
-        bdd_edges.push_back(monitaal::bdd_edge_t(2, 1, guard, reset, label));
+        bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
         guard.clear();
         reset.clear();
 
-        label = bdd_ithvar(nnf_formula->props.at("p_l0"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
-            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
-            & !bdd_ithvar(nnf_formula->props.at("p_p"))
-            & !bdd_ithvar(nnf_formula->props.at("p_b"))
-            & !bdd_ithvar(nnf_formula->props.at("p_c"));
+        label = !bdd_ithvar(nnf_formula->props.at("p1")) & !bdd_ithvar(nnf_formula->props.at("p2")) & !bdd_ithvar(nnf_formula->props.at("p3")) & bdd_ithvar(nnf_formula->props.at("p4")) & !bdd_ithvar(nnf_formula->props.at("p5")) & !bdd_ithvar(nnf_formula->props.at("p6")) & !bdd_ithvar(nnf_formula->props.at("p7"));
         reset.push_back(1);
-        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 3));
-        bdd_edges.push_back(monitaal::bdd_edge_t(1, 0, guard, reset, label));
+        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
+        bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
         guard.clear();
         reset.clear();
 
+        label = !bdd_ithvar(nnf_formula->props.at("p1")) & !bdd_ithvar(nnf_formula->props.at("p2")) & !bdd_ithvar(nnf_formula->props.at("p3")) & !bdd_ithvar(nnf_formula->props.at("p4")) & bdd_ithvar(nnf_formula->props.at("p5")) & !bdd_ithvar(nnf_formula->props.at("p6")) & !bdd_ithvar(nnf_formula->props.at("p7"));
+        reset.push_back(1);
+        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
+        bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
+        guard.clear();
+        reset.clear();
 
+        label = !bdd_ithvar(nnf_formula->props.at("p1")) & !bdd_ithvar(nnf_formula->props.at("p2")) & !bdd_ithvar(nnf_formula->props.at("p3")) & !bdd_ithvar(nnf_formula->props.at("p4")) & !bdd_ithvar(nnf_formula->props.at("p5")) & bdd_ithvar(nnf_formula->props.at("p6")) & !bdd_ithvar(nnf_formula->props.at("p7"));
+        reset.push_back(1);
+        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
+        bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
+        guard.clear();
+        reset.clear();
 
-
+        label = !bdd_ithvar(nnf_formula->props.at("p1")) & !bdd_ithvar(nnf_formula->props.at("p2")) & !bdd_ithvar(nnf_formula->props.at("p3")) & !bdd_ithvar(nnf_formula->props.at("p4")) & !bdd_ithvar(nnf_formula->props.at("p5")) & !bdd_ithvar(nnf_formula->props.at("p6")) & bdd_ithvar(nnf_formula->props.at("p7"));
+        reset.push_back(1);
+        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
+        bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
+        guard.clear();
+        reset.clear();
 
         model = monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0);   // last arg: initial location id
         clocks.clear();
         locations.clear();
         bdd_edges.clear();
+
 
         if (out_format.has_value() && !out_flatten) {
 
@@ -1938,209 +1797,106 @@ namespace mightypplcpp {
                 out_str << std::endl << std::endl;
                 out_str << "# " << "M" << std::endl;
                 out_str << "process:" << "M" << std::endl;
-                out_str << "clock:1:x" << std::endl;        // for timed lamp
 
                 out_str << "location:" << "M" << ":ell_0{initial: : labels: accept_M}" << std::endl;
-                out_str << "location:" << "M" << ":ell_1{labels: accept_M}" << std::endl;
-                out_str << "location:" << "M" << ":ell_2{labels: accept_M}" << std::endl;
-                out_str << "location:" << "M" << ":ell_p{labels: accept_M}" << std::endl;
-                out_str << "location:" << "M" << ":ell_b{labels: accept_M}" << std::endl;
-                out_str << "location:" << "M" << ":ell_c{labels: accept_M}" << std::endl;
 
                 out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " >= 1"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
-                        << " && x >= 0 : do: turn = 0; x = 0; ";
+                        << " && p_" << std::to_string(nnf_formula->props.at("p1")) << " >= 1"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p2")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p3")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p4")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p5")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p6")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p7")) << " % 2 == 0"
+                        << " && x >= 1 : do: x = 0; turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
                     out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
                 }
                 out_str << "}" << std::endl;
 
-                out_str << "edge:" << "M" << ":ell_1:ell_1:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " >= 1"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
-                        << " && x >= 0 : do: turn = 0; x = 0; ";
+                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter
+                        << " && p_" << std::to_string(nnf_formula->props.at("p1")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p2")) << " >= 1"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p3")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p4")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p5")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p6")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p7")) << " % 2 == 0"
+                        << " && x >= 1 : do: x = 0; turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
                     out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
                 }
                 out_str << "}" << std::endl;
 
-                out_str << "edge:" << "M" << ":ell_2:ell_2:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " >= 1"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
-                        << " && x >= 0 : do: turn = 0; x = 0; ";
-                for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
-                }
-                out_str << "}" << std::endl;
-                out_str << "edge:" << "M" << ":ell_p:ell_p:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " >= 1"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
-                        << " && x >= 0 : do: turn = 0; x = 0; ";
-                for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
-                }
-                out_str << "}" << std::endl;
-                out_str << "edge:" << "M" << ":ell_b:ell_b:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " >= 1"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
-                        << " && x >= 0 : do: turn = 0; x = 0; ";
+                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter
+                        << " && p_" << std::to_string(nnf_formula->props.at("p1")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p2")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p3")) << " >= 1"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p4")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p5")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p6")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p7")) << " % 2 == 0"
+                        << " && x >= 1 : do: x = 0; turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
                     out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
                 }
                 out_str << "}" << std::endl;
 
-                out_str << "edge:" << "M" << ":ell_c:ell_c:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " >= 1"
-                        << " && x >= 0 : do: turn = 0; x = 0; ";
+                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter
+                        << " && p_" << std::to_string(nnf_formula->props.at("p1")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p2")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p3")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p4")) << " >= 1"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p5")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p6")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p7")) << " % 2 == 0"
+                        << " && x >= 1 : do: x = 0; turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
                     out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
                 }
                 out_str << "}" << std::endl;
 
-
-                out_str << "edge:" << "M" << ":ell_0:ell_p:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " >= 1"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
-                        << " && x >= 5 : do: turn = 0; x = 0; ";
+                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter
+                        << " && p_" << std::to_string(nnf_formula->props.at("p1")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p2")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p3")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p4")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p5")) << " >= 1"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p6")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p7")) << " % 2 == 0"
+                        << " && x >= 1 : do: x = 0; turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
                     out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
                 }
                 out_str << "}" << std::endl;
 
-                out_str << "edge:" << "M" << ":ell_0:ell_b:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " >= 1"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
-                        << " && x >= 7 : do: turn = 0; x = 0; ";
+                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter
+                        << " && p_" << std::to_string(nnf_formula->props.at("p1")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p2")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p3")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p4")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p5")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p6")) << " >= 1"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p7")) << " % 2 == 0"
+                        << " && x >= 1 : do: x = 0; turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
                     out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
                 }
                 out_str << "}" << std::endl;
 
-                out_str << "edge:" << "M" << ":ell_p:ell_b:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " >= 1"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
-                        << " && x >= 3 : do: turn = 0; x = 0; ";
+                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter
+                        << " && p_" << std::to_string(nnf_formula->props.at("p1")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p2")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p3")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p4")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p5")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p6")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p7")) << " >= 1"
+                        << " && x >= 1 : do: x = 0; turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
                     out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
                 }
                 out_str << "}" << std::endl;
-
-                out_str << "edge:" << "M" << ":ell_p:ell_c:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " >= 1"
-                        << " && x >= 3 : do: turn = 0; x = 0; ";
-                for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
-                }
-                out_str << "}" << std::endl;
-
-                out_str << "edge:" << "M" << ":ell_b:ell_c:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " >= 1"
-                        << " && x >= 1 : do: turn = 0; x = 0; ";
-                for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
-                }
-                out_str << "}" << std::endl;
-
-                out_str << "edge:" << "M" << ":ell_b:ell_1:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " >= 1"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
-                        << " && x >= 2 : do: turn = 0; x = 0; ";
-                for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
-                }
-                out_str << "}" << std::endl;
-
-                out_str << "edge:" << "M" << ":ell_c:ell_2:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " >= 1"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
-                        << " && x >= 3 : do: turn = 0; x = 0; ";
-                for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
-                }
-                out_str << "}" << std::endl;
-
-                out_str << "edge:" << "M" << ":ell_2:ell_1:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " >= 1"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
-                        << " && x >= 1 : do: turn = 0; x = 0; ";
-                for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
-                }
-                out_str << "}" << std::endl;
-
-                out_str << "edge:" << "M" << ":ell_1:ell_0:a{provided: g == 0 && turn == " << components_counter
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " >= 1"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
-                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
-                        << " && x >= 3 : do: turn = 0; x = 0; ";
-                for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
-                }
-                out_str << "}" << std::endl;
-
 
             } else {
 
