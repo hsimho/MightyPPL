@@ -42,8 +42,8 @@ namespace mightypplcpp {
 
             monitaal::bdd_edges_t bdd_edges;
 
-            bdd in_null = encode(0, phi->id, phi->bits / 2 - 1);
-            bdd out_null = encode(0, phi->id + phi->bits / 2, phi->bits / 2 - 1);
+            bdd in_null = encode(0, phi->id, phi->bits / 2 - 2);
+            bdd out_null = encode(0, phi->id + phi->bits / 2, phi->bits / 2 - 2);
             bdd in_i;
             bdd out_i;
             bdd in_next_i;
@@ -55,8 +55,8 @@ namespace mightypplcpp {
             for (auto i = 0; i < phi->num_pairs; ++i) {
 
                 name = "TA_" + std::to_string(phi->id) + "_" + std::to_string(i);
-                in_i = encode(i + 1, phi->id, phi->bits / 2 - 1);
-                out_i = encode(i + 1, phi->id + phi->bits / 2, phi->bits / 2 - 1);
+                in_i = encode(i + 1, phi->id, phi->bits / 2 - 2);
+                out_i = encode(i + 1, phi->id + phi->bits / 2, phi->bits / 2 - 2);
 
                 locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
                 name_id_map.insert({"0", 0});
@@ -73,8 +73,8 @@ namespace mightypplcpp {
                 locations.push_back(monitaal::location_t(out_fin ? false : true, 2, "s2", empty_invariant));
                 name_id_map.insert({"2", 2});
 
-                assert(!acc_map.count(name));
-                acc_map.insert({ name, { {0}, {0, 2} } });
+                // assert(!acc_map.count(name));
+                // acc_map.insert({ name, { {0}, {0, 2} } });
 
 
                 if (out_format.has_value() && !out_flatten) {
@@ -201,6 +201,7 @@ namespace mightypplcpp {
                 if (out_format.has_value() && !out_format.value() && !out_flatten) {
                     out_str << "\t</template>" << std::endl << std::endl;
                 }
+
                 ++components_counter;
                 components.push_back(monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0));
                 locations.clear();
@@ -223,8 +224,8 @@ namespace mightypplcpp {
 
             }
 
-            assert(!acc_map.count(name));
-            acc_map.insert({ name, { {}, {} } });
+            // assert(!acc_map.count(name));
+            // acc_map.insert({ name, { {}, {} } });
 
             if (out_format.has_value() && !out_flatten) {
 
@@ -267,14 +268,14 @@ namespace mightypplcpp {
 
             for (int i = 0; i < phi->num_pairs; ++i) {
 
-                in_i = encode(i + 1, phi->id, phi->bits / 2 - 1);
-                out_i = encode(i + 1, phi->id + phi->bits / 2, phi->bits / 2 - 1);
+                in_i = encode(i + 1, phi->id, phi->bits / 2 - 2);
+                out_i = encode(i + 1, phi->id + phi->bits / 2, phi->bits / 2 - 2);
 
-                in_next_i = encode((i + 2 > phi->num_pairs ? 1 : i + 2), phi->id, phi->bits / 2 - 1);
-                out_next_i = encode((i + 2 > phi->num_pairs ? 1 : i + 2), phi->id + phi->bits / 2, phi->bits / 2 - 1);
+                in_next_i = encode((i + 2 > phi->num_pairs ? 1 : i + 2), phi->id, phi->bits / 2 - 2);
+                out_next_i = encode((i + 2 > phi->num_pairs ? 1 : i + 2), phi->id + phi->bits / 2, phi->bits / 2 - 2);
 
-                in_prev_i = encode((i == 0 ? phi->num_pairs : i), phi->id, phi->bits / 2 - 1);
-                out_prev_i = encode((i == 0 ? phi->num_pairs : i), phi->id + phi->bits / 2, phi->bits / 2 - 1);
+                in_prev_i = encode((i == 0 ? phi->num_pairs : i), phi->id, phi->bits / 2 - 2);
+                out_prev_i = encode((i == 0 ? phi->num_pairs : i), phi->id + phi->bits / 2, phi->bits / 2 - 2);
 
                 build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_in_" + std::to_string(phi->id), "h_" + std::to_string(i), "h_" + std::to_string(i), (in_i | in_null) & !out_i);
                 build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_in_" + std::to_string(phi->id), "h_" + std::to_string(i), "e_" + std::to_string(i), in_null & out_i);
@@ -287,6 +288,7 @@ namespace mightypplcpp {
             if (out_format.has_value() && !out_format.value() && !out_flatten) {
                 out_str << "\t</template>" << std::endl << std::endl;
             }
+
             ++components_counter;
             components.push_back(monitaal::TAwithBDDEdges("seq_in_" + std::to_string(phi->id), clocks, locations, bdd_edges, name_id_map.at("e_" + std::to_string(phi->num_pairs - 1))));
             locations.clear();
@@ -304,8 +306,8 @@ namespace mightypplcpp {
 
             }
 
-            assert(!acc_map.count(name));
-            acc_map.insert({ name, { {}, {} } });
+            // assert(!acc_map.count(name));
+            // acc_map.insert({ name, { {}, {} } });
 
             if (out_format.has_value() && !out_flatten) {
 
@@ -348,14 +350,14 @@ namespace mightypplcpp {
 
             for (int i = 0; i < phi->num_pairs; ++i) {
 
-                in_i = encode(i + 1, phi->id, phi->bits / 2 - 1);
-                out_i = encode(i + 1, phi->id + phi->bits / 2, phi->bits / 2 - 1);
+                in_i = encode(i + 1, phi->id, phi->bits / 2 - 2);
+                out_i = encode(i + 1, phi->id + phi->bits / 2, phi->bits / 2 - 2);
 
-                in_next_i = encode((i + 2 > phi->num_pairs ? 1 : i + 2), phi->id, phi->bits / 2 - 1);
-                out_next_i = encode((i + 2 > phi->num_pairs ? 1 : i + 2), phi->id + phi->bits / 2, phi->bits / 2 - 1);
+                in_next_i = encode((i + 2 > phi->num_pairs ? 1 : i + 2), phi->id, phi->bits / 2 - 2);
+                out_next_i = encode((i + 2 > phi->num_pairs ? 1 : i + 2), phi->id + phi->bits / 2, phi->bits / 2 - 2);
 
-                in_prev_i = encode((i == 0 ? phi->num_pairs : i), phi->id, phi->bits / 2 - 1);
-                out_prev_i = encode((i == 0 ? phi->num_pairs : i), phi->id + phi->bits / 2, phi->bits / 2 - 1);
+                in_prev_i = encode((i == 0 ? phi->num_pairs : i), phi->id, phi->bits / 2 - 2);
+                out_prev_i = encode((i == 0 ? phi->num_pairs : i), phi->id + phi->bits / 2, phi->bits / 2 - 2);
 
                 build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "t_" + std::to_string(i), "t_" + std::to_string(i), out_null & !in_prev_i);
                 build_untimed_edge(bdd_edges, name_id_map, out_str, "seq_out_" + std::to_string(phi->id), "t_" + std::to_string(i), "f_" + std::to_string(i), out_null & in_prev_i);
@@ -373,6 +375,7 @@ namespace mightypplcpp {
             if (out_format.has_value() && !out_format.value() && !out_flatten) {
                 out_str << "\t</template>" << std::endl << std::endl;
             }
+
             ++components_counter;
             components.push_back(monitaal::TAwithBDDEdges("seq_out_" + std::to_string(phi->id), clocks, locations, bdd_edges, name_id_map.at("t_" + std::to_string(0))));
             locations.clear();
@@ -387,8 +390,8 @@ namespace mightypplcpp {
             clocks.insert({1, "x1"});
 
             name = "TA_" + std::to_string(phi->id) + "_" + std::to_string(phi->num_pairs);
-            in_i = bdd_ithvar(phi->id + phi->bits / 2 - 1);
-            out_i = bdd_ithvar(phi->id + phi->bits  - 1);
+            in_i = bdd_ithvar(phi->id + phi->bits / 2 - 2);
+            out_i = bdd_ithvar(phi->id + phi->bits - 2);
 
             if (out_format.has_value() && out_format.value() && !out_flatten) {
 
@@ -409,8 +412,8 @@ namespace mightypplcpp {
  //           name_id_map.insert({"2", 2});
             // name_id_map.insert({"3", 3});
 
-            assert(!acc_map.count(name));
-            acc_map.insert({ name, { {}, {} } });
+            // assert(!acc_map.count(name));
+            // acc_map.insert({ name, { {}, {} } });
 
             if (out_format.has_value() && !out_flatten) {
 
@@ -475,17 +478,79 @@ namespace mightypplcpp {
             if (out_format.has_value() && !out_format.value() && !out_flatten) {
                 out_str << "\t</template>" << std::endl << std::endl;
             }
+
             ++components_counter;
             components.push_back(monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0));
             locations.clear();
             name_id_map.clear();
             bdd_edges.clear();
 
-            if (out_flatten) {
-                components.push_back(varphi);
-                return { { monitaal::TAwithBDDEdges::intersection(components) }, out_str.str() };
+            if (comp_flatten) {
+
+                components_counter = components_counter - phi->num_pairs - 3;
+
+                components.push_back(varphi_);
+
+                name = "TA_" + std::to_string(phi->id) + "_trig";
+
+                clocks.clear();
+                clocks.insert({0, "x0"});        // clock 0 is needed anyway
+
+                // monitaal::constraints_t empty_invariant;
+                // monitaal::locations_t locations;
+
+                locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
+
+                monitaal::constraints_t guard;
+                monitaal::clocks_t reset;
+
+                // 0 -> 0, (p && hat) || (!p && star)
+                
+                bdd label;
+                label = (bdd_ithvar(phi->id + phi->bits / 2 - 1) & phi->comp_hat) | (!bdd_ithvar(phi->id + phi->bits / 2 - 1) & phi->comp_star);
+
+                bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
+
+                monitaal::TAwithBDDEdges trig = monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0);   // last arg: initial location id
+                clocks.clear();
+                locations.clear();
+                bdd_edges.clear();
+
+                components.push_back(trig);
+
+                monitaal::TAwithBDDEdges product = monitaal::TAwithBDDEdges::intersection(components);
+
+                std::set<int> props_to_remove;
+
+                for (int j = phi->id; j < phi->id + phi->bits; ++j) {
+
+                    if (j != phi->id + phi->bits / 2 - 1) {
+                        props_to_remove.insert(j);
+                    }
+
+                }
+                monitaal::TAwithBDDEdges projected = product.projection_bdd(props_to_remove);
+
+                std::stringstream().swap(out_str);
+                build_model_from_ta_bdd(projected, phi->id, out_str);
+
+                ++components_counter;
+                return { { projected }, out_str.str() };
+
+            } else if (out_flatten) {
+
+                components_counter = components_counter - phi->num_pairs - 3;
+
+                components.push_back(varphi_);
+                monitaal::TAwithBDDEdges product = monitaal::TAwithBDDEdges::intersection(components);
+
+                ++components_counter;
+                return { { product }, std::string{} };
+
             } else {
-                return { components, out_str.str() };
+
+                return { components, out_str.str() };   // components not really used further in this case
+
             }
 
         }

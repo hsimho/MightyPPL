@@ -80,6 +80,8 @@ namespace monitaal {
 
         TA projection(const std::set<int>& props_to_keep);
 
+        TAwithBDDEdges projection_bdd(const std::set<int>& props_to_keep);
+
         static TAwithBDDEdges time_divergence_ta(const bdd& any);
 
         friend std::ostream& operator<<(std::ostream& out, const TAwithBDDEdges& T);

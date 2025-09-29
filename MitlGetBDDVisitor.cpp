@@ -1,6 +1,7 @@
 
 // Generated from Mitl.g4 by ANTLR 4.13.0
 
+#include "MightyPPL.h"
 #include "MitlGetBDDVisitor.h"
 
 
@@ -219,14 +220,25 @@ namespace mightypplcpp {
 
         ctx->overline = bdd_false(); 
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2 - 1);
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2 - 1));
+        ctx->comp_star = ctx->star;
 
         ctx->tilde = !ctx->overline & ctx->star;
 
         ctx->hat = ctx->overline; 
+        ctx->comp_hat = ctx->hat;
+
+        if (comp_flatten) {
+
+            ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
+            ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
+            ctx->tilde = !ctx->overline & ctx->star;
+            ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
+
+        }
 
         return nullptr;
 
@@ -240,15 +252,26 @@ namespace mightypplcpp {
 
         ctx->overline = bdd_false(); 
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2);
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2 - 1);
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2 - 1));
+        ctx->comp_star = ctx->star;
 
         ctx->tilde = !ctx->overline & ctx->star;
 
         ctx->hat = ctx->overline; 
+        ctx->comp_hat = ctx->hat;
 
+        if (comp_flatten) {
+
+            ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+            ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
+            ctx->tilde = !ctx->overline & ctx->star;
+            ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+
+        }
+        
         return nullptr;
 
     }
@@ -261,14 +284,25 @@ namespace mightypplcpp {
 
         ctx->overline = bdd_false(); 
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2);
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2 - 1);
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2 - 1));
+        ctx->comp_star = ctx->star;
 
         ctx->tilde = !ctx->overline & ctx->star;
 
         ctx->hat = ctx->overline; 
+        ctx->comp_hat = ctx->hat;
+
+        if (comp_flatten) {
+
+            ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
+            ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
+            ctx->tilde = !ctx->overline & ctx->star;
+            ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
+
+        }
 
         return nullptr;
 
@@ -282,14 +316,25 @@ namespace mightypplcpp {
 
         ctx->overline = bdd_false(); 
         for (auto i = 0; i < ctx->atoms.size(); ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2);
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2 - 1);
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2 - 1));
+        ctx->comp_star = ctx->star;
 
         ctx->tilde = !ctx->overline & ctx->star;
 
         ctx->hat = ctx->overline; 
+        ctx->comp_hat = ctx->hat;
+
+        if (comp_flatten) {
+
+            ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+            ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
+            ctx->tilde = !ctx->overline & ctx->star;
+            ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+
+        }
 
         return nullptr;
 
@@ -304,13 +349,24 @@ namespace mightypplcpp {
         ctx->hat = bdd_false();
 
         for (auto i = 0; i < ctx->num_pairs; ++i) {
-            ctx->overline = ctx->overline | (encode(i + 1, ctx->id, ctx->bits / 2 - 1) & bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
-            ctx->hat = ctx->hat | (encode(i + 1, ctx->id, ctx->bits / 2 - 1) & bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
+            ctx->overline = ctx->overline | (encode(i + 1, ctx->id, ctx->bits / 2 - 2) & bdd_ithvar(ctx->id + ctx->bits / 2 - 2));
+            ctx->hat = ctx->hat | (encode(i + 1, ctx->id, ctx->bits / 2 - 2) & bdd_ithvar(ctx->id + ctx->bits / 2 - 2));
         }
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
+        ctx->comp_hat = ctx->hat;
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2 - 2) & !bdd_ithvar(ctx->id + ctx->bits / 2 - 2));
+        ctx->comp_star = ctx->star;
 
         ctx->tilde = !ctx->overline & ctx->star;
+
+        if (comp_flatten) {
+
+            ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
+            ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
+            ctx->tilde = !ctx->overline & ctx->star;
+            ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
+
+        }
 
         return nullptr;
 
@@ -325,13 +381,24 @@ namespace mightypplcpp {
         ctx->hat = bdd_false();
 
         for (auto i = 0; i < ctx->num_pairs; ++i) {
-            ctx->overline = ctx->overline | (encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2 - 1) & bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
-            ctx->hat = ctx->hat | (encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2 - 1) & bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
+            ctx->overline = ctx->overline | (encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2 - 2) & bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 2));
+            ctx->hat = ctx->hat | (encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2 - 2) & bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 2));
         }
+        ctx->comp_hat = ctx->hat;
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2 - 2) & !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 2));
+        ctx->comp_star = ctx->star;
 
         ctx->tilde = !ctx->overline & ctx->star;
+
+        if (comp_flatten) {
+
+            ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+            ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
+            ctx->tilde = !ctx->overline & ctx->star;
+            ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+
+        }
 
         return nullptr;
 
@@ -346,16 +413,27 @@ namespace mightypplcpp {
         ctx->hat = bdd_false();
 
         for (auto i = 0; i < ctx->num_pairs; ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2 - 1);
-            ctx->hat = ctx->hat | (encode(i + 1, ctx->id, ctx->bits / 2 - 1) & !bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id, ctx->bits / 2 - 2);
+            ctx->hat = ctx->hat | (encode(i + 1, ctx->id, ctx->bits / 2 - 2) & !bdd_ithvar(ctx->id + ctx->bits / 2 - 2));
         }
 
-        ctx->overline = ctx->overline | bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
-        ctx->hat = ctx->hat | (encode(0, ctx->id, ctx->bits / 2 - 1) & bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
+        ctx->overline = ctx->overline | bdd_ithvar(ctx->id + ctx->bits / 2 - 2);
+        ctx->hat = ctx->hat | (encode(0, ctx->id, ctx->bits / 2 - 2) & bdd_ithvar(ctx->id + ctx->bits / 2 - 2));
+        ctx->comp_hat = ctx->hat;
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id, ctx->bits / 2 - 2) & !bdd_ithvar(ctx->id + ctx->bits / 2 - 2));
+        ctx->comp_star = ctx->star;
 
         ctx->tilde = !ctx->overline & ctx->star;
+
+        if (comp_flatten) {
+
+            ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
+            ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
+            ctx->tilde = !ctx->overline & ctx->star;
+            ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
+
+        }
 
         return nullptr;
 
@@ -365,21 +443,32 @@ namespace mightypplcpp {
 
         visit(ctx->atom(0));
         visit(ctx->atom(1));
-
+        
         ctx->overline = bdd_false(); 
         ctx->hat = bdd_false();
 
         for (auto i = 0; i < ctx->num_pairs; ++i) {
-            ctx->overline = ctx->overline | encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2 - 1);
-            ctx->hat = ctx->hat | (encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2 - 1) & !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
+            ctx->overline = ctx->overline | encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2 - 2);
+            ctx->hat = ctx->hat | (encode(i + 1, ctx->id + ctx->bits / 2, ctx->bits / 2 - 2) & !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 2));
         }
 
-        ctx->overline = ctx->overline | bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
-        ctx->hat = ctx->hat | (encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2 - 1) & bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
+        ctx->overline = ctx->overline | bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 2);
+        ctx->hat = ctx->hat | (encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2 - 2) & bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 2));
+        ctx->comp_hat = ctx->hat;
 
-        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2));
+        ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : encode(0, ctx->id + ctx->bits / 2, ctx->bits / 2 - 2) & !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 2));
+        ctx->comp_star = ctx->star;
 
         ctx->tilde = !ctx->overline & ctx->star;
+
+        if (comp_flatten) {
+
+            ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+            ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
+            ctx->tilde = !ctx->overline & ctx->star;
+            ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+
+        }
 
         return nullptr;
 

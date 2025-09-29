@@ -42,16 +42,19 @@ namespace mightypplcpp {
 
     extern void allsat_print_handler(char*, int); 
 
+    extern void build_model_from_ta_bdd(const monitaal::TAwithBDDEdges, const size_t, std::stringstream&);
     extern void build_untimed_edge(monitaal::bdd_edges_t&, const std::map<std::string, monitaal::location_id_t>&, std::stringstream&, const std::string&, const std::string&, const std::string&, bdd);
     extern void build_edge(monitaal::bdd_edges_t&, const std::map<std::string, monitaal::location_id_t>&, std::stringstream&, const int, const int, const std::string&, const std::string&, const std::string&, const std::string&, const int, bdd);
 
     extern const char* out_file; 
     extern std::optional<bool> out_format;
     extern bool out_flatten;
+    extern bool comp_flatten;
     extern bool out_fin;
     extern bool debug;
 
     extern monitaal::TAwithBDDEdges varphi;
+    extern monitaal::TAwithBDDEdges varphi_;
     extern monitaal::TAwithBDDEdges div;
     extern std::vector<monitaal::TAwithBDDEdges> temporal_components;
     extern monitaal::TAwithBDDEdges model;

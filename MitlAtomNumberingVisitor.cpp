@@ -227,7 +227,7 @@ namespace mightypplcpp {
 
     std::any MitlAtomNumberingVisitor::visitAtomFn(MitlParser::AtomFnContext *ctx) {
 
-        ctx->bits = 2 * std::ceil(std::log2(ctx->atoms.size() + 1)); // + 1: 0 for "all off"
+        ctx->bits = 2 * std::ceil(std::log2(ctx->atoms.size() + 1) + 1); // + 1: 0 for "all off", +1 for "overall" trigger
 
         if (root->temporals.count(ctx->getText()) == 0) {
 
@@ -259,7 +259,7 @@ namespace mightypplcpp {
     
     std::any MitlAtomNumberingVisitor::visitAtomOn(MitlParser::AtomOnContext *ctx) {
 
-        ctx->bits = 2 * std::ceil(std::log2(ctx->atoms.size() + 1)); // + 1: 0 for "all off"
+        ctx->bits = 2 * std::ceil(std::log2(ctx->atoms.size() + 1) + 1); // + 1: 0 for "all off", +1 for "overall" trigger
 
         if (root->temporals.count(ctx->getText()) == 0) {
 
@@ -291,7 +291,7 @@ namespace mightypplcpp {
     
     std::any MitlAtomNumberingVisitor::visitAtomGn(MitlParser::AtomGnContext *ctx) {
 
-        ctx->bits = 2 * std::ceil(std::log2(ctx->atoms.size() + 1)); // + 1: 0 for "all off"
+        ctx->bits = 2 * std::ceil(std::log2(ctx->atoms.size() + 1) + 1); // + 1: 0 for "all off", +1 for "overall" trigger
 
         if (root->temporals.count(ctx->getText()) == 0) {
 
@@ -323,7 +323,7 @@ namespace mightypplcpp {
     
     std::any MitlAtomNumberingVisitor::visitAtomHn(MitlParser::AtomHnContext *ctx) {
 
-        ctx->bits = 2 * std::ceil(std::log2(ctx->atoms.size() + 1)); // + 1: 0 for "all off"
+        ctx->bits = 2 * std::ceil(std::log2(ctx->atoms.size() + 1) + 1); // + 1: 0 for "all off", +1 for "overall" trigger
 
         if (root->temporals.count(ctx->getText()) == 0) {
 
@@ -361,8 +361,16 @@ namespace mightypplcpp {
         antlr4::tree::ParseTree* left = (antlr4::tree::ParseTree*)ctx->interval()->children[1];
         antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
 
-        ctx->num_pairs = std::ceil(std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 1;
-        ctx->bits = 2 * (std::ceil(std::log2(ctx->num_pairs + 1)) + 1); // + 1: 0 for "all off", another +1 for the other disjunct (both in and out, but only in really needed)
+        ctx->num_pairs = std::ceil((double)std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 1;
+        ctx->bits = 2 * (std::ceil(std::log2(ctx->num_pairs + 1)) + 1 + 1);
+        // + 1: 0 for "all off", another +1 for the "overall" trigger, another +1 for the other disjunct (both in and out, but only in really needed)
+        // E.g., num_pairs == 4:
+        // [ b^1, b^2, b^3, p, p', b^4, b^5, b^6, q, q'] 
+        // b^1, ..., b^3 encodes { 0, ..., 4 } (p^1, ..., p^4)
+        // p is the trigger for \phi_1 \until_{> k} \phi_2 (or release)
+        // Invariant: (p' && hat) || (!p' && star) 
+        // b^4, ..., b^6 encodes { 0, ..., 4 } (q^1, ..., q^4)
+        // q and q' are useless
 
         if (root->temporals.count(ctx->getText()) == 0) {
 
@@ -392,8 +400,16 @@ namespace mightypplcpp {
         antlr4::tree::ParseTree* left = (antlr4::tree::ParseTree*)ctx->interval()->children[1];
         antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
 
-        ctx->num_pairs = std::ceil(std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 1;
-        ctx->bits = 2 * (std::ceil(std::log2(ctx->num_pairs + 1)) + 1); // + 1: 0 for "all off", another +1 for the other disjunct (both in and out, but only in really needed)
+        ctx->num_pairs = std::ceil((double)std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 1;
+        ctx->bits = 2 * (std::ceil(std::log2(ctx->num_pairs + 1)) + 1 + 1);
+        // + 1: 0 for "all off", another +1 for the "overall" trigger, another +1 for the other disjunct (both in and out, but only in really needed)
+        // E.g., num_pairs == 4:
+        // [ b^1, b^2, b^3, p, p', b^4, b^5, b^6, q, q'] 
+        // b^1, ..., b^3 encodes { 0, ..., 4 } (p^1, ..., p^4)
+        // p is the trigger for \phi_1 \until_{> k} \phi_2 (or release)
+        // Invariant: (p' && hat) || (!p' && star) 
+        // b^4, ..., b^6 encodes { 0, ..., 4 } (q^1, ..., q^4)
+        // q and q' are useless
 
         if (root->temporals.count(ctx->getText()) == 0) {
 
@@ -423,9 +439,16 @@ namespace mightypplcpp {
         antlr4::tree::ParseTree* left = (antlr4::tree::ParseTree*)ctx->interval()->children[1];
         antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
 
-        ctx->num_pairs = std::ceil(std::stoi(right->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText())));
-        ctx->num_pairs = std::ceil(std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + (std::stoi(left->children[0]->getText()) % (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText())) ? 2 : 1);
-        ctx->bits = 2 * (std::ceil(std::log2(ctx->num_pairs + 1)) + 1); // + 1: 0 for "all off", another +1 for the other disjunct (both in and out, but only in really needed)
+        ctx->num_pairs = std::ceil((double)std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 1;
+        ctx->bits = 2 * (std::ceil(std::log2(ctx->num_pairs + 1)) + 1 + 1);
+        // + 1: 0 for "all off", another +1 for the "overall" trigger, another +1 for the other disjunct (both in and out, but only in really needed)
+        // E.g., num_pairs == 4:
+        // [ b^1, b^2, b^3, p, p', b^4, b^5, b^6, q, q'] 
+        // b^1, ..., b^3 encodes { 0, ..., 4 } (p^1, ..., p^4)
+        // p is the trigger for \phi_1 \until_{> k} \phi_2 (or release)
+        // Invariant: (p' && hat) || (!p' && star) 
+        // b^4, ..., b^6 encodes { 0, ..., 4 } (q^1, ..., q^4)
+        // q and q' are useless
 
         if (root->temporals.count(ctx->getText()) == 0) {
 
@@ -455,8 +478,16 @@ namespace mightypplcpp {
         antlr4::tree::ParseTree* left = (antlr4::tree::ParseTree*)ctx->interval()->children[1];
         antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->interval()->children[3];
 
-        ctx->num_pairs = std::ceil(std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + (std::stoi(left->children[0]->getText()) % (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText())) ? 2 : 1);
-        ctx->bits = 2 * (std::ceil(std::log2(ctx->num_pairs + 1)) + 1); // + 1: 0 for "all off", another +1 for the other disjunct (both in and out, but only in really needed)
+        ctx->num_pairs = std::ceil((double)std::stoi(left->children[0]->getText()) / (std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText()))) + 1;
+        ctx->bits = 2 * (std::ceil(std::log2(ctx->num_pairs + 1)) + 1 + 1);
+        // + 1: 0 for "all off", another +1 for the "overall" trigger, another +1 for the other disjunct (both in and out, but only in really needed)
+        // E.g., num_pairs == 4:
+        // [ b^1, b^2, b^3, p, p', b^4, b^5, b^6, q, q'] 
+        // b^1, ..., b^3 encodes { 0, ..., 4 } (p^1, ..., p^4)
+        // p is the trigger for \phi_1 \until_{> k} \phi_2 (or release)
+        // Invariant: (p' && hat) || (!p' && star) 
+        // b^4, ..., b^6 encodes { 0, ..., 4 } (q^1, ..., q^4)
+        // q and q' are useless
 
         if (root->temporals.count(ctx->getText()) == 0) {
 

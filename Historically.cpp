@@ -43,8 +43,8 @@ namespace mightypplcpp {
             name_id_map.insert({"0", 0});
             name_id_map.insert({"1", 1});
 
-            assert(!acc_map.count(name));
-            acc_map.insert({ name, { {0, 1}, {0, 1} } });
+            // assert(!acc_map.count(name));
+            // acc_map.insert({ name, { {0, 1}, {0, 1} } });
 
             monitaal::bdd_edges_t bdd_edges;
 
@@ -122,6 +122,7 @@ namespace mightypplcpp {
             if (out_format.has_value() && !out_format.value() && !out_flatten) {
                 out_str << "\t</template>" << std::endl << std::endl;
             }
+
             ++components_counter;
             return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 2) }, out_str.str() };   // last arg: initial location id
 
@@ -160,8 +161,8 @@ namespace mightypplcpp {
                 name_id_map.insert({"1", 1});
                 name_id_map.insert({"2", 2});
 
-                assert(!acc_map.count(name));
-                acc_map.insert({ name, { {0, 1, 2}, {0, 1, 2} } });
+                // assert(!acc_map.count(name));
+                // acc_map.insert({ name, { {0, 1, 2}, {0, 1, 2} } });
 
                 monitaal::bdd_edges_t bdd_edges;
 
@@ -304,6 +305,7 @@ namespace mightypplcpp {
                 if (out_format.has_value() && !out_format.value() && !out_flatten) {
                     out_str << "\t</template>" << std::endl << std::endl;
                 }
+
                 ++components_counter;
                 return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 3) }, out_str.str() };   // last arg: initial location id
 
@@ -330,8 +332,8 @@ namespace mightypplcpp {
                 name_id_map.insert({"1", 1});
                 name_id_map.insert({"2", 2});
 
-                assert(!acc_map.count(name));
-                acc_map.insert({ name, { {0, 1, 2}, {0, 1, 2} } });
+                // assert(!acc_map.count(name));
+                // acc_map.insert({ name, { {0, 1, 2}, {0, 1, 2} } });
 
                 monitaal::bdd_edges_t bdd_edges;
 
@@ -465,6 +467,7 @@ namespace mightypplcpp {
                 if (out_format.has_value() && !out_format.value() && !out_flatten) {
                     out_str << "\t</template>" << std::endl << std::endl;
                 }
+
                 ++components_counter;
                 return { { monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 3) }, out_str.str() };   // last arg: initial location id
 

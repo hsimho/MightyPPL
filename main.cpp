@@ -30,16 +30,18 @@ namespace mightypplcpp {
     const char* out_file = NULL;
     std::optional<bool> out_format = std::nullopt;    // true: tck, false: xml
     bool out_flatten = true;
+    bool comp_flatten = false;
     bool out_fin = false;
     bool debug = false;
     bool back = true;
 
     monitaal::TAwithBDDEdges varphi = monitaal::TAwithBDDEdges("dummy", {}, {}, {}, 0);
+    monitaal::TAwithBDDEdges varphi_ = monitaal::TAwithBDDEdges("dummy", {}, {}, {}, 0);
     monitaal::TAwithBDDEdges div = monitaal::TAwithBDDEdges("dummy", {}, {}, {}, 0);
     std::vector<monitaal::TAwithBDDEdges> temporal_components;
     monitaal::TAwithBDDEdges model = monitaal::TAwithBDDEdges("dummy", {}, {}, {}, 0);   // last arg: initial location id
 
-    std::map<std::string, std::pair<std::set<size_t>, std::set<size_t>>> acc_map;
+//    std::map<std::string, std::pair<std::set<size_t>, std::set<size_t>>> acc_map;
 
 } // namespace mightypplcpp
 
@@ -104,6 +106,11 @@ namespace mightypplcpp {
 
                                 out_flatten = false;
 
+                            } else if (std::string_view(argv[5]) == "--compflatten") {
+
+                                out_flatten = false;
+                                comp_flatten = true;
+
                             } else {
 
                                 throw std::invalid_argument("One of the last 3 arguments was wrong");
@@ -150,6 +157,26 @@ namespace mightypplcpp {
 
                                 }
 
+                            } else if (std::string_view(argv[5]) == "--compflatten") {
+
+                                out_flatten = false;
+                                comp_flatten = true;
+
+                                if (std::string_view(argv[6]) == "--debug") {
+
+                                    debug = true;
+
+                                } else if (std::string_view(argv[6]) == "--noback") {
+
+                                    back = false;
+
+                                } else {
+
+                                    throw std::invalid_argument("Last argument was wrong");
+
+                                }
+                                
+
                             } else {
 
                                 if (std::string_view(argv[5]) == "--debug") {
@@ -180,6 +207,11 @@ namespace mightypplcpp {
                             if (std::string_view(argv[5]) == "--noflatten") {
 
                                 out_flatten = false;
+
+                            } else if (std::string_view(argv[5]) == "--compflatten") {
+
+                                out_flatten = false;
+                                comp_flatten = true;
 
                             } else if (std::string_view(argv[5]) == "--debug") {
 
@@ -261,14 +293,12 @@ namespace mightypplcpp {
     } catch (const std::invalid_argument& e) {
 
         std::cerr << e.what() << std::endl;
-        std::cerr << "Usage: mitppl <in_spec_file> --{fin|inf} [out_file --{tck|xml} [--noflatten]] [--debug] [--noback]" << std::endl << std::endl;
+        std::cerr << "Usage: mitppl <in_spec_file> --{fin|inf} [out_file --{tck|xml} [--{noflatten|compflatten}]] [--debug] [--noback]" << std::endl << std::endl;
 
         std::cerr << "--debug: pauses to see diagostic info" << std::endl;
-        std::cerr << "--noback: disables symbolic backward analysis for components" << std::endl;
-        std::cerr << "(only relevant for Pnueli modalities, or MITL modalities with <l, u>, and when --noflatten is not used)" << std::endl << std::endl;
-        std::cerr << "If [out_file ...] unspecified, the built-in fixpoint algorithm based on DBMs\n"
-                  << "(PARDIBAAL) checks the (Buechi) emptiness of a flattened automaton (i.e. the\n"
-                  << "satisfiability of the input formula && TA_div && model M)." << std::endl;
+        std::cerr << "--noback: disables symbolic backward analysis (for Pnueli modalities / MITL modalities with <l, u>; no effect if --noflatten is set)" << std::endl << std::endl;
+        std::cerr << "If [out_file ...] is NOT specified, the built-in DBM fixpoint algorithm checks the (Buechi) emptiness of the" << std::endl;
+        std::cerr << "(monolithic flattened) product automaton (i.e. the satisfiability of the input formula && TA_div && model M)." << std::endl;
         return 1;
 
     }
@@ -306,10 +336,14 @@ namespace mightypplcpp {
 
    
     if (out_flatten) {
-
-        std::cout << "Constructing TA (with BDD transitions) took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
-
+        std::cout << "Constructing TA took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
     }
+
+    // else if (comp_flatten) {
+    //     std::cout << "Constructing tester TAs (one for each temporal subformula) took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+    // } else {
+    //     std::cout << "Constructing tester and component TAs took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+    // }
 
 
     if (!out_format.has_value()) {
@@ -321,7 +355,7 @@ namespace mightypplcpp {
 
         if (out_fin) {
 
-            // Note that we assume the finite timed word accepted is of length >= 1 (as enforced by the acc. condition of TA_0)
+            // Note that we assume the finite timed word accepted is of length >= 1 (also enforced by the acc. condition of TA_0)
             if (initial_state.is_included_in(monitaal::Fixpoint::reach(monitaal::Fixpoint::accept_states(pos), pos))) {
 
                 std::cout << "\n\n\033[32mSATISFIABLE (by a \033[1mfinite\033[22m timed word)\033[0m\n\n" << std::endl;
@@ -376,7 +410,7 @@ namespace mightypplcpp {
                     // And there is an extra "global" clock for monitoring in newer versions MoniTAal
                     // So if number_of_clocks() returns 5, only 3 clocks are useful for tck
 
-                    tck << "clock:1:x_" << i << std::endl;
+                    tck << "clock:1:x_" << i - 1 << std::endl;
 
                 }
                 tck << std::endl << std::endl;
@@ -411,9 +445,9 @@ namespace mightypplcpp {
                                 assert(g._j != 0);
 
                                 if (g._bound.is_strict()) {
-                                    provided_str += "x_" + std::to_string(g._j) + " > " + std::to_string(-1 * g._bound.get_bound());
+                                    provided_str += "x_" + std::to_string(g._j - 1) + " > " + std::to_string(-1 * g._bound.get_bound());
                                 } else {
-                                    provided_str += "x_" + std::to_string(g._j) + " >= " + std::to_string(-1 * g._bound.get_bound());
+                                    provided_str += "x_" + std::to_string(g._j - 1) + " >= " + std::to_string(-1 * g._bound.get_bound());
                                 }
 
                             } else if (g._j == 0) {
@@ -421,9 +455,9 @@ namespace mightypplcpp {
                                 assert(g._i != 0);
 
                                 if (g._bound.is_strict()) {
-                                    provided_str += "x_" + std::to_string(g._i) + " < " + std::to_string(g._bound.get_bound());
+                                    provided_str += "x_" + std::to_string(g._i - 1) + " < " + std::to_string(g._bound.get_bound());
                                 } else {
-                                    provided_str += "x_" + std::to_string(g._i) + " <= " + std::to_string(g._bound.get_bound());
+                                    provided_str += "x_" + std::to_string(g._i - 1) + " <= " + std::to_string(g._bound.get_bound());
                                 }
 
                             } else {
@@ -439,7 +473,7 @@ namespace mightypplcpp {
                                 do_str += "; ";
                             }
 
-                            do_str += "x_" + std::to_string(r) + " = 0";
+                            do_str += "x_" + std::to_string(r - 1) + " = 0";
 
                         }
 
@@ -493,7 +527,7 @@ namespace mightypplcpp {
                     // And there is an extra "global" clock for monitoring in newer versions MoniTAal
                     // So if number_of_clocks() returns 5, only 3 clocks are useful
 
-                    xml << "\t\tclock x_" << i << ";" << std::endl;
+                    xml << "\t\tclock x_" << i - 1 << ";" << std::endl;
 
                 }
 
@@ -508,13 +542,22 @@ namespace mightypplcpp {
 
 
                 monitaal::location_id_t largest_loc = 0;
+                std::set<size_t> acc_set;
+                monitaal::location_id_t last_acc_loc;
+
                 for (const auto& [k, v] : pos.locations()) {
                     if (k > largest_loc) {
                         largest_loc = k;
                     }
+                    if (v.is_accept()) {
+                        acc_set.insert(k);
+                        last_acc_loc = k;
+                    }
                 }
 
                 xml << "\t\t\tint[0, " << largest_loc << "] loc = " << pos.initial_location() << ";" << std::endl;
+
+                xml << "\t\t\tint[0, 1] acc = 0;" << std::endl;
 
 
                 xml << "\t\t</declaration>" << std::endl;
@@ -544,9 +587,9 @@ namespace mightypplcpp {
                                 assert(g._j != 0);
 
                                 if (g._bound.is_strict()) {
-                                    provided_str += "x_" + std::to_string(g._j) + " &gt; " + std::to_string(-1 * g._bound.get_bound());
+                                    provided_str += "x_" + std::to_string(g._j - 1) + " &gt; " + std::to_string(-1 * g._bound.get_bound());
                                 } else {
-                                    provided_str += "x_" + std::to_string(g._j) + " &gt;= " + std::to_string(-1 * g._bound.get_bound());
+                                    provided_str += "x_" + std::to_string(g._j - 1) + " &gt;= " + std::to_string(-1 * g._bound.get_bound());
                                 }
 
                             } else if (g._j == 0) {
@@ -554,9 +597,9 @@ namespace mightypplcpp {
                                 assert(g._i != 0);
 
                                 if (g._bound.is_strict()) {
-                                    provided_str += "x_" + std::to_string(g._i) + " &lt; " + std::to_string(g._bound.get_bound());
+                                    provided_str += "x_" + std::to_string(g._i - 1) + " &lt; " + std::to_string(g._bound.get_bound());
                                 } else {
-                                    provided_str += "x_" + std::to_string(g._i) + " &lt;= " + std::to_string(g._bound.get_bound());
+                                    provided_str += "x_" + std::to_string(g._i - 1) + " &lt;= " + std::to_string(g._bound.get_bound());
                                 }
 
                             } else {
@@ -569,13 +612,14 @@ namespace mightypplcpp {
 
                         std::string do_str;
                         do_str += "loc = " + std::to_string(e.to());
+                        do_str += ", acc = " + (acc_set.count(e.to()) ? 1 : 0);
                         for (const auto& r : e.reset()) {
                     
                             if (!do_str.empty()) {
                                 do_str += ", ";
                             }
 
-                            do_str += "x_" + std::to_string(r) + " = 0";
+                            do_str += "x_" + std::to_string(r - 1) + " = 0";
 
                         }
 
@@ -600,13 +644,6 @@ namespace mightypplcpp {
 
 
                 std::cout << "\nPlease use the following command to check satisfiability:\n\n";
-
-                monitaal::location_id_t last_acc_loc;
-                for (const auto& [k, v] : pos.locations()) {
-                    if (v.is_accept()) {
-                        last_acc_loc = k;
-                    }
-                }
 
                 if (out_fin) {
 
@@ -651,6 +688,10 @@ namespace mightypplcpp {
 
                     ltl_out << "!([]<>(";
 
+
+                    ltl_out << "TA_acc == 1";
+
+                    /*
                     for (auto it = pos.locations().begin(); it != pos.locations().end(); ++it) {
 
                         if (it->second.is_accept()) {
@@ -661,6 +702,7 @@ namespace mightypplcpp {
                         }
 
                     }
+                    */
 
                     ltl_out << "))";
 
@@ -674,7 +716,7 @@ namespace mightypplcpp {
 
                 for (const auto& a : temporal_components) {
 
-                    out_str += a.name() + ", ";
+                    out_str += a.name().substr(0, a.name().find_first_of(' ')) + ", ";
 
                 }
 
@@ -706,22 +748,32 @@ namespace mightypplcpp {
 
                     query_out << "turn == 0 && "; 
 
-                    for (const auto& [k, v] : acc_map) {
+                    for (const auto& a : temporal_components) {
 
-                        if (!v.first.empty()) {
-                            if (v.first.size() >= 2) {
-                                query_out << "(";
+                        monitaal::location_id_t last_acc_loc;
+                        bool all_acc = true;
+                        for (const auto& [k, v] : a.locations()) {
+                            if (v.is_accept()) {
+                                last_acc_loc = k;
+                            } else {
+                                all_acc = false;
                             }
-                            for (auto it = v.first.begin(); it != v.first.end(); ++it) {
-                                query_out << k << ".loc == " << *it;
-                                if (std::next(it) != v.first.end()) {
-                                    query_out << " || ";
+                        }
+
+                        if (!all_acc) {
+
+                            query_out << "(";
+                            for (auto it = a.locations().begin(); it != a.locations().end(); ++it) {
+
+                                if (it->second.is_accept()) {
+                                    query_out << a.name().substr(0, a.name().find_first_of(' ')) << ".loc == " << it->first;
+                                    if (it->first != last_acc_loc) {
+                                        query_out << " || ";
+                                    }
                                 }
-                            }
 
-                            if (v.first.size() >= 2) {
-                                query_out << ")";
                             }
+                            query_out << ")";
 
                             query_out << " && ";
 
@@ -730,6 +782,8 @@ namespace mightypplcpp {
                     }
 
                     query_out << "TA_0.loc == 1";
+
+                    // query_out << " && ";
 
                     // query_out << "M.loc == 0";
 
@@ -751,20 +805,39 @@ namespace mightypplcpp {
 
                     ltl_out << "!(";
 
+                    for (const auto& a : temporal_components) {
 
+                        monitaal::location_id_t last_acc_loc;
+                        bool all_acc = true;
+                        for (const auto& [k, v] : a.locations()) {
+                            if (v.is_accept()) {
+                                last_acc_loc = k;
+                            } else {
+                                all_acc = false;
+                            }
+                        }
 
-                    for (const auto& [k, v] : acc_map) {
-
-
-                        if (!v.second.empty()) {
+                        if (!all_acc) {
 
                             ltl_out << "([]<>(";
 
-                            for (auto it = v.second.begin(); it != v.second.end(); ++it) {
-                                ltl_out << k << "_loc == " << *it;
-                                if (std::next(it) != v.second.end()) {
-                                    ltl_out << " || ";
+                            if (a.name().find(' ') != std::string::npos) {
+
+                                ltl_out << a.name().substr(0, a.name().find_first_of(' ')) << "_acc == 1";
+
+                            } else {
+
+                                for (auto it = a.locations().begin(); it != a.locations().end(); ++it) {
+
+                                    if (it->second.is_accept()) {
+                                        ltl_out << a.name().substr(0, a.name().find_first_of(' ')) << "_loc == " << it->first;
+                                        if (it->first != last_acc_loc) {
+                                            ltl_out << " || ";
+                                        }
+                                    }
+
                                 }
+
                             }
 
                             ltl_out << "))";
@@ -777,8 +850,9 @@ namespace mightypplcpp {
 
                     ltl_out << "([]<>(TA_div_loc == 0))";
 
-                    // ltl_out << "([]<>(M_loc == 0))";
+                    // ltl_out << " && ";
 
+                    // ltl_out << "([]<>(M_loc == 0))";
 
                     ltl_out << ")";
 

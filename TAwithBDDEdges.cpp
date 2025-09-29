@@ -531,7 +531,7 @@ namespace monitaal {
 
                 if (initial_state.is_included_in(reachable_state_space)) {
 
-                    std::cout << "# of reachable locations == " << reachable_state_space.size() << std::endl;
+                    std::cout << "# of backwards-reachable locations == " << reachable_state_space.size() << std::endl;
 
                 } else {
 
@@ -544,7 +544,7 @@ namespace monitaal {
                 reachable_state_space = monitaal::Fixpoint::buchi_accept_fixpoint(projected);
                 if (initial_state.is_included_in(reachable_state_space)) {
 
-                    std::cout << "# of reachable locations == " << reachable_state_space.size() << std::endl;
+                    std::cout << "# of backwards-reachable locations == " << reachable_state_space.size() << std::endl;
 
                 } else {
 
@@ -686,6 +686,53 @@ namespace monitaal {
         return TA(this->name(), clocks, locations, edges, this->initial_location());
 
     }
+
+    TAwithBDDEdges TAwithBDDEdges::projection_bdd(const std::set<int>& props_to_remove) {
+
+        bdd_edges_t bdd_edges;
+        bdd projected_e;
+        bdd new_props = bdd_true();
+        for (const auto& i : props_to_remove) {
+            new_props = new_props & bdd_ithvar(i);
+        }
+            
+        std::string s;
+        for (const auto& [id, l] : this->locations()) {
+
+            for (const auto& e : this->bdd_edges_from(id)) {
+
+
+                projected_e = bdd_exist(e.bdd_label(), new_props);
+
+                bdd_edges.push_back(monitaal::bdd_edge_t(e.from(), e.to(), e.guard(), e.reset(), projected_e));     // from, to, guard, reset, label
+
+            }
+
+        }
+
+        clock_map_t clocks;
+
+        // TODO: This is a temporary adjustment in response to the off-by-one error
+        // introduced by https://github.com/DEIS-Tools/MoniTAal/commit/2207cb9
+
+        for (clock_index_t i = 0; i < this->number_of_clocks() - 1; ++i) {
+            clocks.insert({i, this->clock_name(i)});
+        }
+
+        locations_t locations;
+        for (const auto& [id, l] : this->locations()) {
+            locations.push_back(l);
+        }
+
+        std::cout << "\nProjected TAwithBDDEdges: " << std::endl;
+        std::cout << "clocks.size() == " << clocks.size() << std::endl;
+        std::cout << "locations.size() == " << locations.size() << std::endl;
+        std::cout << "bdd_edges.size() == " << bdd_edges.size() << std::endl;
+
+        return TAwithBDDEdges(this->name(), clocks, locations, bdd_edges, this->initial_location());
+
+    }
+
 
     TAwithBDDEdges TAwithBDDEdges::time_divergence_ta(const bdd& any) {
 
