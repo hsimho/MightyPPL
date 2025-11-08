@@ -142,6 +142,14 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_0", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "> " : ">= ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 3, !in_i & out_i);
 
+                // 1 -> 1, in_i & out_i, x := 0, y := 0, x > b, y > a
+
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "> " : ">= ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 3, in_i & out_i);
+
+                // 1_0 -> 1, in_i & out_i, x := 0, y := 0, x > b, y > a
+
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_0", "1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "> " : ">= ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 3, in_i & out_i);
+
 
                 // 1_0 -> 1_0, !in_i & !out_i, x <= b, y <= a
 
