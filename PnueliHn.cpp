@@ -111,7 +111,7 @@ namespace mightypplcpp {
                             out_str << "\t\t<declaration>" << std::endl;
 
 
-                            out_str << "\t\t\tint[0, " << name_id_map.size() - 1 << "] loc = " << name_id_map.at(i == 0 ? "0i" : "1_" + std::to_string(phi->atoms.size() - 1)) << ";" << std::endl;
+                            out_str << "\t\t\tint[0, " << name_id_map.size() - 1 << "] loc = " << name_id_map.at(i == 0 ? "0i" : "0") << ";" << std::endl;
 
 
                             out_str << "\t\t</declaration>" << std::endl;
