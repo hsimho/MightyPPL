@@ -45,8 +45,7 @@ namespace mightypplcpp {
 
 } // namespace mightypplcpp
 
-namespace mightypplcpp {
-
+int main(int argc, const char ** argv) {
 
 
     try {
