@@ -664,11 +664,11 @@ namespace mightypplcpp {
 
 
                     if (reset == 1) {
-                        p_assignments << ", x_" << base_id << "_" << offset_id << " = 0";
+                        p_assignments << (p_assignments.str().size() ? ", " : "") << "x_" << base_id << "_" << offset_id << " = 0";
                     } else if (reset == 2) {
-                        p_assignments << ", y_" << base_id << "_" << offset_id << " = 0";
+                        p_assignments << (p_assignments.str().size() ? ", " : "") << "y_" << base_id << "_" << offset_id << " = 0";
                     } else if (reset == 3) {
-                        p_assignments << ", x_" << base_id << "_" << offset_id << " = 0"
+                        p_assignments << (p_assignments.str().size() ? ", " : "") << "x_" << base_id << "_" << offset_id << " = 0"
                                       << ", y_" << base_id << "_" << offset_id << " = 0";
                     } else {
                         assert(reset == 0);
