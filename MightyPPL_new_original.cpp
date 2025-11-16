@@ -2,6 +2,9 @@
 
 namespace mightypplcpp {
 
+    int gcd = 0;
+    bool last_intersection = false;
+
     size_t num_all_props;
 
     size_t components_counter;
@@ -664,11 +667,11 @@ namespace mightypplcpp {
 
 
                     if (reset == 1) {
-                        p_assignments << ", x_" << base_id << "_" << offset_id << " = 0";
+                        p_assignments << (p_assignments.str().size() ? ", " : "") << "x_" << base_id << "_" << offset_id << " = 0";
                     } else if (reset == 2) {
-                        p_assignments << ", y_" << base_id << "_" << offset_id << " = 0";
+                        p_assignments << (p_assignments.str().size() ? ", " : "") << "y_" << base_id << "_" << offset_id << " = 0";
                     } else if (reset == 3) {
-                        p_assignments << ", x_" << base_id << "_" << offset_id << " = 0"
+                        p_assignments << (p_assignments.str().size() ? ", " : "") << "x_" << base_id << "_" << offset_id << " = 0"
                                       << ", y_" << base_id << "_" << offset_id << " = 0";
                     } else {
                         assert(reset == 0);
@@ -1285,6 +1288,215 @@ namespace mightypplcpp {
         }
         
         */
+
+
+        std::cout << "\nComputing GCD of constants...\n";
+
+        for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
+
+            std::cout << (*it)->id << ": " << (*it)->getText() << std::endl;
+
+            antlr4::tree::ParseTree* left;
+            antlr4::tree::ParseTree* right;
+            bool new_interval = false;
+
+            if ((*it)->type == FINALLY) {
+
+                MitlParser::AtomFContext* phi = (MitlParser::AtomFContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == ONCE) {
+
+                MitlParser::AtomOContext* phi = (MitlParser::AtomOContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == GLOBALLY) {
+
+                MitlParser::AtomGContext* phi = (MitlParser::AtomGContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == HISTORICALLY) {
+
+                MitlParser::AtomHContext* phi = (MitlParser::AtomHContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == UNTIL) {
+
+                MitlParser::AtomUContext* phi = (MitlParser::AtomUContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == SINCE) {
+
+                MitlParser::AtomSContext* phi = (MitlParser::AtomSContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == RELEASE) {
+
+                MitlParser::AtomRContext* phi = (MitlParser::AtomRContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == TRIGGER) {
+
+                MitlParser::AtomTContext* phi = (MitlParser::AtomTContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == PNUELIFN) {
+
+                MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == PNUELION) {
+
+                MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == PNUELIGN) {
+
+                MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == PNUELIHN) {
+
+                MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == COUNTFN) {
+
+                MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == COUNTON) {
+
+                MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == COUNTGN) {
+
+                MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == COUNTHN) {
+
+                MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else {
+                assert(false);
+            }
+
+            if (new_interval) {
+
+                if (left->children[0]->getText() != "0" && left->children[0]->getText() != "infty") {
+
+                    if (gcd == 0) {
+
+                        gcd = std::stoi(left->children[0]->getText());
+
+                    } else {
+
+                        gcd = std::gcd(gcd, std::stoi(left->children[0]->getText()));
+
+                    }
+
+                }
+
+                if (right->children[0]->getText() != "0" && right->children[0]->getText() != "infty") {
+
+                    if (gcd == 0) {
+
+                        gcd = std::stoi(right->children[0]->getText());
+
+                    } else {
+
+                        gcd = std::gcd(gcd, std::stoi(right->children[0]->getText()));
+
+                    }
+
+                }
+
+            }
+
+        }
 
         std::cout << "\n<<<<<< Converting into TAs... >>>>>>\n\n";
 
@@ -1964,9 +2176,9 @@ namespace mightypplcpp {
 
                 out_str << "edge:" << "TA_div" << ":ell_0:ell_1:a{provided: g == 0 && turn == " << components_counter << " : do: turn = " << components_counter + 1 << "}" << std::endl;
 
-                out_str << "edge:" << "TA_div" << ":ell_1:ell_1:a{provided: g == 0 && turn == " << components_counter << " && x_div < 1 : do: turn = " << components_counter + 1 << "}" << std::endl;
+                out_str << "edge:" << "TA_div" << ":ell_1:ell_1:a{provided: g == 0 && turn == " << components_counter << " && x_div < " << gcd << " : do: turn = " << components_counter + 1 << "}" << std::endl;
 
-                out_str << "edge:" << "TA_div" << ":ell_1:ell_0:a{provided: g == 0 && turn == " << components_counter << " && x_div >= 1 : do: turn = " << components_counter + 1 << "; x_div = 0}" << std::endl;
+                out_str << "edge:" << "TA_div" << ":ell_1:ell_0:a{provided: g == 0 && turn == " << components_counter << " && x_div >= " << gcd << " : do: turn = " << components_counter + 1 << "; x_div = 0}" << std::endl;
 
             } else {
 
@@ -2007,7 +2219,7 @@ namespace mightypplcpp {
                 out_str << "\t\t\t<source ref=\"id0\"/>\n";
                 out_str << "\t\t\t<target ref=\"id0\"/>\n";
 
-                provided_str = "g == 0 &amp;&amp; turn == " + std::to_string(components_counter) + " &amp;&amp; loc == 1 &amp;&amp; x_div &lt; 1";
+                provided_str = "g == 0 &amp;&amp; turn == " + std::to_string(components_counter) + " &amp;&amp; loc == 1 &amp;&amp; x_div &lt; " + std::to_string(gcd);
 
                 out_str << "\t\t\t<label kind=\"guard\" x=\"-357\" y=\"-68\">" + provided_str + "</label>\n";
 
@@ -2024,7 +2236,7 @@ namespace mightypplcpp {
                 out_str << "\t\t\t<source ref=\"id0\"/>\n";
                 out_str << "\t\t\t<target ref=\"id0\"/>\n";
 
-                provided_str = "g == 0 &amp;&amp; turn == " + std::to_string(components_counter) + " &amp;&amp; loc == 1 &amp;&amp; x_div &gt;= 1";
+                provided_str = "g == 0 &amp;&amp; turn == " + std::to_string(components_counter) + " &amp;&amp; loc == 1 &amp;&amp; x_div &gt;= " + std::to_string(gcd);
 
                 out_str << "\t\t\t<label kind=\"guard\" x=\"-357\" y=\"-68\">" + provided_str + "</label>\n";
 
@@ -2414,6 +2626,7 @@ namespace mightypplcpp {
             std::cout << "\n<<<<<< Taking intersection... >>>>>>\n\n";
 
             back = false;
+            last_intersection = true;
 
             std::vector<monitaal::TAwithBDDEdges> automata = temporal_components;
             automata.insert(automata.begin(), div);

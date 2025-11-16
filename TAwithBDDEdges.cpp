@@ -196,8 +196,9 @@ namespace monitaal {
         for (size_t i = 0; i < components.size(); ++i) {
 
             for (const auto& c : components[i].locations().at(location_ids[i]).invariant()) {
+                assert(("GCD of the formula incompatible with a constant in (hard-coded) M", std::gcd(mightypplcpp::gcd, c._bound.get_bound()) == mightypplcpp::gcd));
                 constr.push_back(constraint_t((c._i == 0 ? 0 : c._i + clock_offsets[i]),
-                                              (c._j == 0 ? 0 : c._j + clock_offsets[i]), c._bound));
+                                              (c._j == 0 ? 0 : c._j + clock_offsets[i]), !mightypplcpp::last_intersection || mightypplcpp::out_format.has_value() ? c._bound : pardibaal::bound_t(c._bound.get_bound() / mightypplcpp::gcd, c._bound.is_strict())));
             }
 
         }
@@ -296,8 +297,9 @@ namespace monitaal {
                         for (size_t i = 0; i < components.size(); ++i) {
 
                             for (const auto& c : components[i].bdd_edges_from(location_ids[i]).at(bdd_edge_indices[i]).guard()) {
+                                assert(("GCD of the formula incompatible with a constant in (hard-coded) M", std::gcd(mightypplcpp::gcd, c._bound.get_bound()) == mightypplcpp::gcd));
                                 guard.push_back(constraint_t((c._i == 0 ? 0 : c._i + clock_offsets[i]),
-                                                              (c._j == 0 ? 0 : c._j + clock_offsets[i]), c._bound));
+                                                              (c._j == 0 ? 0 : c._j + clock_offsets[i]), !mightypplcpp::last_intersection || mightypplcpp::out_format.has_value() ? c._bound : pardibaal::bound_t(c._bound.get_bound() / mightypplcpp::gcd, c._bound.is_strict())));
                             }
 
                         }
@@ -319,8 +321,9 @@ namespace monitaal {
                         for (size_t i = 0; i < components.size(); ++i) {
 
                             for (const auto& c : components[i].locations().at(dest_location_ids[i]).invariant()) {
+                                assert(("GCD of the formula incompatible with a constant in (hard-coded) M", std::gcd(mightypplcpp::gcd, c._bound.get_bound()) == mightypplcpp::gcd));
                                 constr.push_back(constraint_t((c._i == 0 ? 0 : c._i + clock_offsets[i]),
-                                                              (c._j == 0 ? 0 : c._j + clock_offsets[i]), c._bound));
+                                                              (c._j == 0 ? 0 : c._j + clock_offsets[i]), !mightypplcpp::last_intersection || mightypplcpp::out_format.has_value() ? c._bound : pardibaal::bound_t(c._bound.get_bound() / mightypplcpp::gcd, c._bound.is_strict())));
                             }
 
                         }
@@ -746,9 +749,9 @@ namespace monitaal {
 
         bdd_edges_t bdd_edges;
 
-        bdd_edges.push_back(bdd_edge_t(1, 1, constraints_t{constraint_t::upper_strict(1, 1)}, clocks_t{}, any));
+        bdd_edges.push_back(bdd_edge_t(1, 1, constraints_t{constraint_t::upper_strict(1, mightypplcpp::gcd)}, clocks_t{}, any));
         bdd_edges.push_back(bdd_edge_t(0, 1, constraints_t{}, clocks_t{1}, any));
-        bdd_edges.push_back(bdd_edge_t(1, 0, constraints_t{constraint_t::lower_non_strict(1, 1)}, clocks_t{}, any));
+        bdd_edges.push_back(bdd_edge_t(1, 0, constraints_t{constraint_t::lower_non_strict(1, mightypplcpp::gcd)}, clocks_t{}, any));
 
         return TAwithBDDEdges("TA_div", clocks, locations, bdd_edges, 0);
 

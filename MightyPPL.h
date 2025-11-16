@@ -7,6 +7,7 @@
 #include <vector>
 #include <iomanip>
 #include <optional>
+#include <numeric>
 
 #include "bdd.h"
 
@@ -30,6 +31,9 @@
 #include "TAwithBDDEdges.h"
 
 namespace mightypplcpp {
+
+    extern int gcd;
+    extern bool last_intersection;
 
     extern size_t num_all_props;
     extern size_t components_counter;

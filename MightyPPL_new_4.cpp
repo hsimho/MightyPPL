@@ -2,9 +2,12 @@
 
 namespace mightypplcpp {
 
+    int gcd = 0;
+    bool last_intersection = false;
+
     size_t num_all_props;
 
-    size_t components_counter = 2;      // M, TA_div, TA_0 are always present
+    size_t components_counter;
 
     bdd encode(const int i, const int offset, const int bits) {
 
@@ -37,6 +40,8 @@ namespace mightypplcpp {
 
     std::vector<std::string> sat_paths;
 
+
+    /*
     std::vector<std::string> get_letters(const std::string& pattern) {
 
         std::vector<std::string> output;
@@ -78,6 +83,7 @@ namespace mightypplcpp {
         return output;
 
     }
+    */
 
     void allsat_print_handler(char* varset, int size) {
 
@@ -86,14 +92,280 @@ namespace mightypplcpp {
         for (int v = 0; v < size; ++v) {
             output += (varset[v] < 0 ? 'X' : (char)('0' + varset[v]));
         }
-        //std::cout << std::setw(20) << output << std::setw(0) << std::endl;
+        // std::cout << std::setw(20) << output << std::setw(0) << std::endl;
 
         sat_paths.push_back(output);
 
     }
 
+    void build_model_from_ta_bdd(const monitaal::TAwithBDDEdges ta, const size_t id, std::stringstream& out_s) {
 
-    
+        assert(comp_flatten && !out_flatten);
+
+        std::string name = "TA_" + std::to_string(id) + "_0";
+
+        if (out_format.value()) {       // tck
+
+            std::stringstream tck;
+
+            tck << std::endl << std::endl;
+            tck << "# " << name << std::endl;
+            tck << "# " << ta.name() << std::endl;
+            tck << "process:" << name << std::endl;
+
+            for (const auto& [k, v] : ta.locations()) {
+
+                tck << "location:" << name << ":ell_" << k << "{" << (k == ta.initial_location() ?  (v.is_accept() ? "initial: : " : "initial: ") : "")
+                    << (v.is_accept() ? "labels: accept_" + std::to_string(id) : std::string{}) << "}" << std::endl;
+
+            }
+
+            for (const auto& [k, v] : ta.locations()) {
+
+                for (const auto& e : ta.bdd_edges_from(k)) {
+
+                    bdd_allsat(e.bdd_label(), *allsat_print_handler);
+
+                    std::stringstream p_constraint;
+                    std::stringstream p_assignments;
+
+                    for (auto i = 0; i < sat_paths.size(); ++i) {
+
+                        int largest = 0;
+                        for (auto j = 1; j < sat_paths[i].size(); ++j) {
+                            if (sat_paths[i][j] != 'X' && j > largest) {
+                                largest = j;
+                            }
+                        }
+                        for (auto j = 1; j < sat_paths[i].size(); ++j) {
+                            if (sat_paths[i][j] != 'X') {
+                                p_constraint << "p_" << j << (sat_paths[i][j] == '0' ? " % 2 == 0" : " >= 1");
+                                p_assignments << "p_" << j << (sat_paths[i][j] == '0' ? " = 0" : " = 1");
+                                if (j != largest) {
+                                    p_constraint << " && ";
+                                    p_assignments << "; ";
+                                }
+                            }
+                        }
+
+                        std::string provided_str;
+                        for (const auto& g : e.guard()) {
+
+                            if (!provided_str.empty()) {
+                                provided_str += " && ";
+                            }
+
+                            if (g._i == 0) {
+
+                                assert(g._j != 0);
+
+                                if (g._bound.is_strict()) {
+                                    provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._j - 1) + " > " + std::to_string(-1 * g._bound.get_bound());
+                                } else {
+                                    provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._j - 1) + " >= " + std::to_string(-1 * g._bound.get_bound());
+                                }
+
+                            } else if (g._j == 0) {
+
+                                assert(g._i != 0);
+
+                                if (g._bound.is_strict()) {
+                                    provided_str += "x_" + std::to_string(id) + "_"  + std::to_string(g._i - 1) + " < " + std::to_string(g._bound.get_bound());
+                                } else {
+                                    provided_str += "x_" + std::to_string(id) + "_"  + std::to_string(g._i - 1) + " <= " + std::to_string(g._bound.get_bound());
+                                }
+
+                            } else {
+                                assert(("Currently support only non-diagonal guards", false));
+                            }
+
+                        }
+
+                        std::string do_str;
+                        for (const auto& r : e.reset()) {
+                    
+                            if (!do_str.empty()) {
+                                do_str += "; ";
+                            }
+
+                            do_str += "x_" + std::to_string(id) + "_" + std::to_string(r - 1) + " = 0";
+
+                        }
+
+
+                        tck << "edge:" << name << ":ell_" << e.from() << ":ell_" << e.to() << ":a{provided: g == 0 && turn == " << components_counter
+                                       << (p_constraint.str().size() ? " && " + p_constraint.str() : std::string{})
+                                       << (provided_str.empty() ? std::string{} : " && " + provided_str);
+
+                        tck << " : do: turn = " << components_counter + 1 << (p_assignments.str().size() ?  "; " + p_assignments.str() : std::string{})
+                            << (do_str.empty() ? std::string{} : "; " + do_str)
+                            << "}" << std::endl;
+
+                        std::stringstream().swap(p_constraint);
+                        std::stringstream().swap(p_assignments);
+
+                    }
+
+                    sat_paths.clear();
+
+                }
+
+            }
+
+            out_s << tck.str();
+
+
+        } else {        // xml
+
+            std::stringstream xml;
+
+            xml << "\t<template>" << std::endl;
+            xml << "\t\t<name>" << name << "</name>" << std::endl;
+
+            xml << "\t\t<declaration>" << std::endl;
+
+
+            monitaal::location_id_t largest_loc = 0;
+            std::set<size_t> acc_set;
+            for (const auto& [k, v] : ta.locations()) {
+                if (k > largest_loc) {
+                    largest_loc = k;
+                }
+                if (v.is_accept()) {
+                    acc_set.insert(k);
+                }
+            }
+
+            xml << "\t\t\tint[0, " << largest_loc << "] loc = " << ta.initial_location() << ";" << std::endl;
+            xml << "\t\t\tint[0, 1] acc = 0;" << std::endl;
+
+
+            xml << "\t\t</declaration>" << std::endl;
+
+            xml << "\t\t<location id=\"id0\" x=\"0\" y=\"0\">" << std::endl;
+            xml << "\t\t</location>" << std::endl;
+            xml << "\t\t<init ref=\"id0\"/>" << std::endl;
+
+            for (const auto& [k, v] : ta.locations()) {
+
+                for (const auto& e : ta.bdd_edges_from(k)) {
+
+                    bdd_allsat(e.bdd_label(), *allsat_print_handler);
+
+                    std::stringstream p_constraint;
+                    std::stringstream p_assignments;
+
+                    for (auto i = 0; i < sat_paths.size(); ++i) {
+
+                        int largest = 0;
+                        for (auto j = 1; j < sat_paths[i].size(); ++j) {
+                            if (sat_paths[i][j] != 'X' && j > largest) {
+                                largest = j;
+                            }
+                        }
+                        for (auto j = 1; j < sat_paths[i].size(); ++j) {
+                            if (sat_paths[i][j] != 'X') {
+                                if (sat_paths[i][j] == '0') {
+                                    p_constraint << "(p_" << j << " == 2" << " || " << "p_" << j << " == 0)";
+                                } else {
+                                    p_constraint << "p_" << j << " &gt;= 1";
+                                }
+                                p_assignments << "p_" << j << (sat_paths[i][j] == '0' ? " = 0" : " = 1");
+                                if (j != largest) {
+                                    p_constraint << " &amp;&amp; ";
+                                    p_assignments << ", ";
+                                }
+                            }
+                        }
+
+                        std::string provided_str;
+                        for (const auto& g : e.guard()) {
+
+                            if (!provided_str.empty()) {
+                                provided_str += " &amp;&amp; ";
+                            }
+
+                            if (g._i == 0) {
+
+                                assert(g._j != 0);
+
+                                if (g._bound.is_strict()) {
+                                    provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._j - 1) + " &gt; " + std::to_string(-1 * g._bound.get_bound());
+                                } else {
+                                    provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._j - 1) + " &gt;= " + std::to_string(-1 * g._bound.get_bound());
+                                }
+
+                            } else if (g._j == 0) {
+
+                                assert(g._i != 0);
+
+                                if (g._bound.is_strict()) {
+                                    provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._i - 1) + " &lt; " + std::to_string(g._bound.get_bound());
+                                } else {
+                                    provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._i - 1) + " &lt;= " + std::to_string(g._bound.get_bound());
+                                }
+
+                            } else {
+                                assert(("Currently support only non-diagonal guards", false));
+                            }
+
+                        }
+
+
+                        std::string do_str;
+                        for (const auto& r : e.reset()) {
+                    
+                            if (!do_str.empty()) {
+                                do_str += ", ";
+                            }
+
+                            do_str += "x_" + std::to_string(id) + "_" + std::to_string(r - 1) + " = 0";
+
+                        }
+                        
+                        xml << "\t\t<transition>\n";
+                        xml << "\t\t\t<source ref=\"id0\"/>\n";
+                        xml << "\t\t\t<target ref=\"id0\"/>\n";
+
+
+                        xml << "\t\t\t<label kind=\"guard\" x=\"-357\" y=\"-68\">"
+                            << "g == 0 &amp;&amp; turn == " << components_counter
+                            << " &amp;&amp; " << "loc == " << e.from()
+                            << (p_constraint.str().size() ? " &amp;&amp; " + p_constraint.str() : "")
+                            << (provided_str.empty() ? std::string{} : " &amp;&amp; " + provided_str)
+                            << "</label>\n";
+
+                        xml << "\t\t\t<label kind=\"assignment\" x=\"-246\" y=\"-34\">"
+                            << "turn = " << components_counter + 1
+                            << ", " << "loc = " << e.to()
+                            << ", " << "acc = " << (acc_set.count(e.to()) ? 1 : 0)
+                            << (p_assignments.str().size() ? ", " + p_assignments.str() : "")
+                            << (do_str.empty() ? std::string{} : ", " + do_str)
+                            << "</label>\n";
+
+                        xml << "\t\t\t<nail x=\"-102\" y=\"34\"/>\n";
+                        xml << "\t\t\t<nail x=\"-102\" y=\"-34\"/>\n";
+                        xml << "\t\t</transition>\n";
+
+                        std::stringstream().swap(p_constraint);
+                        std::stringstream().swap(p_assignments);
+
+                    }
+
+                    sat_paths.clear();
+
+                }
+
+            }
+
+            xml << "\t</template>" << std::endl << std::endl;
+
+            out_s << xml.str();
+
+        }
+
+    }
+
     // TODO: refactoring to avoid overlap with build_edge() below
 
     void build_untimed_edge(monitaal::bdd_edges_t& bdd_edges, const std::map<std::string, monitaal::location_id_t>& name_id_map, std::stringstream& out_s, const std::string& automaton_name, const std::string& source, const std::string& target, bdd label) {
@@ -395,11 +667,11 @@ namespace mightypplcpp {
 
 
                     if (reset == 1) {
-                        p_assignments << ", x_" << base_id << "_" << offset_id << " = 0";
+                        p_assignments << (p_assignments.str().size() ? ", " : "") << "x_" << base_id << "_" << offset_id << " = 0";
                     } else if (reset == 2) {
-                        p_assignments << ", y_" << base_id << "_" << offset_id << " = 0";
+                        p_assignments << (p_assignments.str().size() ? ", " : "") << "y_" << base_id << "_" << offset_id << " = 0";
                     } else if (reset == 3) {
-                        p_assignments << ", x_" << base_id << "_" << offset_id << " = 0"
+                        p_assignments << (p_assignments.str().size() ? ", " : "") << "x_" << base_id << "_" << offset_id << " = 0"
                                       << ", y_" << base_id << "_" << offset_id << " = 0";
                     } else {
                         assert(reset == 0);
@@ -662,6 +934,7 @@ namespace mightypplcpp {
         MitlGetBDDVisitor get_bdd_visitor;
         get_bdd_visitor.visitMain(nnf_formula);
 
+        /*
         for (auto it = temporal_atoms.rbegin(); it != temporal_atoms.rend(); ++it) {
 
             std::cout << "\n" << "TA_" << (*it)->id << ": " << (*it)->getText() << "\n" << std::endl;
@@ -1006,10 +1279,230 @@ namespace mightypplcpp {
 
         sat_paths.clear();
 
+        if (debug) {
+
+            std::cout << "\nSee the BDDs above\n";
+            std::cout << "\nPress any key to continue . . .\n";
+            std::cin.get();
+
+        }
+        
+        */
+
+
+        std::cout << "\nComputing GCD of constants...\n";
+
+        for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
+
+            std::cout << (*it)->id << ": " << (*it)->getText() << std::endl;
+
+            antlr4::tree::ParseTree* left;
+            antlr4::tree::ParseTree* right;
+            bool new_interval = false;
+
+            if ((*it)->type == FINALLY) {
+
+                MitlParser::AtomFContext* phi = (MitlParser::AtomFContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == ONCE) {
+
+                MitlParser::AtomOContext* phi = (MitlParser::AtomOContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == GLOBALLY) {
+
+                MitlParser::AtomGContext* phi = (MitlParser::AtomGContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == HISTORICALLY) {
+
+                MitlParser::AtomHContext* phi = (MitlParser::AtomHContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == UNTIL) {
+
+                MitlParser::AtomUContext* phi = (MitlParser::AtomUContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == SINCE) {
+
+                MitlParser::AtomSContext* phi = (MitlParser::AtomSContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == RELEASE) {
+
+                MitlParser::AtomRContext* phi = (MitlParser::AtomRContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == TRIGGER) {
+
+                MitlParser::AtomTContext* phi = (MitlParser::AtomTContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == PNUELIFN) {
+
+                MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == PNUELION) {
+
+                MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == PNUELIGN) {
+
+                MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == PNUELIHN) {
+
+                MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == COUNTFN) {
+
+                MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == COUNTON) {
+
+                MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == COUNTGN) {
+
+                MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else if ((*it)->type == COUNTHN) {
+
+                MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
+
+                if (phi->interval() != nullptr) {
+                    left = (antlr4::tree::ParseTree*)phi->interval()->children[1];
+                    right = (antlr4::tree::ParseTree*)phi->interval()->children[3];
+                    new_interval = true;
+                }
+
+            } else {
+                assert(false);
+            }
+
+            if (new_interval) {
+
+                if (left->children[0]->getText() != "0" && left->children[0]->getText() != "infty") {
+
+                    if (gcd == 0) {
+
+                        gcd = std::stoi(left->children[0]->getText());
+
+                    } else {
+
+                        gcd = std::gcd(gcd, std::stoi(left->children[0]->getText()));
+
+                    }
+
+                }
+
+                if (right->children[0]->getText() != "0" && right->children[0]->getText() != "infty") {
+
+                    if (gcd == 0) {
+
+                        gcd = std::stoi(right->children[0]->getText());
+
+                    } else {
+
+                        gcd = std::gcd(gcd, std::stoi(right->children[0]->getText()));
+
+                    }
+
+                }
+
+            }
+
+        }
+
         std::cout << "\n<<<<<< Converting into TAs... >>>>>>\n\n";
 
         // auto div = monitaal::TA::time_divergence_ta(get_letters(std::string(num_all_props + 1, 'X')), true);
 
+        components_counter = 2;     // TA_0 and TA_div
         size_t components_count;
 
         for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
@@ -1019,22 +1512,24 @@ namespace mightypplcpp {
                 // TODO: need change if we add options to disable seq
 
                 if ((*it)->type == PNUELIFN) {
-                    components_counter = components_counter + ((MitlParser::AtomFnContext*)(*it))->atoms.size() + 2;
+                    components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : ((MitlParser::AtomFnContext*)(*it))->atoms.size() + 2);
                 } else if ((*it)->type == PNUELION) {
-                    components_counter = components_counter + ((MitlParser::AtomOnContext*)(*it))->atoms.size() + 2;
+                    components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : ((MitlParser::AtomOnContext*)(*it))->atoms.size() + 2);
                 } else if ((*it)->type == PNUELIGN) {
-                    components_counter = components_counter + ((MitlParser::AtomGnContext*)(*it))->atoms.size() + 2;
+                    components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : ((MitlParser::AtomGnContext*)(*it))->atoms.size() + 2);
                 } else if ((*it)->type == PNUELIHN) {
-                    components_counter = components_counter + ((MitlParser::AtomHnContext*)(*it))->atoms.size() + 2;
+                    components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : ((MitlParser::AtomHnContext*)(*it))->atoms.size() + 2);
                 }
 
             } else if ((*it)->type == COUNTFN || (*it)->type == COUNTON || (*it)->type == COUNTGN || (*it)->type == COUNTHN) {
-                components_counter = components_counter + (*it)->num_pairs + 3;     // TODO: need change if we add options to disable seq
+                components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : (*it)->num_pairs + 3);     // TODO: need change if we add options to disable seq
             } else {
                 components_counter = components_counter + 1;
             }
 
         }
+
+        ++components_counter;       // M
 
         components_count = components_counter;
         components_counter = 0;
@@ -1118,32 +1613,73 @@ namespace mightypplcpp {
                         }
                     } else if ((*it)->type == COUNTFN) {
                         MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
-                        for (auto i = 0; i < phi->num_pairs; ++i) {
-                            out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
-                            out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
+
+                        if (comp_flatten) {
+
+                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                                out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                            }
+
+                        } else {
+
+                            for (auto i = 0; i < phi->num_pairs; ++i) {
+                                out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                                out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
+                            }
+                            out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
+
                         }
-                        out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
                     } else if ((*it)->type == COUNTON) {
                         MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
-                        for (auto i = 0; i < phi->num_pairs; ++i) {
-                            out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
-                            out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
+                        if (comp_flatten) {
+
+                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                                out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                            }
+
+                        } else {
+
+                            for (auto i = 0; i < phi->num_pairs; ++i) {
+                                out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                                out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
+                            }
+                            out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
+
                         }
-                        out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
                     } else if ((*it)->type == COUNTGN) {
                         MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
-                        for (auto i = 0; i < phi->num_pairs; ++i) {
-                            out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
-                            out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
+                        if (comp_flatten) {
+
+                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                                out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                            }
+
+                        } else {
+
+                            for (auto i = 0; i < phi->num_pairs; ++i) {
+                                out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                                out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
+                            }
+                            out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
+
                         }
-                        out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
                     } else if ((*it)->type == COUNTHN) {
                         MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
-                        for (auto i = 0; i < phi->num_pairs; ++i) {
-                            out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
-                            out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
+                        if (comp_flatten) {
+
+                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                                out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                            }
+
+                        } else {
+
+                            for (auto i = 0; i < phi->num_pairs; ++i) {
+                                out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
+                                out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
+                            }
+                            out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
+
                         }
-                        out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
                     } else {
                         assert(false);
                     }
@@ -1158,7 +1694,7 @@ namespace mightypplcpp {
                     out_str << "int:1:0:2:2:p_" << i + 1 << std::endl;
                 }
 
-                out_str << "int:1:0:" << components_count << ":0:turn" << std::endl;
+                out_str << "int:1:0:" << components_count - 1 << ":0:turn" << std::endl;
 
             } else {
 
@@ -1216,6 +1752,11 @@ namespace mightypplcpp {
                         }
                     } else if ((*it)->type == PNUELIFN) {
                         MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)(*it);
+
+                        // When comp_flatten we still have the same number of clocks, but we may
+                        // lose the structure (e.g., x_i_0 is not necessarily the one used by the first
+                        // component TA
+
                         for (auto i = 0; i < phi->atoms.size(); ++i) {
                             out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
                         }
@@ -1236,32 +1777,76 @@ namespace mightypplcpp {
                         }
                     } else if ((*it)->type == COUNTFN) {
                         MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
-                        for (auto i = 0; i < phi->num_pairs; ++i) {
-                            out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
-                            out_str << "\t\tclock y_" << phi->id << "_" << i << ";" << std::endl;
+                        
+                        if (comp_flatten) {
+
+                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                                out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
+                            }
+
+                        } else {
+
+                            for (auto i = 0; i < phi->num_pairs; ++i) {
+                                out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
+                                out_str << "\t\tclock y_" << phi->id << "_" << i << ";" << std::endl;
+                            }
+                            out_str << "\t\tclock x_" << phi->id << "_" << phi->num_pairs << ";" << std::endl;
+
                         }
-                        out_str << "\t\tclock x_" << phi->id << "_" << phi->num_pairs << ";" << std::endl;
                     } else if ((*it)->type == COUNTON) {
                         MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
-                        for (auto i = 0; i < phi->num_pairs; ++i) {
-                            out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
-                            out_str << "\t\tclock y_" << phi->id << "_" << i << ";" << std::endl;
+
+                        if (comp_flatten) {
+
+                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                                out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
+                            }
+
+                        } else { 
+
+                            for (auto i = 0; i < phi->num_pairs; ++i) {
+                                out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
+                                out_str << "\t\tclock y_" << phi->id << "_" << i << ";" << std::endl;
+                            }
+                            out_str << "\t\tclock x_" << phi->id << "_" << phi->num_pairs << ";" << std::endl;
+
                         }
-                        out_str << "\t\tclock x_" << phi->id << "_" << phi->num_pairs << ";" << std::endl;
                     } else if ((*it)->type == COUNTGN) {
                         MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
-                        for (auto i = 0; i < phi->num_pairs; ++i) {
-                            out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
-                            out_str << "\t\tclock y_" << phi->id << "_" << i << ";" << std::endl;
+
+                        if (comp_flatten) {
+
+                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                                out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
+                            }
+
+                        } else { 
+
+                            for (auto i = 0; i < phi->num_pairs; ++i) {
+                                out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
+                                out_str << "\t\tclock y_" << phi->id << "_" << i << ";" << std::endl;
+                            }
+                            out_str << "\t\tclock x_" << phi->id << "_" << phi->num_pairs << ";" << std::endl;
+
                         }
-                        out_str << "\t\tclock x_" << phi->id << "_" << phi->num_pairs << ";" << std::endl;
                     } else if ((*it)->type == COUNTHN) {
                         MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
-                        for (auto i = 0; i < phi->num_pairs; ++i) {
-                            out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
-                            out_str << "\t\tclock y_" << phi->id << "_" << i << ";" << std::endl;
+
+                        if (comp_flatten) {
+
+                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                                out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
+                            }
+
+                        } else {
+
+                            for (auto i = 0; i < phi->num_pairs; ++i) {
+                                out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
+                                out_str << "\t\tclock y_" << phi->id << "_" << i << ";" << std::endl;
+                            }
+                            out_str << "\t\tclock x_" << phi->id << "_" << phi->num_pairs << ";" << std::endl;
+
                         }
-                        out_str << "\t\tclock x_" << phi->id << "_" << phi->num_pairs << ";" << std::endl;
                     } else {
                         assert(false);
                     }
@@ -1276,7 +1861,7 @@ namespace mightypplcpp {
                     out_str << "\t\tint[0, 2] p_" << i + 1 << " = 2;" << std::endl;
                 }
 
-                out_str << "\t\tint[0, " << components_count << "] turn = 0;" << std::endl;
+                out_str << "\t\tint[0, " << components_count - 1 << "] turn = 0;" << std::endl;
 
 
                 out_str << "\t</declaration>" << std::endl << std::endl;
@@ -1297,9 +1882,13 @@ namespace mightypplcpp {
 
         monitaal::constraints_t empty_invariant;
         monitaal::locations_t locations;
+        monitaal::locations_t locations_;
 
         locations.push_back(monitaal::location_t(false, 0, "s0", empty_invariant));
         locations.push_back(monitaal::location_t(true, 1, "s1", empty_invariant));
+
+        locations_.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
+        locations_.push_back(monitaal::location_t(true, 1, "s1", empty_invariant));
 
         monitaal::bdd_edges_t bdd_edges;
         monitaal::constraints_t guard;
@@ -1318,8 +1907,10 @@ namespace mightypplcpp {
         bdd_edges.push_back(monitaal::bdd_edge_t(1, 1, guard, reset, label));
 
         varphi = monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0);   // last arg: initial location id
+        varphi_ = monitaal::TAwithBDDEdges(name, clocks, locations_, bdd_edges, 0);   // last arg: initial location id
         clocks.clear();
         locations.clear();
+        locations_.clear();
         bdd_edges.clear();
 
         if (out_format.has_value() && !out_flatten) {
@@ -1544,6 +2135,30 @@ namespace mightypplcpp {
 
         ++components_counter;
 
+        std::cout << std::endl;
+
+        std::cout << std::setw(20) << varphi.name() << std::endl;
+        std::cout << std::setw(20) << "# of locations: " << std::setw(10) << varphi.locations().size() << std::setw(0) << std::endl;
+        std::cout << std::setw(20) << "# of clocks: " << std::setw(10) << varphi.number_of_clocks() - 2 << std::setw(0) << std::endl;
+
+        std::cout << std::endl;
+
+        for (const auto& [k, v] : varphi.locations()) {
+
+            std::cout << std::setw(12) << "location: " << std::setw(10) << v.id() << " (" << v.name() << ")" << (v.is_accept() ? " *ACCEPTING*" : "") << std::setw(0) << std::endl;
+            std::cout << std::setw(20) << "# outgoing: " << std::setw(10) << varphi.bdd_edges_from(k).size() << std::setw(0) << std::endl;
+            std::cout << std::setw(20) << "# incoming: " << std::setw(10) << varphi.bdd_edges_to(k).size() << std::setw(0) << std::endl;
+
+        }
+
+        if (debug) {
+
+            std::cout << "\nSee the component above\n";
+            std::cout << "\nPress any key to continue . . .\n";
+            std::cin.get();
+
+        }
+
 
         std::cout << "\nGenerating TA_div" << "...\n";
 
@@ -1562,9 +2177,9 @@ namespace mightypplcpp {
 
                 out_str << "edge:" << "TA_div" << ":ell_0:ell_1:a{provided: g == 0 && turn == " << components_counter << " : do: turn = " << components_counter + 1 << "}" << std::endl;
 
-                out_str << "edge:" << "TA_div" << ":ell_1:ell_1:a{provided: g == 0 && turn == " << components_counter << " && x_div < 1 : do: turn = " << components_counter + 1 << "}" << std::endl;
+                out_str << "edge:" << "TA_div" << ":ell_1:ell_1:a{provided: g == 0 && turn == " << components_counter << " && x_div < " << gcd << " : do: turn = " << components_counter + 1 << "}" << std::endl;
 
-                out_str << "edge:" << "TA_div" << ":ell_1:ell_0:a{provided: g == 0 && turn == " << components_counter << " && x_div >= 1 : do: turn = " << components_counter + 1 << "; x_div = 0}" << std::endl;
+                out_str << "edge:" << "TA_div" << ":ell_1:ell_0:a{provided: g == 0 && turn == " << components_counter << " && x_div >= " << gcd << " : do: turn = " << components_counter + 1 << "; x_div = 0}" << std::endl;
 
             } else {
 
@@ -1605,7 +2220,7 @@ namespace mightypplcpp {
                 out_str << "\t\t\t<source ref=\"id0\"/>\n";
                 out_str << "\t\t\t<target ref=\"id0\"/>\n";
 
-                provided_str = "g == 0 &amp;&amp; turn == " + std::to_string(components_counter) + " &amp;&amp; loc == 1 &amp;&amp; x_div &lt; 1";
+                provided_str = "g == 0 &amp;&amp; turn == " + std::to_string(components_counter) + " &amp;&amp; loc == 1 &amp;&amp; x_div &lt; " + std::to_string(gcd);
 
                 out_str << "\t\t\t<label kind=\"guard\" x=\"-357\" y=\"-68\">" + provided_str + "</label>\n";
 
@@ -1622,7 +2237,7 @@ namespace mightypplcpp {
                 out_str << "\t\t\t<source ref=\"id0\"/>\n";
                 out_str << "\t\t\t<target ref=\"id0\"/>\n";
 
-                provided_str = "g == 0 &amp;&amp; turn == " + std::to_string(components_counter) + " &amp;&amp; loc == 1 &amp;&amp; x_div &gt;= 1";
+                provided_str = "g == 0 &amp;&amp; turn == " + std::to_string(components_counter) + " &amp;&amp; loc == 1 &amp;&amp; x_div &gt;= " + std::to_string(gcd);
 
                 out_str << "\t\t\t<label kind=\"guard\" x=\"-357\" y=\"-68\">" + provided_str + "</label>\n";
 
@@ -1642,20 +2257,19 @@ namespace mightypplcpp {
 
         ++components_counter;
 
+        std::cout << std::endl;
 
+        std::cout << std::setw(20) << div.name() << std::endl;
+        std::cout << std::setw(20) << "# of locations: " << std::setw(10) << div.locations().size() << std::setw(0) << std::endl;
+        std::cout << std::setw(20) << "# of clocks: " << std::setw(10) << div.number_of_clocks() - 2 << std::setw(0) << std::endl;
 
         std::cout << std::endl;
 
-        std::cout << std::setw(20) << "# of locations: " << std::setw(10) << varphi.locations().size() << std::setw(0) << std::endl;
-        std::cout << std::setw(20) << "# of clocks: " << std::setw(10) << varphi.number_of_clocks() << std::setw(0) << std::endl;
-
-        std::cout << std::endl;
-
-        for (const auto& [k, v] : varphi.locations()) {
+        for (const auto& [k, v] : div.locations()) {
 
             std::cout << std::setw(12) << "location: " << std::setw(10) << v.id() << " (" << v.name() << ")" << (v.is_accept() ? " *ACCEPTING*" : "") << std::setw(0) << std::endl;
-            std::cout << std::setw(20) << "# outgoing: " << std::setw(10) << varphi.bdd_edges_from(k).size() << std::setw(0) << std::endl;
-            std::cout << std::setw(20) << "# incoming: " << std::setw(10) << varphi.bdd_edges_to(k).size() << std::setw(0) << std::endl;
+            std::cout << std::setw(20) << "# outgoing: " << std::setw(10) << div.bdd_edges_from(k).size() << std::setw(0) << std::endl;
+            std::cout << std::setw(20) << "# incoming: " << std::setw(10) << div.bdd_edges_to(k).size() << std::setw(0) << std::endl;
 
         }
 
@@ -1671,11 +2285,12 @@ namespace mightypplcpp {
 
             if ((*it)->type == PNUELIFN || (*it)->type == PNUELION || (*it)->type == PNUELIGN || (*it)->type == PNUELIHN
                     || (*it)->type == COUNTFN || (*it)->type == COUNTON || (*it)->type == COUNTGN || (*it)->type == COUNTHN) {
-                std::cout << "\nGenerating TA_" << (*it)->id << " (and other sub-components)...\n";
+                std::cout << "\nGenerating TA_" << (*it)->id << "_0 (and other components)...\n";
             } else {
-                std::cout << "\nGenerating TA_" << (*it)->id << "...\n";
+                std::cout << "\nGenerating TA_" << (*it)->id << "_0...\n";
             }
             auto [ generated_components, component_str ] = build_ta_from_atom(*it);
+
             temporal_components.insert(temporal_components.end(), generated_components.begin(), generated_components.end());
 
             if (out_format.has_value() && !out_flatten) {
@@ -1684,42 +2299,49 @@ namespace mightypplcpp {
 
             }
 
-            if ((*it)->type == PNUELIFN || (*it)->type == PNUELION || (*it)->type == PNUELIGN || (*it)->type == PNUELIHN
-                    || (*it)->type == COUNTFN || (*it)->type == COUNTON || (*it)->type == COUNTGN || (*it)->type == COUNTHN) {
-                std::cout << "\nGenerated TA_" << (*it)->id << " (and other sub-components)\n";
-            } else {
-                std::cout << "\nGenerated TA_" << (*it)->id << "\n";
-            }
+            // components_counter = components_counter + generated_components.size();
 
-            std::cout << std::endl;
-
-            std::cout << std::setw(20) << "# of locations: " << std::setw(10) << temporal_components.back().locations().size() << std::setw(0) << std::endl;
-            std::cout << std::setw(20) << "# of clocks: " << std::setw(10) << temporal_components.back().number_of_clocks() << std::setw(0) << std::endl;
-
-            // for (auto i = 0; i < temporal_components.back().number_of_clocks(); ++i) {
-            //     std::cout << std::setw(20) << temporal_components.back().clock_name(i) << std::setw(0) << std::endl;
+            // if ((*it)->type == PNUELIFN || (*it)->type == PNUELION || (*it)->type == PNUELIGN || (*it)->type == PNUELIHN
+            //         || (*it)->type == COUNTFN || (*it)->type == COUNTON || (*it)->type == COUNTGN || (*it)->type == COUNTHN) {
+            //     std::cout << "\nGenerated " << generated_components.size() << " components\n";
+            // } else {
+            //     std::cout << "\nGenerated TA_" << (*it)->id << "_0\n";
             // }
 
-            std::cout << std::endl;
+            for (auto it = generated_components.begin(); it != generated_components.end(); ++it) {
 
-            for (const auto& [k, v] : temporal_components.back().locations()) {
+                std::cout << std::endl;
 
-                std::cout << std::setw(12) << "location: " << std::setw(10) << v.id() << " (" << v.name() << ")" << (v.is_accept() ? " *ACCEPTING*" : "") << std::setw(0) << std::endl;
-                std::cout << std::setw(20) << "# outgoing: " << std::setw(10) << temporal_components.back().bdd_edges_from(k).size() << std::setw(0) << std::endl;
-                // for (const auto& e : temporal_components.back().bdd_edges_from(k)) {
-                //     std::cout << e.from() << " -> " << e.to() << ": " << std::endl;
-                //     bdd_printset(e.bdd_label());
-                //     std::cout << std::endl;
+                std::cout << std::setw(20) << (*it).name() << std::endl;
+                std::cout << std::setw(20) << "# of locations: " << std::setw(10) << (*it).locations().size() << std::setw(0) << std::endl;
+                std::cout << std::setw(20) << "# of clocks: " << std::setw(10) << (*it).number_of_clocks() - 2 << std::setw(0) << std::endl;
+
+                // for (auto i = 0; i < temporal_components.back().number_of_clocks(); ++i) {
+                //     std::cout << std::setw(20) << temporal_components.back().clock_name(i) << std::setw(0) << std::endl;
                 // }
-                std::cout << std::setw(20) << "# incoming: " << std::setw(10) << temporal_components.back().bdd_edges_to(k).size() << std::setw(0) << std::endl;
 
-            }
+                std::cout << std::endl;
 
-            if (debug) {
+                for (const auto& [k, v] : (*it).locations()) {
 
-                std::cout << "\nSee the component above\n";
-                std::cout << "\nPress any key to continue . . .\n";
-                std::cin.get();
+                    std::cout << std::setw(12) << "location: " << std::setw(10) << v.id() << " (" << v.name() << ")" << (v.is_accept() ? " *ACCEPTING*" : "") << std::setw(0) << std::endl;
+                    std::cout << std::setw(20) << "# outgoing: " << std::setw(10) << (*it).bdd_edges_from(k).size() << std::setw(0) << std::endl;
+                    // for (const auto& e : (*it).bdd_edges_from(k)) {
+                    //     std::cout << e.from() << " -> " << e.to() << ": " << std::endl;
+                    //     bdd_printset(e.bdd_label());
+                    //     std::cout << std::endl;
+                    // }
+                    std::cout << std::setw(20) << "# incoming: " << std::setw(10) << (*it).bdd_edges_to(k).size() << std::setw(0) << std::endl;
+
+                }
+
+                if (debug) {
+
+                    std::cout << "\nSee the component above\n";
+                    std::cout << "\nPress any key to continue . . .\n";
+                    std::cin.get();
+
+                }
 
             }
 
@@ -1868,14 +2490,17 @@ namespace mightypplcpp {
 
         }
 
+        ++components_counter;
+
         // std::cout << "components_counter == " << components_counter << std::endl;
         // std::cout << "components_count == " << components_count << std::endl;
         assert(components_counter == components_count);
 
         std::cout << std::endl;
 
+        std::cout << std::setw(20) << model.name() << std::endl;
         std::cout << std::setw(20) << "# of locations: " << std::setw(10) << model.locations().size() << std::setw(0) << std::endl;
-        std::cout << std::setw(20) << "# of clocks: " << std::setw(10) << model.number_of_clocks() << std::setw(0) << std::endl;
+        std::cout << std::setw(20) << "# of clocks: " << std::setw(10) << model.number_of_clocks() - 2 << std::setw(0) << std::endl;
 
         std::cout << std::endl;
 
@@ -1887,6 +2512,13 @@ namespace mightypplcpp {
 
         }
 
+        if (debug) {
+
+            std::cout << "\nSee the component above\n";
+            std::cout << "\nPress any key to continue . . .\n";
+            std::cin.get();
+
+        }
 
 
         if (out_format.has_value() && out_format.value() && !out_flatten) {     // TA_sync is not needed for XML output
@@ -1902,9 +2534,9 @@ namespace mightypplcpp {
                 out_str << "location:" << "TA_sync" << ":ell_0{initial: : labels: accept_sync}" << std::endl;
                 out_str << "location:" << "TA_sync" << ":ell_1{}" << std::endl;
 
-                out_str << "edge:" << "TA_sync" << ":ell_0:ell_1:a{provided: turn != " << components_counter << "}" << std::endl;
-                out_str << "edge:" << "TA_sync" << ":ell_1:ell_1:a{provided: turn != " << components_counter << "}" << std::endl;
-                out_str << "edge:" << "TA_sync" << ":ell_1:ell_0:a{provided: turn == " << components_counter << "}" << std::endl;
+                out_str << "edge:" << "TA_sync" << ":ell_0:ell_1:a{provided: turn != " << components_counter - 1 << "}" << std::endl;
+                out_str << "edge:" << "TA_sync" << ":ell_1:ell_1:a{provided: turn != " << components_counter - 1 << "}" << std::endl;
+                out_str << "edge:" << "TA_sync" << ":ell_1:ell_0:a{provided: turn == " << components_counter - 1 << "}" << std::endl;
 
                 std::cout << "\nGenerating sync constraints" << "...\n";
 
@@ -1916,121 +2548,129 @@ namespace mightypplcpp {
                 for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
 
 
-                    if ((*it)->type == PNUELIFN) {
+                    if (comp_flatten) {
 
-                        MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)(*it);
-
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-
-                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
-
-                        }
-
-                        out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                        out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
-
-                    } else if ((*it)->type == PNUELION) {
-
-                        MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)(*it);
-
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-
-                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
-
-                        }
-
-                        out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                        out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
-
-                    } else if ((*it)->type == PNUELIGN) {
-
-                        MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
-
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-
-                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
-
-                        }
-
-                        out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                        out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
-
-                    } else if ((*it)->type == PNUELIHN) {
-
-                        MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
-
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-
-                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
-
-                        }
-
-                        out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                        out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
-
-                    } else if ((*it)->type == COUNTFN) {
-
-                        MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
-
-                        for (auto i = 0; i < (*it)->num_pairs; ++i) {
-
-                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
-
-                        }
-
-                        out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                        out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
-
-                        out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
-
-                    } else if ((*it)->type == COUNTON) {
-
-                        MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
-
-                        for (auto i = 0; i < (*it)->num_pairs; ++i) {
-
-                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
-
-                        }
-
-                        out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                        out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
-
-                        out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
-
-                    } else if ((*it)->type == COUNTGN) {
-
-                        MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
-
-                        for (auto i = 0; i < (*it)->num_pairs; ++i) {
-
-                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
-
-                        }
-
-                        out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                        out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
-
-                        out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
-
-                    } else if ((*it)->type == COUNTHN) {
-
-                        MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
-
-                        for (auto i = 0; i < (*it)->num_pairs; ++i) {
-
-                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
-
-                        }
-
-                        out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                        out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
-
-                        out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
+                        out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << "0" << "@a" << std::endl;
 
                     } else {
 
-                        out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << "0" << "@a" << std::endl;
+                        if ((*it)->type == PNUELIFN) {
+
+                            MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)(*it);
+
+                            for (auto i = 0; i < phi->atoms.size(); ++i) {
+
+                                out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
+
+                            }
+
+                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                        } else if ((*it)->type == PNUELION) {
+
+                            MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)(*it);
+
+                            for (auto i = 0; i < phi->atoms.size(); ++i) {
+
+                                out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
+
+                            }
+
+                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                        } else if ((*it)->type == PNUELIGN) {
+
+                            MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
+
+                            for (auto i = 0; i < phi->atoms.size(); ++i) {
+
+                                out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
+
+                            }
+
+                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                        } else if ((*it)->type == PNUELIHN) {
+
+                            MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
+
+                            for (auto i = 0; i < phi->atoms.size(); ++i) {
+
+                                out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
+
+                            }
+
+                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                        } else if ((*it)->type == COUNTFN) {
+
+                            MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
+
+                            for (auto i = 0; i < (*it)->num_pairs; ++i) {
+
+                                out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
+
+                            }
+
+                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
+
+                        } else if ((*it)->type == COUNTON) {
+
+                            MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
+
+                            for (auto i = 0; i < (*it)->num_pairs; ++i) {
+
+                                out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
+
+                            }
+
+                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
+
+                        } else if ((*it)->type == COUNTGN) {
+
+                            MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
+
+                            for (auto i = 0; i < (*it)->num_pairs; ++i) {
+
+                                out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
+
+                            }
+
+                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
+
+                        } else if ((*it)->type == COUNTHN) {
+
+                            MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
+
+                            for (auto i = 0; i < (*it)->num_pairs; ++i) {
+
+                                out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
+
+                            }
+
+                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
+
+                        } else {
+
+                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << "0" << "@a" << std::endl;
+
+                        }
 
                     }
 
@@ -2050,6 +2690,7 @@ namespace mightypplcpp {
             std::cout << "\n<<<<<< Taking intersection... >>>>>>\n\n";
 
             back = false;
+            last_intersection = true;
 
             std::vector<monitaal::TAwithBDDEdges> automata = temporal_components;
             automata.insert(automata.begin(), div);
@@ -2063,7 +2704,7 @@ namespace mightypplcpp {
             std::cout << std::endl;
 
             std::cout << std::setw(20) << "# of locations: " << std::setw(10) << product.locations().size() << std::setw(0) << std::endl;
-            std::cout << std::setw(20) << "# of clocks: " << std::setw(10) << product.number_of_clocks() << std::setw(0) << std::endl;
+            std::cout << std::setw(20) << "# of clocks: " << std::setw(10) << product.number_of_clocks() - 2 << std::setw(0) << std::endl;
 
             std::cout << std::endl;
 
@@ -2115,160 +2756,170 @@ namespace mightypplcpp {
 
                 for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
 
-                    if ((*it)->type == PNUELIFN) {
-
-                        MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)(*it);
-
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-
-                            out_str << "accept_" << (*it)->id << "_" << i << ",";
-                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
-
-                        }
-
-                        out_str << "accept_seq_in_" << (*it)->id << ",";
-                        std::cout << "accept_seq_in_" << (*it)->id << ",";
-                        out_str << "accept_seq_out_" << (*it)->id << ",";
-                        std::cout << "accept_seq_out_" << (*it)->id << ",";
-
-                    } else if ((*it)->type == PNUELION) {
-
-                        MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)(*it);
-
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-
-                            out_str << "accept_" << (*it)->id << "_" << i << ",";
-                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
-
-                        }
-
-                        out_str << "accept_seq_in_" << (*it)->id << ",";
-                        std::cout << "accept_seq_in_" << (*it)->id << ",";
-                        out_str << "accept_seq_out_" << (*it)->id << ",";
-                        std::cout << "accept_seq_out_" << (*it)->id << ",";
-
-                    } else if ((*it)->type == PNUELIGN) {
-
-                        MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
-
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-
-                            out_str << "accept_" << (*it)->id << "_" << i << ",";
-                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
-
-                        }
-
-                        out_str << "accept_seq_in_" << (*it)->id << ",";
-                        std::cout << "accept_seq_in_" << (*it)->id << ",";
-                        out_str << "accept_seq_out_" << (*it)->id << ",";
-                        std::cout << "accept_seq_out_" << (*it)->id << ",";
-
-                    } else if ((*it)->type == PNUELIHN) {
-
-                        MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
-
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
-
-                            out_str << "accept_" << (*it)->id << "_" << i << ",";
-                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
-
-                        }
-
-                        out_str << "accept_seq_in_" << (*it)->id << ",";
-                        std::cout << "accept_seq_in_" << (*it)->id << ",";
-                        out_str << "accept_seq_out_" << (*it)->id << ",";
-                        std::cout << "accept_seq_out_" << (*it)->id << ",";
-
-                    } else if ((*it)->type == COUNTFN) {
-
-                        MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
-
-                        for (auto i = 0; i < phi->num_pairs; ++i) {
-
-                            out_str << "accept_" << (*it)->id << "_" << i << ",";
-                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
-
-                        }
-
-                        out_str << "accept_seq_in_" << (*it)->id << ",";
-                        std::cout << "accept_seq_in_" << (*it)->id << ",";
-                        out_str << "accept_seq_out_" << (*it)->id << ",";
-                        std::cout << "accept_seq_out_" << (*it)->id << ",";
-                        out_str << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
-                        std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
-
-                    } else if ((*it)->type == COUNTON) {
-
-                        MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
-
-                        for (auto i = 0; i < phi->num_pairs; ++i) {
-
-                            out_str << "accept_" << (*it)->id << "_" << i << ",";
-                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
-
-                        }
-
-                        out_str << "accept_seq_in_" << (*it)->id << ",";
-                        std::cout << "accept_seq_in_" << (*it)->id << ",";
-                        out_str << "accept_seq_out_" << (*it)->id << ",";
-                        std::cout << "accept_seq_out_" << (*it)->id << ",";
-                        out_str << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
-                        std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
-
-                    } else if ((*it)->type == COUNTGN) {
-
-                        MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
-
-                        for (auto i = 0; i < phi->num_pairs; ++i) {
-
-                            out_str << "accept_" << (*it)->id << "_" << i << ",";
-                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
-
-                        }
-
-                        out_str << "accept_seq_in_" << (*it)->id << ",";
-                        std::cout << "accept_seq_in_" << (*it)->id << ",";
-                        out_str << "accept_seq_out_" << (*it)->id << ",";
-                        std::cout << "accept_seq_out_" << (*it)->id << ",";
-                        out_str << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
-                        std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
-
-                    } else if ((*it)->type == COUNTHN) {
-
-                        MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
-
-                        for (auto i = 0; i < phi->num_pairs; ++i) {
-
-                            out_str << "accept_" << (*it)->id << "_" << i << ",";
-                            std::cout << "accept_" << (*it)->id << "_" << i << ",";
-
-                        }
-
-                        out_str << "accept_seq_in_" << (*it)->id << ",";
-                        std::cout << "accept_seq_in_" << (*it)->id << ",";
-                        out_str << "accept_seq_out_" << (*it)->id << ",";
-                        std::cout << "accept_seq_out_" << (*it)->id << ",";
-                        out_str << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
-                        std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
-
-                    } else {
+                    if (comp_flatten) {
 
                         out_str << "accept_" << (*it)->id << ",";
                         std::cout << "accept_" << (*it)->id << ",";
 
+                    } else {
+
+                        if ((*it)->type == PNUELIFN) {
+
+                            MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)(*it);
+
+                            for (auto i = 0; i < phi->atoms.size(); ++i) {
+
+                                out_str << "accept_" << (*it)->id << "_" << i << ",";
+                                std::cout << "accept_" << (*it)->id << "_" << i << ",";
+
+                            }
+
+                            out_str << "accept_seq_in_" << (*it)->id << ",";
+                            std::cout << "accept_seq_in_" << (*it)->id << ",";
+                            out_str << "accept_seq_out_" << (*it)->id << ",";
+                            std::cout << "accept_seq_out_" << (*it)->id << ",";
+
+                        } else if ((*it)->type == PNUELION) {
+
+                            MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)(*it);
+
+                            for (auto i = 0; i < phi->atoms.size(); ++i) {
+
+                                out_str << "accept_" << (*it)->id << "_" << i << ",";
+                                std::cout << "accept_" << (*it)->id << "_" << i << ",";
+
+                            }
+
+                            out_str << "accept_seq_in_" << (*it)->id << ",";
+                            std::cout << "accept_seq_in_" << (*it)->id << ",";
+                            out_str << "accept_seq_out_" << (*it)->id << ",";
+                            std::cout << "accept_seq_out_" << (*it)->id << ",";
+
+                        } else if ((*it)->type == PNUELIGN) {
+
+                            MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
+
+                            for (auto i = 0; i < phi->atoms.size(); ++i) {
+
+                                out_str << "accept_" << (*it)->id << "_" << i << ",";
+                                std::cout << "accept_" << (*it)->id << "_" << i << ",";
+
+                            }
+
+                            out_str << "accept_seq_in_" << (*it)->id << ",";
+                            std::cout << "accept_seq_in_" << (*it)->id << ",";
+                            out_str << "accept_seq_out_" << (*it)->id << ",";
+                            std::cout << "accept_seq_out_" << (*it)->id << ",";
+
+                        } else if ((*it)->type == PNUELIHN) {
+
+                            MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
+
+                            for (auto i = 0; i < phi->atoms.size(); ++i) {
+
+                                out_str << "accept_" << (*it)->id << "_" << i << ",";
+                                std::cout << "accept_" << (*it)->id << "_" << i << ",";
+
+                            }
+
+                            out_str << "accept_seq_in_" << (*it)->id << ",";
+                            std::cout << "accept_seq_in_" << (*it)->id << ",";
+                            out_str << "accept_seq_out_" << (*it)->id << ",";
+                            std::cout << "accept_seq_out_" << (*it)->id << ",";
+
+                        } else if ((*it)->type == COUNTFN) {
+
+                            MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
+
+                            for (auto i = 0; i < phi->num_pairs; ++i) {
+
+                                out_str << "accept_" << (*it)->id << "_" << i << ",";
+                                std::cout << "accept_" << (*it)->id << "_" << i << ",";
+
+                            }
+
+                            out_str << "accept_seq_in_" << (*it)->id << ",";
+                            std::cout << "accept_seq_in_" << (*it)->id << ",";
+                            out_str << "accept_seq_out_" << (*it)->id << ",";
+                            std::cout << "accept_seq_out_" << (*it)->id << ",";
+                            out_str << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
+                            std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
+
+                        } else if ((*it)->type == COUNTON) {
+
+                            MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
+
+                            for (auto i = 0; i < phi->num_pairs; ++i) {
+
+                                out_str << "accept_" << (*it)->id << "_" << i << ",";
+                                std::cout << "accept_" << (*it)->id << "_" << i << ",";
+
+                            }
+
+                            out_str << "accept_seq_in_" << (*it)->id << ",";
+                            std::cout << "accept_seq_in_" << (*it)->id << ",";
+                            out_str << "accept_seq_out_" << (*it)->id << ",";
+                            std::cout << "accept_seq_out_" << (*it)->id << ",";
+                            out_str << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
+                            std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
+
+                        } else if ((*it)->type == COUNTGN) {
+
+                            MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
+
+                            for (auto i = 0; i < phi->num_pairs; ++i) {
+
+                                out_str << "accept_" << (*it)->id << "_" << i << ",";
+                                std::cout << "accept_" << (*it)->id << "_" << i << ",";
+
+                            }
+
+                            out_str << "accept_seq_in_" << (*it)->id << ",";
+                            std::cout << "accept_seq_in_" << (*it)->id << ",";
+                            out_str << "accept_seq_out_" << (*it)->id << ",";
+                            std::cout << "accept_seq_out_" << (*it)->id << ",";
+                            out_str << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
+                            std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
+
+                        } else if ((*it)->type == COUNTHN) {
+
+                            MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
+
+                            for (auto i = 0; i < phi->num_pairs; ++i) {
+
+                                out_str << "accept_" << (*it)->id << "_" << i << ",";
+                                std::cout << "accept_" << (*it)->id << "_" << i << ",";
+
+                            }
+
+                            out_str << "accept_seq_in_" << (*it)->id << ",";
+                            std::cout << "accept_seq_in_" << (*it)->id << ",";
+                            out_str << "accept_seq_out_" << (*it)->id << ",";
+                            std::cout << "accept_seq_out_" << (*it)->id << ",";
+                            out_str << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
+                            std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
+
+                        } else {
+
+                            out_str << "accept_" << (*it)->id << ",";
+                            std::cout << "accept_" << (*it)->id << ",";
+
+                        }
+
                     }
+
                 }
 
                 out_str << "accept_M" << (out_fin ? ",accept_sync " : " ") << out_file << std::endl;
                 std::cout << "accept_M" << (out_fin ? ",accept_sync " : " ") << out_file << std::endl;
 
-                // return no TA, but the genereated output for components
+                // return no TA, but the generated output for components
 
                 return { monitaal::TA("dummy", {}, {}, {}, 0), out_str.str() };
 
             } else {
                 
-                // return no TA, but the genereated output for components
+                // return no TA, but the generated output for components
 
                 return { monitaal::TA("dummy", {}, {}, {}, 0), out_str.str() };
 

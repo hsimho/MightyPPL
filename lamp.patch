@@ -1,0 +1,113 @@
+--- MightyPPL_new_original.cpp	2025-11-16 21:36:51.513042869 +0000
++++ MightyPPL_new_lamp.cpp	2025-11-16 21:36:51.509042870 +0000
+@@ -1052,6 +1052,8 @@
+                 out_str << "event:a" << std::endl << std::endl << std::endl;
+ 
+                 out_str << "clock:1:g" << std::endl;
++		out_str << "clock:1:x" << std::endl;        // for timed lamp
++		out_str << "clock:1:y" << std::endl;
+ 
+                 for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
+ 
+@@ -1730,20 +1732,62 @@
+         name = "M";
+ 
+         clocks.insert({0, "x0"});        // clock 0 is needed anyway
++        clocks.insert({1, "x"});        // clock 0 is needed anyway
++        clocks.insert({2, "y"});        // clock 0 is needed anyway
+ 
+         locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
++        locations.push_back(monitaal::location_t(false, 1, "s1", empty_invariant));
+ 
+-        // 0 -> 0, true
+-
+-        label = bdd_true();
+ 
++        label = !bdd_ithvar(nnf_formula->props.at("push")) & !bdd_ithvar(nnf_formula->props.at("blink"));
++        reset.push_back(1);
++        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
++        guard.push_back(monitaal::constraint_t::upper_non_strict(1, 1));
+         bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
++        guard.clear();
++        reset.clear();
++
++        label = bdd_ithvar(nnf_formula->props.at("push")) & bdd_ithvar(nnf_formula->props.at("blink"));
++        reset.push_back(1);
++        reset.push_back(2);
++        bdd_edges.push_back(monitaal::bdd_edge_t(0, 1, guard, reset, label));
++        guard.clear();
++        reset.clear();
++
++        label = !bdd_ithvar(nnf_formula->props.at("push")) & bdd_ithvar(nnf_formula->props.at("blink"));
++        reset.push_back(1);
++        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
++        guard.push_back(monitaal::constraint_t::upper_non_strict(1, 1));
++        guard.push_back(monitaal::constraint_t::upper_non_strict(2, 2));
++        bdd_edges.push_back(monitaal::bdd_edge_t(1, 1, guard, reset, label));
++        guard.clear();
++        reset.clear();
++
++        label = bdd_ithvar(nnf_formula->props.at("push")) & bdd_ithvar(nnf_formula->props.at("blink"));
++        reset.push_back(1);
++        reset.push_back(2);
++        bdd_edges.push_back(monitaal::bdd_edge_t(1, 1, guard, reset, label));
++        guard.clear();
++        reset.clear();
++
++
++        label = !bdd_ithvar(nnf_formula->props.at("push")) & bdd_ithvar(nnf_formula->props.at("blink"));
++        reset.push_back(1);
++        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
++        guard.push_back(monitaal::constraint_t::upper_non_strict(1, 1));
++        guard.push_back(monitaal::constraint_t::lower_non_strict(2, 3));
++        guard.push_back(monitaal::constraint_t::upper_non_strict(2, 3));
++        bdd_edges.push_back(monitaal::bdd_edge_t(1, 0, guard, reset, label));
++        guard.clear();
++        reset.clear();
++
+ 
+         model = monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0);   // last arg: initial location id
+         clocks.clear();
+         locations.clear();
+         bdd_edges.clear();
+ 
++
+         if (out_format.has_value() && !out_flatten) {
+ 
+             if (out_format.value()) {
+@@ -1753,8 +1797,34 @@
+                 out_str << "process:" << "M" << std::endl;
+ 
+                 out_str << "location:" << "M" << ":ell_0{initial: : labels: accept_M}" << std::endl;
++		out_str << "location:" << "M" << ":ell_1{}" << std::endl;
++
++
++                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter << " && p_" << std::to_string(nnf_formula->props.at("push")) << " % 2 == 0 && p_" << std::to_string(nnf_formula->props.at("blink")) << " % 2 == 0 && x == 1 : do: x = 0; turn = 0; ";
++                for (auto i = 0; i < num_all_props; ++i) {
++                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
++                }
++                out_str << "}" << std::endl;
++
++                out_str << "edge:" << "M" << ":ell_0:ell_1:a{provided: g == 0 && turn == " << components_counter << " && p_" << std::to_string(nnf_formula->props.at("push")) << " >= 1 && p_" << std::to_string(nnf_formula->props.at("blink")) << " >= 1 : do: x = 0; y = 0; turn = 0; ";
++                for (auto i = 0; i < num_all_props; ++i) {
++                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
++                }
++                out_str << "}" << std::endl;
++
++                out_str << "edge:" << "M" << ":ell_1:ell_1:a{provided: g == 0 && turn == " << components_counter << "&& p_" << std::to_string(nnf_formula->props.at("push")) << " % 2 == 0 && p_" << std::to_string(nnf_formula->props.at("blink")) << " >= 1 && x == 1 && y <= 2 : do: x = 0; turn = 0; ";
++                for (auto i = 0; i < num_all_props; ++i) {
++                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
++                }
++                out_str << "}" << std::endl;
++
++                out_str << "edge:" << "M" << ":ell_1:ell_1:a{provided: g == 0 && turn == " << components_counter << "&& p_" << std::to_string(nnf_formula->props.at("push")) << " >= 1 && p_" << std::to_string(nnf_formula->props.at("blink")) << " >= 1 : do: x = 0; y = 0; turn = 0; ";
++                for (auto i = 0; i < num_all_props; ++i) {
++                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
++                }
++                out_str << "}" << std::endl;
+ 
+-                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter << " : do: turn = 0; ";
++                out_str << "edge:" << "M" << ":ell_1:ell_0:a{provided: g == 0 && turn == " << components_counter << "&& p_" << std::to_string(nnf_formula->props.at("push")) << " % 2 == 0 && p_" << std::to_string(nnf_formula->props.at("blink")) << " >= 1 && x == 1 && y == 3 : do: x = 0; turn = 0; ";
+                 for (auto i = 0; i < num_all_props; ++i) {
+                     out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
+                 }

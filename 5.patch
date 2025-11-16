@@ -1,0 +1,127 @@
+--- MightyPPL_new_original.cpp	2025-11-16 21:36:51.513042869 +0000
++++ MightyPPL_new_5.cpp	2025-11-11 18:12:06.068569486 +0000
+@@ -1052,6 +1052,7 @@
+                 out_str << "event:a" << std::endl << std::endl << std::endl;
+ 
+                 out_str << "clock:1:g" << std::endl;
++                out_str << "clock:1:x" << std::endl;        // for pinwheel
+ 
+                 for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
+ 
+@@ -1730,20 +1731,51 @@
+         name = "M";
+ 
+         clocks.insert({0, "x0"});        // clock 0 is needed anyway
++        clocks.insert({1, "x"});        // for pinwheel
+ 
+         locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
+ 
+-        // 0 -> 0, true
++        label = bdd_ithvar(nnf_formula->props.at("p1")) & !bdd_ithvar(nnf_formula->props.at("p2")) & !bdd_ithvar(nnf_formula->props.at("p3")) & !bdd_ithvar(nnf_formula->props.at("p4")) & !bdd_ithvar(nnf_formula->props.at("p5"));
++        reset.push_back(1);
++        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
++        bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
++        guard.clear();
++        reset.clear();
++
++        label = !bdd_ithvar(nnf_formula->props.at("p1")) & bdd_ithvar(nnf_formula->props.at("p2")) & !bdd_ithvar(nnf_formula->props.at("p3")) & !bdd_ithvar(nnf_formula->props.at("p4")) & !bdd_ithvar(nnf_formula->props.at("p5"));
++        reset.push_back(1);
++        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
++        bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
++        guard.clear();
++        reset.clear();
+ 
+-        label = bdd_true();
++        label = !bdd_ithvar(nnf_formula->props.at("p1")) & !bdd_ithvar(nnf_formula->props.at("p2")) & bdd_ithvar(nnf_formula->props.at("p3")) & !bdd_ithvar(nnf_formula->props.at("p4")) & !bdd_ithvar(nnf_formula->props.at("p5"));
++        reset.push_back(1);
++        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
++        bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
++        guard.clear();
++        reset.clear();
++
++        label = !bdd_ithvar(nnf_formula->props.at("p1")) & !bdd_ithvar(nnf_formula->props.at("p2")) & !bdd_ithvar(nnf_formula->props.at("p3")) & bdd_ithvar(nnf_formula->props.at("p4")) & !bdd_ithvar(nnf_formula->props.at("p5"));
++        reset.push_back(1);
++        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
++        bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
++        guard.clear();
++        reset.clear();
+ 
++        label = !bdd_ithvar(nnf_formula->props.at("p1")) & !bdd_ithvar(nnf_formula->props.at("p2")) & !bdd_ithvar(nnf_formula->props.at("p3")) & !bdd_ithvar(nnf_formula->props.at("p4")) & bdd_ithvar(nnf_formula->props.at("p5"));
++        reset.push_back(1);
++        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
+         bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
++        guard.clear();
++        reset.clear();
+ 
+         model = monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0);   // last arg: initial location id
+         clocks.clear();
+         locations.clear();
+         bdd_edges.clear();
+ 
++
+         if (out_format.has_value() && !out_flatten) {
+ 
+             if (out_format.value()) {
+@@ -1754,7 +1786,61 @@
+ 
+                 out_str << "location:" << "M" << ":ell_0{initial: : labels: accept_M}" << std::endl;
+ 
+-                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter << " : do: turn = 0; ";
++                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter
++                        << " && p_" << std::to_string(nnf_formula->props.at("p1")) << " >= 1"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p2")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p3")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p4")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p5")) << " % 2 == 0"
++                        << " && x >= 1 : do: x = 0; turn = 0; ";
++                for (auto i = 0; i < num_all_props; ++i) {
++                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
++                }
++                out_str << "}" << std::endl;
++
++                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter
++                        << " && p_" << std::to_string(nnf_formula->props.at("p1")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p2")) << " >= 1"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p3")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p4")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p5")) << " % 2 == 0"
++                        << " && x >= 1 : do: x = 0; turn = 0; ";
++                for (auto i = 0; i < num_all_props; ++i) {
++                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
++                }
++                out_str << "}" << std::endl;
++
++                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter
++                        << " && p_" << std::to_string(nnf_formula->props.at("p1")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p2")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p3")) << " >= 1"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p4")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p5")) << " % 2 == 0"
++                        << " && x >= 1 : do: x = 0; turn = 0; ";
++                for (auto i = 0; i < num_all_props; ++i) {
++                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
++                }
++                out_str << "}" << std::endl;
++
++                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter
++                        << " && p_" << std::to_string(nnf_formula->props.at("p1")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p2")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p3")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p4")) << " >= 1"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p5")) << " % 2 == 0"
++                        << " && x >= 1 : do: x = 0; turn = 0; ";
++                for (auto i = 0; i < num_all_props; ++i) {
++                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
++                }
++                out_str << "}" << std::endl;
++
++                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter
++                        << " && p_" << std::to_string(nnf_formula->props.at("p1")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p2")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p3")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p4")) << " % 2 == 0"
++                        << " && p_" << std::to_string(nnf_formula->props.at("p5")) << " >= 1"
++                        << " && x >= 1 : do: x = 0; turn = 0; ";
+                 for (auto i = 0; i < num_all_props; ++i) {
+                     out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
+                 }

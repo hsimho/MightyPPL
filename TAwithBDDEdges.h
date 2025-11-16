@@ -5,6 +5,7 @@
 #include <vector>
 #include <cassert>
 #include <optional>
+#include <numeric>
 
 #include "types.h"
 #include "TA.h"
@@ -13,10 +14,14 @@
 
 namespace mightypplcpp {
 
+    extern int gcd;
+    extern bool last_intersection;
+
     extern void allsat_print_handler(char*, int);
     extern std::vector<std::string> sat_paths;
     extern std::vector<std::string> get_letters(const std::string&);
 
+    extern std::optional<bool> out_format;
     extern bool out_fin;
     extern bool debug;
     extern bool back;
