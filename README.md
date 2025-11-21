@@ -53,16 +53,16 @@ Pnueli modalities (and their past and dual versions) are `Fn`, `On`, `Gn` and `H
 ## Usage
 
 ```
-mitppl <in_spec_file> --{fin|inf} [out_file --{tck|xml} [--{noflat|compflat}]] [--debug] [--noback]
+mitppl <in_spec_file> --{fin|inf} [out_file --{tck|xml} [--{noflatten|compflatten}]] [--debug] [--noback]
 ```
 
 - `in_spec_file` is a formula, written in plain text as the examples above.
 - `--fin` or `--inf` for finite / infinite timed words (finite / Büchi acceptance).
 - If `out_file` is specified then either `--tck` or `--xml` must follow.
 - Operation modes:
-    - The "**noflat**" mode: individual tester / component TAs, one or more for each temporal subformula;
-    - The "**compflat**" mode (recommended): individual tester TAs, one for each temporal subformula;
-    - The default "**flat**" mode: a single monolithic TA for the entire formula (the synchronous product of the tester and component TAs).
+    - The "**noflatten**" mode: individual tester / component TAs, one or more for each temporal subformula;
+    - The "**compflatten**" mode (recommended): individual tester TAs, one for each temporal subformula;
+    - The default "**flatten**" mode: a single monolithic TA for the entire formula (the synchronous product of the tester and component TAs).
         For performance reasons MightyPPL constructs only forward-reachable state spaces and transitions.
 - If `out_file` is unspecifed, then a [standard backward fixpoint algorithm](https://dl.acm.org/doi/abs/10.5555/866681) will be used.
 - `--debug` to pause at various points in the processing.
