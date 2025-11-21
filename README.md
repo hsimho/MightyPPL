@@ -23,7 +23,7 @@ Below are some example formulae supported by MightyPPL (all unsatisfiable over i
 ```
 (p1 U[1, 2] p2) && G[1, 3] (!p2)
 ```
-This is unsatisfiable, as you cannot have a $p_2$-event in $t + [1, 2]$ and simultaneously have no $p_2$-event in $t + [1, 3]$.
+This is unsatisfiable, as you cannot have a $p _2$-event in $t + [1, 2]$ and simultaneously have no $p _2$-event in $t + [1, 3]$.
 It becomes satisfiable if the intervals are swapped.
 ```
 Fn[0, 5](p1, p2, p3) && G(p1 -> G[0, 3](!p2)) && G(p2 -> G[0, 3](!p3))
@@ -33,9 +33,9 @@ Clearly unsatisfiable. If the interval is $[0, 7]$ then satisfiable.
 ```
 F( !((p1 -> (p1 && H [0, 20] p1)) || O [0, 30] (p1 -> (p1 && H [0, 20] p1))) )
 ```
-The formula holds if there is a point where $p_1 \land \textbf{O}_{[0, 20]} (\neg p_1)$
-and $\textbf{H}_{[0, 30]} \big( p_1 \land \textbf{O}_{[0, 20]} (\neg p_1) \big)$ both hold. This is impossible
-as $\textbf{O}_{[0, 20]} (\neg p_1)$ and $\textbf{H}_{[0, 30]} p_1$ are contradictory.
+The formula holds if there is a point where $p _1 \land \textbf{O} _{[0, 20]} (\neg p _1)$
+and $\textbf{H} _{[0, 30]} \big( p _1 \land \textbf{O} _{[0, 20]} (\neg p _1) \big)$ both hold. This is impossible
+as $\textbf{O} _{[0, 20]} (\neg p _1)$ and $\textbf{H} _{[0, 30]} p _1$ are contradictory.
 It becomes satisfiable if $[0, 20]$ and $[0, 30]$ are swapped.
 
 
