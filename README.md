@@ -3,7 +3,6 @@
 This is a tool for translating [MITPPL](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CONCUR.2025.24) formulae over timed words
 into timed automata in
 
-
 - [Uppaal](https://github.com/UPPAALModelChecker) xml [format](https://docs.uppaal.org/toolsandapi/file-formats/). 
 - [TChecker](https://github.com/ticktac-project/tchecker) model [format](https://github.com/ticktac-project/tchecker/wiki/TChecker-file-format).
 
