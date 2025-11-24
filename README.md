@@ -80,8 +80,8 @@ Internally MightyPPL uses TA and DBM representations provided by
 In particular, TAs are represented *semi-symbolically* where
 each transition is labelled with a Boolean formula over propositions
 (instead of a single letter).
-Instead of involving two-way TAs or other variants, the future and past modalities
-are handled uniformly by good old pure vanilla TAs, thanks to the innocuous fact that *timed regular languages are closed under reversal* (!).
+**Instead of involving two-way or other variants of TAs, the future and past modalities
+are handled uniformly by good old pure vanilla TAs, thanks to the innocuous fact that *timed regular languages are closed under reversal* (!).**
 Overlapping obligations from MITL modalities with general intervals and Pnueli
 modalities are handled by a novel *sequentialisation* technique; see the [tech
 report](https://arxiv.org/abs/2510.01490) for details.
@@ -115,6 +115,47 @@ build/antlr4_runtime/src/antlr4_runtime/runtime/Cpp/_deps/googletest-src/CMakeLi
 build/antlr4_runtime/src/antlr4_runtime/runtime/Cpp/_deps/googletest-src/googlemock/CMakeLists.txt
 build/antlr4_runtime/src/antlr4_runtime/runtime/Cpp/_deps/googletest-src/googletest/CMakeLists.txt
 ```
+
+
+## Some empirical results
+
+The table below presents the runtime (in seconds) for checking satisfiability over infinite timed words.
+All experiments were executed on a desktop machine with an Intel i9-13900K CPU and 64GB of memory.  
+Note in particular that **we used identical back ends for all comparisons!**  
+MightyPPL is used in the "**compflatten**" mode.
+
+Benchmarks in `/testcases/MightyL/`. 
+
+| Formula         |    Sat? | MightyL + opaal_ltsmin | MightyPPL + opaal_ltsmin |
+|-----------------|--------:|-----------------------:|-------------------------:|
+| E-5-12          | &check; |                225.575 |                    2.124 |
+| A-5-12          | &check; |                  3.460 |                    0.748 |
+| U-5-12          | &check; |                171.445 |                   10.377 |
+| R-5-12          | &check; |                  2.249 |                    9.055 |
+| theta3-100-1000 | &check; |                    ERR |                    2.936 |
+| theta4-100-1000 | &check; |                    ERR |                    4.475 |
+
+
+Benchmarks in `/testcases/newhoxha2/`. 
+
+| Formula |    Sat? | MightyL + opaal_ltsmin | MightyPPL + opaal_ltsmin |
+|---------|--------:|-----------------------:|-------------------------:|
+| 1       | &check; |                 44.444 |                   32.408 |
+| 2       | &cross; |                 62.400 |                   73.058 |
+| 3       | &check; |                      - |                    4.593 |
+| 4       | &cross; |                      - |                    2.599 |
+| 5       | &check; |                      - |                   14.660 |
+| 6       | &cross; |                      - |                    > 300 |
+
+Benchmarks in `/testcases/acacia/`. 
+
+| Formula |    Sat? | MightyPPL + TChecker |
+|---------|--------:|---------------------:|
+| 3       | &check; |                1.755 |
+| 4       | &cross; |                1.119 |
+| 5       | &check; |                1.629 |
+| 6       | &cross; |                1.054 |
+| 9       | &check; |               10.689 |
 
 ## Cite MightyPPL 
 
