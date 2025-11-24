@@ -64,7 +64,7 @@ mitppl <in_spec_file> --{fin|inf} [out_file --{tck|xml} [--{noflatten|compflatte
     - The "**compflatten**" mode (recommended): individual tester TAs, one for each temporal subformula;
     - The default "**flatten**" mode: a single monolithic TA for the entire formula (the synchronous product of the tester and component TAs).
         For performance reasons MightyPPL constructs only forward-reachable state spaces and transitions.
-- If `out_file` is unspecifed, then a [standard backward fixpoint algorithm](https://dl.acm.org/doi/abs/10.5555/866681) will be used.
+- If `out_file` is unspecifed, then an implementation of the [standard backward fixpoint algorithm](https://dl.acm.org/doi/abs/10.5555/866681) will be used as the back end.
 - `--debug` to pause at various points in the processing.
 - `--noback` to disable the backward reachability analysis for simplifying tester TAs (no effect
   with `--noflat`).
@@ -77,10 +77,10 @@ done.
 
 Internally MightyPPL uses TA and DBM representations provided by 
 [MoniTAal](https://github.com/DEIS-Tools/MoniTAal) and [PARDIBAAL](https://github.com/DEIS-Tools/PARDIBAAL).
-In particular, TAs are represented *semi-symbolically* where
-each transition is labelled with a Boolean formula over propositions
-(instead of a single letter).
-**Instead of involving two-way or other variants of TAs, the future and past modalities
+In particular, TAs are represented *semi-symbolically* and
+transitions are synchronised on Boolean formulae over propositions
+(instead of single letters).
+**Without using two-way or other TA variants, future and past modalities
 are handled uniformly by good old pure vanilla TAs, thanks to the innocuous fact that *timed regular languages are closed under reversal* (!).**
 Overlapping obligations from MITL modalities with general intervals and Pnueli
 modalities are handled by a novel *sequentialisation* technique; see the [tech
