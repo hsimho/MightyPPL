@@ -1,0 +1,1 @@
+F( ! (!(p && !(true S [10,infty) (!p)) && (true S [20,40] true)) || ((p || (true S[0, 20] p)) && !(true S [0,20] (!(p || (true S[0,40] p)))))) )
