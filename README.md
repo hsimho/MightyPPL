@@ -40,14 +40,14 @@ It becomes satisfiable if $[0, 20]$ and $[0, 30]$ are swapped.
 
 See some additional sanity checks below.
 
-| Formula                                                                             |    Sat? |
-|-------------------------------------------------------------------------------------|--------:|
-| $\mathbf{F} \big((p \mathbf{S}_{[1,2]} q) \land \neg (p \mathbf{S}_{[1,3]} q)\big)$ | &cross; |
-| $\mathbf{F} \big((p \mathbf{S}_{[1,3]} q) \land \neg (p \mathbf{S}_{[1,2]} q)\big)$ | &check; |
-| $\mathbf{F} \big((p \mathbf{U}_{[1,2]} q) \land \neg (p \mathbf{U}_{[1,3]} q)\big)$ | &cross; |
-| $\mathbf{F} \big((p \mathbf{U}_{[1,3]} q) \land \neg (p \mathbf{U}_{[1,2]} q)\big)$ | &check; |
-| $\mathbf{F} \big((p \mathbf{U}_{[1,2]} q) \land \neg (p \mathbf{U}_{[0,3]} q)\big)$ | &cross; |
-| $\mathbf{F} \big((p \mathbf{U}_{[0,3]} q) \land \neg (p \mathbf{U}_{[1,2]} q)\big)$ | &check; |
+| Formula                                                                               |    Sat? |
+|---------------------------------------------------------------------------------------|--------:|
+| $\mathbf{F} \big((p \mathbf{S} _{[1,2]} q) \land \neg (p \mathbf{S} _{[1,3]} q)\big)$ | &cross; |
+| $\mathbf{F} \big((p \mathbf{S} _{[1,3]} q) \land \neg (p \mathbf{S} _{[1,2]} q)\big)$  | &check; |
+| $\mathbf{F} \big((p \mathbf{U} _{[1,2]} q) \land \neg (p \mathbf{U} _{[1,3]} q)\big)$  | &cross; |
+| $\mathbf{F} \big((p \mathbf{U} _{[1,3]} q) \land \neg (p \mathbf{U} _{[1,2]} q)\big)$  | &check; |
+| $\mathbf{F} \big((p \mathbf{U} _{[1,2]} q) \land \neg (p \mathbf{U} _{[0,3]} q)\big)$  | &cross; |
+| $\mathbf{F} \big((p \mathbf{U} _{[0,3]} q) \land \neg (p \mathbf{U} _{[1,2]} q)\big)$  | &check; |
 
 See the grammar file `Mitl.g4` for the exact syntax of input formulae, but in short: `F`, `G`, `U`, `R` as in
 [MightyL](https://verif.ulb.ac.be/mightyl/),
