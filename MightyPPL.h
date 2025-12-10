@@ -38,6 +38,8 @@ namespace mightypplcpp {
     extern size_t num_all_props;
     extern size_t components_counter;
 
+    extern bool single;
+
     extern bdd encode(const int i, const int offset, const int bits);
 
     extern std::vector<std::string> sat_paths;
@@ -58,7 +60,7 @@ namespace mightypplcpp {
     extern bool debug;
 
     extern monitaal::TAwithBDDEdges varphi;
-    extern monitaal::TAwithBDDEdges varphi_;
+//    extern monitaal::TAwithBDDEdges varphi_;
     extern monitaal::TAwithBDDEdges div;
     extern std::vector<monitaal::TAwithBDDEdges> temporal_components;
     extern monitaal::TAwithBDDEdges model;

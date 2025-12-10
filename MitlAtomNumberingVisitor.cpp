@@ -227,7 +227,7 @@ namespace mightypplcpp {
 
     std::any MitlAtomNumberingVisitor::visitAtomFn(MitlParser::AtomFnContext *ctx) {
 
-        ctx->bits = 2 * std::ceil(std::log2(ctx->atoms.size() + 1) + 1); // + 1: 0 for "all off", +1 for "overall" trigger
+        ctx->bits = 2 * (std::ceil(std::log2(ctx->atoms.size() + 1)) + 1); // + 1: 0 for "all off", +1 for "overall" trigger
 
         if (root->temporals.count(ctx->getText()) == 0) {
 
@@ -259,7 +259,7 @@ namespace mightypplcpp {
     
     std::any MitlAtomNumberingVisitor::visitAtomOn(MitlParser::AtomOnContext *ctx) {
 
-        ctx->bits = 2 * std::ceil(std::log2(ctx->atoms.size() + 1) + 1); // + 1: 0 for "all off", +1 for "overall" trigger
+        ctx->bits = 2 * (std::ceil(std::log2(ctx->atoms.size() + 1)) + 1); // + 1: 0 for "all off", +1 for "overall" trigger
 
         if (root->temporals.count(ctx->getText()) == 0) {
 
@@ -291,7 +291,7 @@ namespace mightypplcpp {
     
     std::any MitlAtomNumberingVisitor::visitAtomGn(MitlParser::AtomGnContext *ctx) {
 
-        ctx->bits = 2 * std::ceil(std::log2(ctx->atoms.size() + 1) + 1); // + 1: 0 for "all off", +1 for "overall" trigger
+        ctx->bits = 2 * (std::ceil(std::log2(ctx->atoms.size() + 1)) + 1); // + 1: 0 for "all off", +1 for "overall" trigger
 
         if (root->temporals.count(ctx->getText()) == 0) {
 
@@ -323,7 +323,7 @@ namespace mightypplcpp {
     
     std::any MitlAtomNumberingVisitor::visitAtomHn(MitlParser::AtomHnContext *ctx) {
 
-        ctx->bits = 2 * std::ceil(std::log2(ctx->atoms.size() + 1) + 1); // + 1: 0 for "all off", +1 for "overall" trigger
+        ctx->bits = 2 * (std::ceil(std::log2(ctx->atoms.size() + 1)) + 1); // + 1: 0 for "all off", +1 for "overall" trigger
 
         if (root->temporals.count(ctx->getText()) == 0) {
 

@@ -28,7 +28,7 @@ It becomes satisfiable if the intervals are swapped.
 ```
 Fn[0, 5](p1, p2, p3) && G(p1 -> G[0, 3](!p2)) && G(p2 -> G[0, 3](!p3))
 ```
-Clearly unsatisfiable. If $[0, 5]$ is replaced by $[0, 7]$ then satisfiable.
+Clearly unsatisfiable. If the interval is $[0, 7]$ then satisfiable.
 
 ```
 F( !((p1 -> (p1 && H [0, 20] p1)) || O [0, 30] (p1 -> (p1 && H [0, 20] p1))) )
@@ -134,39 +134,38 @@ All experiments were executed on a desktop machine with an Intel i9-13900K CPU a
 Note in particular that **we used identical back ends for all comparisons!**  
 MightyPPL is used in the "**compflatten**" mode.
 
-
 Benchmarks in `/testcases/MightyL/`. 
 
 | Formula         |    Sat? | MightyL + opaal_ltsmin | MightyPPL + opaal_ltsmin |
 |-----------------|--------:|-----------------------:|-------------------------:|
-| E-5-12          | &check; |                225.575 |                    3.966 |
-| A-5-12          | &check; |                  3.460 |                    0.908 |
-| U-5-12          | &check; |                171.445 |                   18.829 |
-| R-5-12          | &check; |                  2.249 |                   27.599 |
-| theta3-100-1000 | &check; |                    ERR |                    7.380 |
-| theta4-100-1000 | &check; |                    ERR |                   12.299 |
+| E-5-12          | &check; |                225.575 |                    2.124 |
+| A-5-12          | &check; |                  3.460 |                    0.748 |
+| U-5-12          | &check; |                171.445 |                   10.377 |
+| R-5-12          | &check; |                  2.249 |                    9.055 |
+| theta3-100-1000 | &check; |                    ERR |                    2.936 |
+| theta4-100-1000 | &check; |                    ERR |                    4.475 |
 
 
 Benchmarks in `/testcases/newhoxha2/`. 
 
 | Formula |    Sat? | MightyL + opaal_ltsmin | MightyPPL + opaal_ltsmin |
 |---------|--------:|-----------------------:|-------------------------:|
-| 1       | &check; |                 44.444 |                   10.674 |
-| 2       | &cross; |                 62.400 |                   45.626 |
-| 3       | &check; |                      - |                    0.013 |
-| 4       | &cross; |                      - |                    0.998 |
-| 5       | &check; |                      - |                    > 300 |
+| 1       | &check; |                 44.444 |                   32.408 |
+| 2       | &cross; |                 62.400 |                   73.058 |
+| 3       | &check; |                      - |                    4.593 |
+| 4       | &cross; |                      - |                    2.599 |
+| 5       | &check; |                      - |                   14.660 |
 | 6       | &cross; |                      - |                    > 300 |
 
 Benchmarks in `/testcases/acacia/`. 
 
 | Formula |    Sat? | MightyPPL + TChecker |
 |---------|--------:|---------------------:|
-| 3       | &check; |                7.766 |
-| 4       | &cross; |                3.388 |
-| 5       | &check; |                8.431 |
-| 6       | &cross; |                1.101 |
-| 9       | &check; |               60.375 |
+| 3       | &check; |                1.755 |
+| 4       | &cross; |                1.119 |
+| 5       | &check; |                1.629 |
+| 6       | &cross; |                1.054 |
+| 9       | &check; |               10.689 |
 
 ## Cite MightyPPL 
 

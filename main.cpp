@@ -36,7 +36,7 @@ namespace mightypplcpp {
     bool back = true;
 
     monitaal::TAwithBDDEdges varphi = monitaal::TAwithBDDEdges("dummy", {}, {}, {}, 0);
-    monitaal::TAwithBDDEdges varphi_ = monitaal::TAwithBDDEdges("dummy", {}, {}, {}, 0);
+//    monitaal::TAwithBDDEdges varphi_ = monitaal::TAwithBDDEdges("dummy", {}, {}, {}, 0);
     monitaal::TAwithBDDEdges div = monitaal::TAwithBDDEdges("dummy", {}, {}, {}, 0);
     std::vector<monitaal::TAwithBDDEdges> temporal_components;
     monitaal::TAwithBDDEdges model = monitaal::TAwithBDDEdges("dummy", {}, {}, {}, 0);   // last arg: initial location id
@@ -335,15 +335,14 @@ int main(int argc, const char ** argv) {
 
    
     if (out_flatten) {
-        std::cout << "Constructing TA took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+        std::cout << "Constructing flattened product TA took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
     }
 
-    // else if (comp_flatten) {
-    //     std::cout << "Constructing tester TAs (one for each temporal subformula) took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
-    // } else {
-    //     std::cout << "Constructing tester and component TAs took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
-    // }
-
+//    else if (comp_flatten) {
+//        std::cout << "Constructing flattened tester TAs (one for each temporal subformula) took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+//    } else {
+//        std::cout << "Constructing non-flattened tester and component TAs took = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+//    }
 
     if (!out_format.has_value()) {
 
@@ -782,9 +781,9 @@ int main(int argc, const char ** argv) {
 
                     query_out << "TA_0.loc == 1";
 
-                    // query_out << " && ";
+                    query_out << " && ";
 
-                    // query_out << "M.loc == 0";
+                    query_out << "M.loc == 0";
 
                     query_out << ")";
 
@@ -849,9 +848,9 @@ int main(int argc, const char ** argv) {
 
                     ltl_out << "([]<>(TA_div_loc == 0))";
 
-                    // ltl_out << " && ";
+                    ltl_out << " && ";
 
-                    // ltl_out << "([]<>(M_loc == 0))";
+                    ltl_out << "([]<>(M_loc == 0))";
 
                     ltl_out << ")";
 

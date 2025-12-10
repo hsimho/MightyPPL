@@ -70,7 +70,20 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomF(MitlParser::AtomFContext *ctx) {
 
-        visit(ctx->atom());
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            visit(ctx->atom());
+            top = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                visit(ctx->atom());
+            } else {
+                visit(ctx->atom());
+            }
+        }
         ctx->type = FINALLY;
         return nullptr; 
 
@@ -78,7 +91,20 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomO(MitlParser::AtomOContext *ctx) {
 
-        visit(ctx->atom());
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            visit(ctx->atom());
+            top = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                visit(ctx->atom());
+            } else {
+                visit(ctx->atom());
+            }
+        }
         ctx->type = ONCE;
         return nullptr; 
 
@@ -86,7 +112,24 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomG(MitlParser::AtomGContext *ctx) {
 
-        visit(ctx->atom());
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            existential = false;
+            visit(ctx->atom());
+            top = true;
+            existential = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                existential = false;
+                visit(ctx->atom());
+                existential = true;
+            } else {
+                visit(ctx->atom());
+            }
+        }
         ctx->type = GLOBALLY;
         return nullptr; 
 
@@ -94,7 +137,24 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomH(MitlParser::AtomHContext *ctx) {
 
-        visit(ctx->atom());
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            existential = false;
+            visit(ctx->atom());
+            top = true;
+            existential = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                existential = false;
+                visit(ctx->atom());
+                existential = true;
+            } else {
+                visit(ctx->atom());
+            }
+        }
         ctx->type = HISTORICALLY;
         return nullptr; 
 
@@ -102,8 +162,27 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomU(MitlParser::AtomUContext *ctx) {
 
-        visit(ctx->atom(0));
-        visit(ctx->atom(1));
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            existential = false;
+            visit(ctx->atom(0));
+            existential = true;
+            visit(ctx->atom(1));
+            top = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                existential = false;
+                visit(ctx->atom(0));
+                existential = true;
+                visit(ctx->atom(1));
+            } else {
+                visit(ctx->atom(0));
+                visit(ctx->atom(1));
+            }
+        }
         ctx->type = UNTIL;
         return nullptr; 
 
@@ -111,8 +190,27 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomS(MitlParser::AtomSContext *ctx) {
 
-        visit(ctx->atom(0));
-        visit(ctx->atom(1));
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            existential = false;
+            visit(ctx->atom(0));
+            existential = true;
+            visit(ctx->atom(1));
+            top = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                existential = false;
+                visit(ctx->atom(0));
+                existential = true;
+                visit(ctx->atom(1));
+            } else {
+                visit(ctx->atom(0));
+                visit(ctx->atom(1));
+            }
+        }
         ctx->type = SINCE;
         return nullptr; 
 
@@ -120,8 +218,27 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomR(MitlParser::AtomRContext *ctx) {
 
-        visit(ctx->atom(0));
-        visit(ctx->atom(1));
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            visit(ctx->atom(0));
+            existential = false;
+            visit(ctx->atom(1));
+            existential = true;
+            top = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                visit(ctx->atom(0));
+                existential = false;
+                visit(ctx->atom(1));
+                existential = true;
+            } else {
+                visit(ctx->atom(0));
+                visit(ctx->atom(1));
+            }
+        }
         ctx->type = RELEASE;
         return nullptr; 
 
@@ -129,8 +246,27 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomT(MitlParser::AtomTContext *ctx) {
 
-        visit(ctx->atom(0));
-        visit(ctx->atom(1));
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            visit(ctx->atom(0));
+            existential = false;
+            visit(ctx->atom(1));
+            existential = true;
+            top = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                visit(ctx->atom(0));
+                existential = false;
+                visit(ctx->atom(1));
+                existential = true;
+            } else {
+                visit(ctx->atom(0));
+                visit(ctx->atom(1));
+            }
+        }
         ctx->type = TRIGGER;
         return nullptr; 
 
@@ -138,8 +274,25 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomFn(MitlParser::AtomFnContext *ctx) {
 
-        for (auto i = 0; i < ctx->atoms.size(); ++i) {
-            visit(ctx->atoms[i]);
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                visit(ctx->atoms[i]);
+            }
+            top = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                    visit(ctx->atoms[i]);
+                }
+            } else {
+                for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                    visit(ctx->atoms[i]);
+                }
+            }
         }
         ctx->type = PNUELIFN;
         return nullptr; 
@@ -148,8 +301,25 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomOn(MitlParser::AtomOnContext *ctx) {
 
-        for (auto i = 0; i < ctx->atoms.size(); ++i) {
-            visit(ctx->atoms[i]);
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                visit(ctx->atoms[i]);
+            }
+            top = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                    visit(ctx->atoms[i]);
+                }
+            } else {
+                for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                    visit(ctx->atoms[i]);
+                }
+            }
         }
         ctx->type = PNUELION;
         return nullptr; 
@@ -158,8 +328,29 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomGn(MitlParser::AtomGnContext *ctx) {
 
-        for (auto i = 0; i < ctx->atoms.size(); ++i) {
-            visit(ctx->atoms[i]);
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            existential = false;
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                visit(ctx->atoms[i]);
+            }
+            top = true;
+            existential = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                existential = false;
+                for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                    visit(ctx->atoms[i]);
+                }
+                existential = true;
+            } else {
+                for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                    visit(ctx->atoms[i]);
+                }
+            }
         }
         ctx->type = PNUELIGN;
         return nullptr; 
@@ -168,8 +359,29 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomHn(MitlParser::AtomHnContext *ctx) {
 
-        for (auto i = 0; i < ctx->atoms.size(); ++i) {
-            visit(ctx->atoms[i]);
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            existential = false;
+            for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                visit(ctx->atoms[i]);
+            }
+            top = true;
+            existential = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                existential = false;
+                for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                    visit(ctx->atoms[i]);
+                }
+                existential = true;
+            } else {
+                for (auto i = 0; i < ctx->atoms.size(); ++i) {
+                    visit(ctx->atoms[i]);
+                }
+            }
         }
         ctx->type = PNUELIHN;
         return nullptr; 
@@ -178,8 +390,27 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomCFn(MitlParser::AtomCFnContext *ctx) {
 
-        visit(ctx->atom(0));
-        visit(ctx->atom(1));
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            existential = false;
+            visit(ctx->atom(0));
+            existential = true;
+            visit(ctx->atom(1));
+            top = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                existential = false;
+                visit(ctx->atom(0));
+                existential = true;
+                visit(ctx->atom(1));
+            } else {
+                visit(ctx->atom(0));
+                visit(ctx->atom(1));
+            }
+        }
         ctx->type = COUNTFN;
         return nullptr; 
 
@@ -187,8 +418,27 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomCOn(MitlParser::AtomCOnContext *ctx) {
 
-        visit(ctx->atom(0));
-        visit(ctx->atom(1));
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            existential = false;
+            visit(ctx->atom(0));
+            existential = true;
+            visit(ctx->atom(1));
+            top = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                existential = false;
+                visit(ctx->atom(0));
+                existential = true;
+                visit(ctx->atom(1));
+            } else {
+                visit(ctx->atom(0));
+                visit(ctx->atom(1));
+            }
+        }
         ctx->type = COUNTON;
         return nullptr; 
 
@@ -196,8 +446,27 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomCGn(MitlParser::AtomCGnContext *ctx) {
 
-        visit(ctx->atom(0));
-        visit(ctx->atom(1));
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            visit(ctx->atom(0));
+            existential = false;
+            visit(ctx->atom(1));
+            existential = true;
+            top = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                visit(ctx->atom(0));
+                existential = false;
+                visit(ctx->atom(1));
+                existential = true;
+            } else {
+                visit(ctx->atom(0));
+                visit(ctx->atom(1));
+            }
+        }
         ctx->type = COUNTGN;
         return nullptr; 
 
@@ -205,8 +474,27 @@ namespace mightypplcpp {
 
     std::any MitlTypingVisitor::visitAtomCHn(MitlParser::AtomCHnContext *ctx) {
 
-        visit(ctx->atom(0));
-        visit(ctx->atom(1));
+        if (top) {
+            ctx->top = true;
+            ctx->existential = true;    // top implies existential
+            top = false;
+            visit(ctx->atom(0));
+            existential = false;
+            visit(ctx->atom(1));
+            existential = true;
+            top = true;
+        } else {
+            if (existential) {
+                ctx->existential = true;
+                visit(ctx->atom(0));
+                existential = false;
+                visit(ctx->atom(1));
+                existential = true;
+            } else {
+                visit(ctx->atom(0));
+                visit(ctx->atom(1));
+            }
+        }
         ctx->type = COUNTHN;
         return nullptr; 
 

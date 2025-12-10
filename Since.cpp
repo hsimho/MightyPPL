@@ -8,7 +8,6 @@ namespace mightypplcpp {
         std::stringstream out_str;
 
         monitaal::clock_map_t clocks;
-        clocks.insert({0, "x0"});        // clock 0 is needed anyway
 
         MitlParser::AtomSContext* phi = (MitlParser::AtomSContext*)phi_;
 
@@ -28,6 +27,8 @@ namespace mightypplcpp {
             /***** Since
              "untimed" case
             *****/
+
+            clocks.insert({0, "x0"});        // clock 0 is needed anyway
 
             monitaal::constraints_t empty_invariant;
             monitaal::locations_t locations;
@@ -118,6 +119,7 @@ namespace mightypplcpp {
                     assert(("Please remove superflous interval [0, infty)", false));
                 }
 
+                clocks.insert({0, "x0"});        // clock 0 is needed anyway
                 clocks.insert({1, "x1"});
 
                 monitaal::constraints_t empty_invariant;
@@ -196,6 +198,7 @@ namespace mightypplcpp {
                  [l, infty) or (l, infty)
                 *****/
 
+                clocks.insert({0, "x0"});        // clock 0 is needed anyway
                 clocks.insert({1, "x1"});
 
                 monitaal::constraints_t empty_invariant;
@@ -261,9 +264,9 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, out_str, phi->id, 0, "1", "1", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 0, bdd_ithvar(phi->id) & phi->atom(0)->hat & phi->atom(1)->star);
 
-                // 1 -> 1, ~p && ^q, x := 0, x >= a
+                // 1 -> 1, r && ~p && ^q, x := 0, x >= a
 
-                build_edge(bdd_edges, name_id_map, out_str, phi->id, 0, "1", "1", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 1, phi->atom(0)->tilde & phi->atom(1)->hat);
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, 0, "1", "1", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 1, bdd_ithvar(phi->id) & phi->atom(0)->tilde & phi->atom(1)->hat);
 
                 // 0 -> 1, !r && *p && ^q, x := 0
 

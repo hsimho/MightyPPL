@@ -231,7 +231,7 @@ namespace mightypplcpp {
         ctx->hat = ctx->overline; 
         ctx->comp_hat = ctx->hat;
 
-        if (comp_flatten) {
+        if (comp_flatten || ctx->existential) {
 
             ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
             ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
@@ -263,7 +263,7 @@ namespace mightypplcpp {
         ctx->hat = ctx->overline; 
         ctx->comp_hat = ctx->hat;
 
-        if (comp_flatten) {
+        if (comp_flatten || ctx->existential) {
 
             ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
             ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
@@ -295,7 +295,7 @@ namespace mightypplcpp {
         ctx->hat = ctx->overline; 
         ctx->comp_hat = ctx->hat;
 
-        if (comp_flatten) {
+        if (comp_flatten || ctx->existential) {
 
             ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
             ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
@@ -327,7 +327,7 @@ namespace mightypplcpp {
         ctx->hat = ctx->overline; 
         ctx->comp_hat = ctx->hat;
 
-        if (comp_flatten) {
+        if (comp_flatten || ctx->existential) {
 
             ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
             ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
@@ -359,7 +359,7 @@ namespace mightypplcpp {
 
         ctx->tilde = !ctx->overline & ctx->star;
 
-        if (comp_flatten) {
+        if (comp_flatten || ctx->existential) {
 
             ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
             ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
@@ -391,7 +391,7 @@ namespace mightypplcpp {
 
         ctx->tilde = !ctx->overline & ctx->star;
 
-        if (comp_flatten) {
+        if (comp_flatten || ctx->existential) {
 
             ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
             ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
@@ -426,7 +426,7 @@ namespace mightypplcpp {
 
         ctx->tilde = !ctx->overline & ctx->star;
 
-        if (comp_flatten) {
+        if (comp_flatten || ctx->existential) {
 
             ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
             ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
@@ -461,7 +461,7 @@ namespace mightypplcpp {
 
         ctx->tilde = !ctx->overline & ctx->star;
 
-        if (comp_flatten) {
+        if (comp_flatten || ctx->existential) {
 
             ctx->overline = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
             ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));

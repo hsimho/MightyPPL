@@ -14,8 +14,14 @@ namespace mightypplcpp {
  * extended to create a visitor which only needs to handle a subset of the available methods.
  */
 class  MitlTypingVisitor : public MitlVisitor {
-public:
 
+
+private:
+
+    bool top = true;
+    bool existential = true;
+
+public:
 
     std::any visitMain(MitlParser::MainContext *ctx) override;
 
