@@ -173,9 +173,9 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_1", "1_1", (left_delim->getSymbol()->getType() == MitlParser::LParen && right_delim->getSymbol()->getType() == MitlParser::RParen ? "< " : "<= ") + std::to_string(std::stoi(right->children[0]->getText()) - std::stoi(left->children[0]->getText())), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 1, out_i & in_i & phi->atom(1)->hat);
 
-                // 1_1 -> 1_1, out_i & in_null & *phi, y >= a
+                // 1_1 -> 1_1, out_i & in_null & *phi, x <= b, y >= a
 
-                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_1", "1_1", std::string{}, (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 0, out_i & in_null & phi->atom(1)->star);
+                build_edge(bdd_edges, name_id_map, out_str, phi->id, i, "1_1", "1_1", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 0, out_i & in_null & phi->atom(1)->star);
 
                 // 0 -> 1_1, !out_i & in_i & ^phi, x := 0, y := 0
 
