@@ -662,8 +662,8 @@ namespace mightypplcpp {
                         }
                     }
 
-                    p_constraint << (guard_x.size() ? " &amp;&amp; x_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + escaped_guard_x : std::string{})
-                                 << (guard_y.size() ? " &amp;&amp; y_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + escaped_guard_y : std::string{});
+                    p_constraint << (guard_x.size() ? (p_constraint.str().size() ? " &amp;&amp; " : std::string{}) + "x_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + escaped_guard_x : std::string{})
+                                 << (guard_y.size() ? (p_constraint.str().size() ? " &amp;&amp; " : std::string{}) + "y_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + escaped_guard_y : std::string{});
 
 
                     if (reset == 1) {
@@ -2375,12 +2375,34 @@ namespace mightypplcpp {
         reset.clear();
 
         label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
+            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
+            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
+            & !bdd_ithvar(nnf_formula->props.at("p_p"))
+            & !bdd_ithvar(nnf_formula->props.at("p_b"))
+            & !bdd_ithvar(nnf_formula->props.at("p_c"));
+        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
+        bdd_edges.push_back(monitaal::bdd_edge_t(0, 0, guard, reset, label));
+        guard.clear();
+        reset.clear();
+
+        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
             & bdd_ithvar(nnf_formula->props.at("p_l1"))
             & !bdd_ithvar(nnf_formula->props.at("p_l2"))
             & !bdd_ithvar(nnf_formula->props.at("p_p"))
             & !bdd_ithvar(nnf_formula->props.at("p_b"))
             & !bdd_ithvar(nnf_formula->props.at("p_c"));
         reset.push_back(1);
+        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
+        bdd_edges.push_back(monitaal::bdd_edge_t(1, 1, guard, reset, label));
+        guard.clear();
+        reset.clear();
+
+        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
+            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
+            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
+            & !bdd_ithvar(nnf_formula->props.at("p_p"))
+            & !bdd_ithvar(nnf_formula->props.at("p_b"))
+            & !bdd_ithvar(nnf_formula->props.at("p_c"));
         guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
         bdd_edges.push_back(monitaal::bdd_edge_t(1, 1, guard, reset, label));
         guard.clear();
@@ -2401,10 +2423,32 @@ namespace mightypplcpp {
         label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
             & !bdd_ithvar(nnf_formula->props.at("p_l1"))
             & !bdd_ithvar(nnf_formula->props.at("p_l2"))
+            & !bdd_ithvar(nnf_formula->props.at("p_p"))
+            & !bdd_ithvar(nnf_formula->props.at("p_b"))
+            & !bdd_ithvar(nnf_formula->props.at("p_c"));
+        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
+        bdd_edges.push_back(monitaal::bdd_edge_t(2, 2, guard, reset, label));
+        guard.clear();
+        reset.clear();
+
+        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
+            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
+            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
             & bdd_ithvar(nnf_formula->props.at("p_p"))
             & !bdd_ithvar(nnf_formula->props.at("p_b"))
             & !bdd_ithvar(nnf_formula->props.at("p_c"));
         reset.push_back(1);
+        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
+        bdd_edges.push_back(monitaal::bdd_edge_t(3, 3, guard, reset, label));
+        guard.clear();
+        reset.clear();
+
+        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
+            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
+            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
+            & !bdd_ithvar(nnf_formula->props.at("p_p"))
+            & !bdd_ithvar(nnf_formula->props.at("p_b"))
+            & !bdd_ithvar(nnf_formula->props.at("p_c"));
         guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
         bdd_edges.push_back(monitaal::bdd_edge_t(3, 3, guard, reset, label));
         guard.clear();
@@ -2427,6 +2471,17 @@ namespace mightypplcpp {
             & !bdd_ithvar(nnf_formula->props.at("p_l2"))
             & !bdd_ithvar(nnf_formula->props.at("p_p"))
             & !bdd_ithvar(nnf_formula->props.at("p_b"))
+            & !bdd_ithvar(nnf_formula->props.at("p_c"));
+        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
+        bdd_edges.push_back(monitaal::bdd_edge_t(4, 4, guard, reset, label));
+        guard.clear();
+        reset.clear();
+
+        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
+            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
+            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
+            & !bdd_ithvar(nnf_formula->props.at("p_p"))
+            & !bdd_ithvar(nnf_formula->props.at("p_b"))
             & bdd_ithvar(nnf_formula->props.at("p_c"));
         reset.push_back(1);
         guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
@@ -2434,6 +2489,16 @@ namespace mightypplcpp {
         guard.clear();
         reset.clear();
 
+        label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
+            & !bdd_ithvar(nnf_formula->props.at("p_l1"))
+            & !bdd_ithvar(nnf_formula->props.at("p_l2"))
+            & !bdd_ithvar(nnf_formula->props.at("p_p"))
+            & !bdd_ithvar(nnf_formula->props.at("p_b"))
+            & !bdd_ithvar(nnf_formula->props.at("p_c"));
+        guard.push_back(monitaal::constraint_t::lower_non_strict(1, 0));
+        bdd_edges.push_back(monitaal::bdd_edge_t(5, 5, guard, reset, label));
+        guard.clear();
+        reset.clear();
 
 
         label = !bdd_ithvar(nnf_formula->props.at("p_l0"))
@@ -2582,6 +2647,19 @@ namespace mightypplcpp {
                 }
                 out_str << "}" << std::endl;
 
+                out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
+                        << " && x >= 0 : do: turn = 0; ";
+                for (auto i = 0; i < num_all_props; ++i) {
+                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
+                }
+                out_str << "}" << std::endl;
+
                 out_str << "edge:" << "M" << ":ell_1:ell_1:a{provided: g == 0 && turn == " << components_counter
                         << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
                         << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " >= 1"
@@ -2590,6 +2668,19 @@ namespace mightypplcpp {
                         << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
                         << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
                         << " && x >= 0 : do: turn = 0; x = 0; ";
+                for (auto i = 0; i < num_all_props; ++i) {
+                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
+                }
+                out_str << "}" << std::endl;
+
+                out_str << "edge:" << "M" << ":ell_1:ell_1:a{provided: g == 0 && turn == " << components_counter
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
+                        << " && x >= 0 : do: turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
                     out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
                 }
@@ -2607,6 +2698,20 @@ namespace mightypplcpp {
                     out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
                 }
                 out_str << "}" << std::endl;
+
+                out_str << "edge:" << "M" << ":ell_2:ell_2:a{provided: g == 0 && turn == " << components_counter
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
+                        << " && x >= 0 : do: turn = 0; ";
+                for (auto i = 0; i < num_all_props; ++i) {
+                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
+                }
+                out_str << "}" << std::endl;
+
                 out_str << "edge:" << "M" << ":ell_p:ell_p:a{provided: g == 0 && turn == " << components_counter
                         << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
                         << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
@@ -2619,6 +2724,20 @@ namespace mightypplcpp {
                     out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
                 }
                 out_str << "}" << std::endl;
+
+                out_str << "edge:" << "M" << ":ell_p:ell_p:a{provided: g == 0 && turn == " << components_counter
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
+                        << " && x >= 0 : do: turn = 0; ";
+                for (auto i = 0; i < num_all_props; ++i) {
+                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
+                }
+                out_str << "}" << std::endl;
+
                 out_str << "edge:" << "M" << ":ell_b:ell_b:a{provided: g == 0 && turn == " << components_counter
                         << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
                         << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
@@ -2627,6 +2746,19 @@ namespace mightypplcpp {
                         << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " >= 1"
                         << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
                         << " && x >= 0 : do: turn = 0; x = 0; ";
+                for (auto i = 0; i < num_all_props; ++i) {
+                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
+                }
+                out_str << "}" << std::endl;
+
+                out_str << "edge:" << "M" << ":ell_b:ell_b:a{provided: g == 0 && turn == " << components_counter
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
+                        << " && x >= 0 : do: turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
                     out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
                 }
@@ -2645,6 +2777,18 @@ namespace mightypplcpp {
                 }
                 out_str << "}" << std::endl;
 
+                out_str << "edge:" << "M" << ":ell_c:ell_c:a{provided: g == 0 && turn == " << components_counter
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l1")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_l2")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_p")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_b")) << " % 2 == 0"
+                        << " && p_" << std::to_string(nnf_formula->props.at("p_c")) << " % 2 == 0"
+                        << " && x >= 0 : do: turn = 0; ";
+                for (auto i = 0; i < num_all_props; ++i) {
+                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
+                }
+                out_str << "}" << std::endl;
 
                 out_str << "edge:" << "M" << ":ell_0:ell_p:a{provided: g == 0 && turn == " << components_counter
                         << " && p_" << std::to_string(nnf_formula->props.at("p_l0")) << " % 2 == 0"

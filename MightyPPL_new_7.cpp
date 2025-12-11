@@ -662,8 +662,8 @@ namespace mightypplcpp {
                         }
                     }
 
-                    p_constraint << (guard_x.size() ? " &amp;&amp; x_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + escaped_guard_x : std::string{})
-                                 << (guard_y.size() ? " &amp;&amp; y_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + escaped_guard_y : std::string{});
+                    p_constraint << (guard_x.size() ? (p_constraint.str().size() ? " &amp;&amp; " : std::string{}) + "x_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + escaped_guard_x : std::string{})
+                                 << (guard_y.size() ? (p_constraint.str().size() ? " &amp;&amp; " : std::string{}) + "y_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + escaped_guard_y : std::string{});
 
 
                     if (reset == 1) {
