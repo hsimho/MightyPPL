@@ -611,7 +611,7 @@ int main(int argc, const char ** argv) {
 
                         std::string do_str;
                         do_str += "loc = " + std::to_string(e.to());
-                        do_str += ", acc = " + (acc_set.count(e.to()) ? 1 : 0);
+                        do_str += ", acc = " + std::to_string(acc_set.count(e.to()) ? 1 : 0);
                         for (const auto& r : e.reset()) {
                     
                             if (!do_str.empty()) {
