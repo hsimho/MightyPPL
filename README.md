@@ -138,34 +138,34 @@ Benchmarks in `/testcases/MightyL/`.
 
 | Formula         |    Sat? | MightyL + opaal_ltsmin | MightyPPL + opaal_ltsmin |
 |-----------------|--------:|-----------------------:|-------------------------:|
-| E-5-12          | &check; |                225.575 |                    2.124 |
-| A-5-12          | &check; |                  3.460 |                    0.748 |
-| U-5-12          | &check; |                171.445 |                   10.377 |
-| R-5-12          | &check; |                  2.249 |                    9.055 |
-| theta3-100-1000 | &check; |                    ERR |                    2.936 |
-| theta4-100-1000 | &check; |                    ERR |                    4.475 |
+| E-5-12          | &check; |                225.575 |                    0.461 |
+| A-5-12          | &check; |                  3.460 |                    0.385 |
+| U-5-12          | &check; |                171.445 |                   15.242 |
+| R-5-12          | &check; |                  2.249 |                    0.424 |
+| theta3-100-1000 | &check; |                    ERR |                    0.858 |
+| theta4-100-1000 | &check; |                    ERR |                   10.595 |
 
 
 Benchmarks in `/testcases/newhoxha2/`. 
 
 | Formula |    Sat? | MightyL + opaal_ltsmin | MightyPPL + opaal_ltsmin |
 |---------|--------:|-----------------------:|-------------------------:|
-| 1       | &check; |                 44.444 |                   32.408 |
-| 2       | &cross; |                 62.400 |                   73.058 |
-| 3       | &check; |                      - |                    4.593 |
-| 4       | &cross; |                      - |                    2.599 |
-| 5       | &check; |                      - |                   14.660 |
-| 6       | &cross; |                      - |                    > 300 |
+| 1       | &check; |                 44.444 |                    1.045 |
+| 2       | &cross; |                 62.400 |                    7.907 |
+| 3       | &check; |                      - |                    0.568 |
+| 4       | &cross; |                      - |                    3.752 |
+| 5       | &check; |                      - |                    0.554 |
+| 6       | &cross; |                      - |                  220.276 |
 
 Benchmarks in `/testcases/acacia/`. 
 
 | Formula |    Sat? | MightyPPL + TChecker |
 |---------|--------:|---------------------:|
-| 3       | &check; |                1.755 |
-| 4       | &cross; |                1.119 |
-| 5       | &check; |                1.629 |
-| 6       | &cross; |                1.054 |
-| 9       | &check; |               10.689 |
+| 3       | &check; |                4.441 |
+| 4       | &cross; |                0.958 |
+| 5       | &check; |                1.309 |
+| 6       | &cross; |                0.945 |
+| 9       | &check; |                6.968 |
 
 ## Cite MightyPPL 
 
