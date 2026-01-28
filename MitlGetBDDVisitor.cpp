@@ -109,6 +109,8 @@ namespace mightypplcpp {
         ctx->tilde = !ctx->overline & ctx->star;
         ctx->hat = bdd_ithvar(ctx->id);
 
+        props_to_keep.insert(ctx->id);
+
         return nullptr;
 
     }
@@ -122,6 +124,8 @@ namespace mightypplcpp {
         ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id));
         ctx->tilde = !ctx->overline & ctx->star;
         ctx->hat = bdd_ithvar(ctx->id);
+
+        props_to_keep.insert(ctx->id);
 
         return nullptr;
 
@@ -137,6 +141,8 @@ namespace mightypplcpp {
         ctx->tilde = !ctx->overline & ctx->star;
         ctx->hat = bdd_ithvar(ctx->id);
 
+        props_to_keep.insert(ctx->id);
+
         return nullptr;
 
     }
@@ -150,6 +156,8 @@ namespace mightypplcpp {
         ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id));
         ctx->tilde = !ctx->overline & ctx->star;
         ctx->hat = bdd_ithvar(ctx->id);
+
+        props_to_keep.insert(ctx->id);
 
         return nullptr;
 
@@ -165,6 +173,8 @@ namespace mightypplcpp {
         ctx->tilde = !ctx->overline & ctx->star;
         ctx->hat = bdd_ithvar(ctx->id);
 
+        props_to_keep.insert(ctx->id);
+
         return nullptr;
 
     }
@@ -178,6 +188,8 @@ namespace mightypplcpp {
         ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id));
         ctx->tilde = !ctx->overline & ctx->star;
         ctx->hat = bdd_ithvar(ctx->id);
+
+        props_to_keep.insert(ctx->id);
 
         return nullptr;
 
@@ -193,6 +205,8 @@ namespace mightypplcpp {
         ctx->tilde = !ctx->overline & ctx->star;
         ctx->hat = bdd_ithvar(ctx->id);
 
+        props_to_keep.insert(ctx->id);
+
         return nullptr;
 
     }
@@ -206,6 +220,8 @@ namespace mightypplcpp {
         ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id));
         ctx->tilde = !ctx->overline & ctx->star;
         ctx->hat = bdd_ithvar(ctx->id);
+
+        props_to_keep.insert(ctx->id);
 
         return nullptr;
 
@@ -237,6 +253,14 @@ namespace mightypplcpp {
             ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
             ctx->tilde = !ctx->overline & ctx->star;
             ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
+
+            props_to_keep.insert(ctx->id + ctx->bits / 2 - 1);
+
+        } else {
+
+            for (auto i = ctx->id; i < ctx->id + ctx->bits; ++i) {
+                props_to_keep.insert(i);
+            }
 
         }
 
@@ -270,6 +294,14 @@ namespace mightypplcpp {
             ctx->tilde = !ctx->overline & ctx->star;
             ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
 
+            props_to_keep.insert(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+
+        } else {
+
+            for (auto i = ctx->id; i < ctx->id + ctx->bits; ++i) {
+                props_to_keep.insert(i);
+            }
+
         }
         
         return nullptr;
@@ -301,6 +333,14 @@ namespace mightypplcpp {
             ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 - 1));
             ctx->tilde = !ctx->overline & ctx->star;
             ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
+
+            props_to_keep.insert(ctx->id + ctx->bits / 2 - 1);
+
+        } else {
+
+            for (auto i = ctx->id; i < ctx->id + ctx->bits; ++i) {
+                props_to_keep.insert(i);
+            }
 
         }
 
@@ -334,6 +374,14 @@ namespace mightypplcpp {
             ctx->tilde = !ctx->overline & ctx->star;
             ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
 
+            props_to_keep.insert(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+
+        } else {
+
+            for (auto i = ctx->id; i < ctx->id + ctx->bits; ++i) {
+                props_to_keep.insert(i);
+            }
+
         }
 
         return nullptr;
@@ -366,6 +414,14 @@ namespace mightypplcpp {
             ctx->tilde = !ctx->overline & ctx->star;
             ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
 
+            props_to_keep.insert(ctx->id + ctx->bits / 2 - 1);
+
+        } else {
+
+            for (auto i = ctx->id; i < ctx->id + ctx->bits; ++i) {
+                props_to_keep.insert(i);
+            }
+
         }
 
         return nullptr;
@@ -397,6 +453,14 @@ namespace mightypplcpp {
             ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
             ctx->tilde = !ctx->overline & ctx->star;
             ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+
+            props_to_keep.insert(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+
+        } else {
+
+            for (auto i = ctx->id; i < ctx->id + ctx->bits; ++i) {
+                props_to_keep.insert(i);
+            }
 
         }
 
@@ -433,6 +497,14 @@ namespace mightypplcpp {
             ctx->tilde = !ctx->overline & ctx->star;
             ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 - 1);
 
+            props_to_keep.insert(ctx->id + ctx->bits / 2 - 1);
+
+        } else {
+
+            for (auto i = ctx->id; i < ctx->id + ctx->bits; ++i) {
+                props_to_keep.insert(i);
+            }
+
         }
 
         return nullptr;
@@ -467,6 +539,14 @@ namespace mightypplcpp {
             ctx->star = (root->repeats.count(ctx->id) ? bdd_true() : !bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1));
             ctx->tilde = !ctx->overline & ctx->star;
             ctx->hat = bdd_ithvar(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+
+            props_to_keep.insert(ctx->id + ctx->bits / 2 + ctx->bits / 2 - 1);
+
+        } else {
+
+            for (auto i = ctx->id; i < ctx->id + ctx->bits; ++i) {
+                props_to_keep.insert(i);
+            }
 
         }
 

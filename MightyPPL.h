@@ -40,6 +40,8 @@ namespace mightypplcpp {
 
     extern bool single;
 
+    extern std::set<int> props_to_keep;
+
     extern bdd encode(const int i, const int offset, const int bits);
 
     extern std::vector<std::string> sat_paths;

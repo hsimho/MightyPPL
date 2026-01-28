@@ -11,6 +11,8 @@ namespace mightypplcpp {
 
     bool single = false;
 
+    std::set<int> props_to_keep;
+
     bdd encode(const int i, const int offset, const int bits) {
 
         assert(i >= 0);
@@ -968,6 +970,11 @@ namespace mightypplcpp {
             std::cin.get();
         }
 
+
+        for (const auto& [k, v] : nnf_formula->props) {
+            props_to_keep.insert(v);
+        }
+
         std::cout << "\nGenerating BDDs for labels...\n";
 
         bdd_setvarnum(num_all_props + 1);   // We leave the 0-th variable unused (temporal atoms and props start from 1)
@@ -1745,7 +1752,9 @@ namespace mightypplcpp {
 
 
                 for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "int:1:0:2:2:p_" << i + 1 << std::endl;
+                    if (props_to_keep.count(i + 1)) {
+                        out_str << "int:1:0:2:2:p_" << i + 1 << std::endl;
+                    }
                 }
 
                 out_str << "int:1:0:" << components_count - 1 << ":0:turn" << std::endl;
@@ -1916,7 +1925,9 @@ namespace mightypplcpp {
 
 
                 for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "\t\tint[0, 2] p_" << i + 1 << " = 2;" << std::endl;
+                    if (props_to_keep.count(i + 1)) {
+                        out_str << "\t\tint[0, 2] p_" << i + 1 << " = 2;" << std::endl;
+                    }
                 }
 
                 out_str << "\t\tint[0, " << components_count - 1 << "] turn = 0;" << std::endl;
@@ -2446,7 +2457,9 @@ namespace mightypplcpp {
 
                 out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter << " : do: turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
+                    if (props_to_keep.count(i + 1)) {
+                        out_str << "p_" << i + 1 << " = 2" << (i + 1 == *props_to_keep.rbegin() ? "" : "; ");
+                    }
                 }
                 out_str << "}" << std::endl;
 
@@ -2478,7 +2491,9 @@ namespace mightypplcpp {
                 std::string do_str;
                 do_str = "turn = 0, loc = 0, ";
                 for (auto i = 0; i < num_all_props; ++i) {
-                    do_str += "p_" + std::to_string(i + 1) + " = 2" + (i == num_all_props - 1 ? "" : ", ");
+                    if (props_to_keep.count(i + 1)) {
+                        do_str += "p_" + std::to_string(i + 1) + " = 2" + (i + 1 == *props_to_keep.rbegin() ? "" : ", ");
+                    }
                 }
 
                 out_str << "\t\t\t<label kind=\"assignment\" x=\"-246\" y=\"-34\">" + do_str + "</label>\n";
