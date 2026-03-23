@@ -2775,13 +2775,12 @@ namespace mightypplcpp {
             // return product;
 
             std::set<int> props_to_remove;
-            {
-                int i = 0;
-                for (const auto& x : temporal_atoms) {
+            props_to_remove.insert(0);
 
-                    props_to_remove.insert(++i);
+            for (const auto& x : temporal_atoms) {
 
-                }
+                props_to_remove.insert(x->id);
+
             }
 
             // return TA, but not the generated output for components 

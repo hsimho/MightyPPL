@@ -205,7 +205,7 @@ namespace monitaal {
 
         std::string name;
         for (size_t i = 0; i < components.size(); ++i) {
-            name += components[i].locations().at(location_ids[i]).name() + (components[i].locations().at(location_ids[i]).is_accept() ? "*" : "") + (i < components.size() - 1 ? "_" : "");
+            name += components[i].locations().at(location_ids[i]).name() + (components[i].locations().at(location_ids[i]).is_accept() ? "*" : "") + "_";
         }
 
 
