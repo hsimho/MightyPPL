@@ -228,6 +228,10 @@ namespace mightypplcpp {
 
             } else {
 
+                if (!phi->num_pairs) {
+                    assert(("Punctual intervals only allowed on existentially quantified temporal subformulae", false));
+                }
+
                 /***** Count Hn
                  <l, u>
                 *****/
