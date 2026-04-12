@@ -171,7 +171,11 @@ namespace mightypplcpp {
         antlr4::tree::ParseTree* left = (antlr4::tree::ParseTree*)ctx->children[1];
         antlr4::tree::ParseTree* right = (antlr4::tree::ParseTree*)ctx->children[3];
 
-        if (left_delim->getSymbol()->getType() == MitlParser::LParen && left->children[0]->getText() == "0") {
+        if (
+            (left_delim->getSymbol()->getType() == MitlParser::LParen && left->children[0]->getText() == "0") 
+            && 
+            !(right_delim->getSymbol()->getType() == MitlParser::RParen && right->children[0]->getText() == "infty")
+           ) {
             assert(("Intervals of the form (0, b> is currently unsupported", false));
         }
 
