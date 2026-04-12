@@ -1753,6 +1753,10 @@ namespace mightypplcpp {
                 out_str << "clock:1:x_div" << std::endl;
                 out_str << std::endl << std::endl;
 
+                for (const auto& [k, v] : nnf_formula->props) {
+                    out_str << "# p_" << v << ": " << k << std::endl;
+                }
+                out_str << std::endl << std::endl;
 
                 for (auto i = 0; i < num_all_props; ++i) {
                     if (props_to_keep.count(i + 1)) {
