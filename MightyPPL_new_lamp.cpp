@@ -2,12 +2,16 @@
 
 namespace mightypplcpp {
 
-    int gcd = 1;
+    int gcd = 0;
     bool last_intersection = false;
 
     size_t num_all_props;
 
     size_t components_counter;
+
+    bool single = false;
+
+    std::set<int> props_to_keep;
 
     bdd encode(const int i, const int offset, const int bits) {
 
@@ -100,267 +104,271 @@ namespace mightypplcpp {
 
     void build_model_from_ta_bdd(const monitaal::TAwithBDDEdges ta, const size_t id, std::stringstream& out_s) {
 
-        assert(comp_flatten && !out_flatten);
+        // assert(comp_flatten && !out_flatten);
 
-        std::string name = "TA_" + std::to_string(id) + "_0";
+        if (out_format.has_value()) {
 
-        if (out_format.value()) {       // tck
+            std::string name = "TA_" + std::to_string(id) + "_0";
 
-            std::stringstream tck;
+            if (out_format.value()) {       // tck
 
-            tck << std::endl << std::endl;
-            tck << "# " << name << std::endl;
-            tck << "# " << ta.name() << std::endl;
-            tck << "process:" << name << std::endl;
+                std::stringstream tck;
 
-            for (const auto& [k, v] : ta.locations()) {
+                tck << std::endl << std::endl;
+                tck << "# " << name << std::endl;
+                tck << "# " << ta.name() << std::endl;
+                tck << "process:" << name << std::endl;
 
-                tck << "location:" << name << ":ell_" << k << "{" << (k == ta.initial_location() ?  (v.is_accept() ? "initial: : " : "initial: ") : "")
-                    << (v.is_accept() ? "labels: accept_" + std::to_string(id) : std::string{}) << "}" << std::endl;
+                for (const auto& [k, v] : ta.locations()) {
 
-            }
-
-            for (const auto& [k, v] : ta.locations()) {
-
-                for (const auto& e : ta.bdd_edges_from(k)) {
-
-                    bdd_allsat(e.bdd_label(), *allsat_print_handler);
-
-                    std::stringstream p_constraint;
-                    std::stringstream p_assignments;
-
-                    for (auto i = 0; i < sat_paths.size(); ++i) {
-
-                        int largest = 0;
-                        for (auto j = 1; j < sat_paths[i].size(); ++j) {
-                            if (sat_paths[i][j] != 'X' && j > largest) {
-                                largest = j;
-                            }
-                        }
-                        for (auto j = 1; j < sat_paths[i].size(); ++j) {
-                            if (sat_paths[i][j] != 'X') {
-                                p_constraint << "p_" << j << (sat_paths[i][j] == '0' ? " % 2 == 0" : " >= 1");
-                                p_assignments << "p_" << j << (sat_paths[i][j] == '0' ? " = 0" : " = 1");
-                                if (j != largest) {
-                                    p_constraint << " && ";
-                                    p_assignments << "; ";
-                                }
-                            }
-                        }
-
-                        std::string provided_str;
-                        for (const auto& g : e.guard()) {
-
-                            if (!provided_str.empty()) {
-                                provided_str += " && ";
-                            }
-
-                            if (g._i == 0) {
-
-                                assert(g._j != 0);
-
-                                if (g._bound.is_strict()) {
-                                    provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._j - 1) + " > " + std::to_string(-1 * g._bound.get_bound());
-                                } else {
-                                    provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._j - 1) + " >= " + std::to_string(-1 * g._bound.get_bound());
-                                }
-
-                            } else if (g._j == 0) {
-
-                                assert(g._i != 0);
-
-                                if (g._bound.is_strict()) {
-                                    provided_str += "x_" + std::to_string(id) + "_"  + std::to_string(g._i - 1) + " < " + std::to_string(g._bound.get_bound());
-                                } else {
-                                    provided_str += "x_" + std::to_string(id) + "_"  + std::to_string(g._i - 1) + " <= " + std::to_string(g._bound.get_bound());
-                                }
-
-                            } else {
-                                assert(("Currently support only non-diagonal guards", false));
-                            }
-
-                        }
-
-                        std::string do_str;
-                        for (const auto& r : e.reset()) {
-                    
-                            if (!do_str.empty()) {
-                                do_str += "; ";
-                            }
-
-                            do_str += "x_" + std::to_string(id) + "_" + std::to_string(r - 1) + " = 0";
-
-                        }
-
-
-                        tck << "edge:" << name << ":ell_" << e.from() << ":ell_" << e.to() << ":a{provided: g == 0 && turn == " << components_counter
-                                       << (p_constraint.str().size() ? " && " + p_constraint.str() : std::string{})
-                                       << (provided_str.empty() ? std::string{} : " && " + provided_str);
-
-                        tck << " : do: turn = " << components_counter + 1 << (p_assignments.str().size() ?  "; " + p_assignments.str() : std::string{})
-                            << (do_str.empty() ? std::string{} : "; " + do_str)
-                            << "}" << std::endl;
-
-                        std::stringstream().swap(p_constraint);
-                        std::stringstream().swap(p_assignments);
-
-                    }
-
-                    sat_paths.clear();
+                    tck << "location:" << name << ":ell_" << k << "{" << (k == ta.initial_location() ?  (v.is_accept() ? "initial: : " : "initial: ") : "")
+                        << (v.is_accept() ? "labels: accept_" + std::to_string(id) : std::string{}) << "}" << std::endl;
 
                 }
 
-            }
+                for (const auto& [k, v] : ta.locations()) {
 
-            out_s << tck.str();
+                    for (const auto& e : ta.bdd_edges_from(k)) {
 
+                        bdd_allsat(e.bdd_label(), *allsat_print_handler);
 
-        } else {        // xml
+                        std::stringstream p_constraint;
+                        std::stringstream p_assignments;
 
-            std::stringstream xml;
+                        for (auto i = 0; i < sat_paths.size(); ++i) {
 
-            xml << "\t<template>" << std::endl;
-            xml << "\t\t<name>" << name << "</name>" << std::endl;
-
-            xml << "\t\t<declaration>" << std::endl;
-
-
-            monitaal::location_id_t largest_loc = 0;
-            std::set<size_t> acc_set;
-            for (const auto& [k, v] : ta.locations()) {
-                if (k > largest_loc) {
-                    largest_loc = k;
-                }
-                if (v.is_accept()) {
-                    acc_set.insert(k);
-                }
-            }
-
-            xml << "\t\t\tint[0, " << largest_loc << "] loc = " << ta.initial_location() << ";" << std::endl;
-            xml << "\t\t\tint[0, 1] acc = 0;" << std::endl;
-
-
-            xml << "\t\t</declaration>" << std::endl;
-
-            xml << "\t\t<location id=\"id0\" x=\"0\" y=\"0\">" << std::endl;
-            xml << "\t\t</location>" << std::endl;
-            xml << "\t\t<init ref=\"id0\"/>" << std::endl;
-
-            for (const auto& [k, v] : ta.locations()) {
-
-                for (const auto& e : ta.bdd_edges_from(k)) {
-
-                    bdd_allsat(e.bdd_label(), *allsat_print_handler);
-
-                    std::stringstream p_constraint;
-                    std::stringstream p_assignments;
-
-                    for (auto i = 0; i < sat_paths.size(); ++i) {
-
-                        int largest = 0;
-                        for (auto j = 1; j < sat_paths[i].size(); ++j) {
-                            if (sat_paths[i][j] != 'X' && j > largest) {
-                                largest = j;
+                            int largest = 0;
+                            for (auto j = 1; j < sat_paths[i].size(); ++j) {
+                                if (sat_paths[i][j] != 'X' && j > largest) {
+                                    largest = j;
+                                }
                             }
-                        }
-                        for (auto j = 1; j < sat_paths[i].size(); ++j) {
-                            if (sat_paths[i][j] != 'X') {
-                                if (sat_paths[i][j] == '0') {
-                                    p_constraint << "(p_" << j << " == 2" << " || " << "p_" << j << " == 0)";
+                            for (auto j = 1; j < sat_paths[i].size(); ++j) {
+                                if (sat_paths[i][j] != 'X') {
+                                    p_constraint << "p_" << j << (sat_paths[i][j] == '0' ? " % 2 == 0" : " >= 1");
+                                    p_assignments << "p_" << j << (sat_paths[i][j] == '0' ? " = 0" : " = 1");
+                                    if (j != largest) {
+                                        p_constraint << " && ";
+                                        p_assignments << "; ";
+                                    }
+                                }
+                            }
+
+                            std::string provided_str;
+                            for (const auto& g : e.guard()) {
+
+                                if (!provided_str.empty()) {
+                                    provided_str += " && ";
+                                }
+
+                                if (g._i == 0) {
+
+                                    assert(g._j != 0);
+
+                                    if (g._bound.is_strict()) {
+                                        provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._j - 1) + " > " + std::to_string(-1 * g._bound.get_bound());
+                                    } else {
+                                        provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._j - 1) + " >= " + std::to_string(-1 * g._bound.get_bound());
+                                    }
+
+                                } else if (g._j == 0) {
+
+                                    assert(g._i != 0);
+
+                                    if (g._bound.is_strict()) {
+                                        provided_str += "x_" + std::to_string(id) + "_"  + std::to_string(g._i - 1) + " < " + std::to_string(g._bound.get_bound());
+                                    } else {
+                                        provided_str += "x_" + std::to_string(id) + "_"  + std::to_string(g._i - 1) + " <= " + std::to_string(g._bound.get_bound());
+                                    }
+
                                 } else {
-                                    p_constraint << "p_" << j << " &gt;= 1";
-                                }
-                                p_assignments << "p_" << j << (sat_paths[i][j] == '0' ? " = 0" : " = 1");
-                                if (j != largest) {
-                                    p_constraint << " &amp;&amp; ";
-                                    p_assignments << ", ";
-                                }
-                            }
-                        }
-
-                        std::string provided_str;
-                        for (const auto& g : e.guard()) {
-
-                            if (!provided_str.empty()) {
-                                provided_str += " &amp;&amp; ";
-                            }
-
-                            if (g._i == 0) {
-
-                                assert(g._j != 0);
-
-                                if (g._bound.is_strict()) {
-                                    provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._j - 1) + " &gt; " + std::to_string(-1 * g._bound.get_bound());
-                                } else {
-                                    provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._j - 1) + " &gt;= " + std::to_string(-1 * g._bound.get_bound());
+                                    assert(("Currently support only non-diagonal guards", false));
                                 }
 
-                            } else if (g._j == 0) {
-
-                                assert(g._i != 0);
-
-                                if (g._bound.is_strict()) {
-                                    provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._i - 1) + " &lt; " + std::to_string(g._bound.get_bound());
-                                } else {
-                                    provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._i - 1) + " &lt;= " + std::to_string(g._bound.get_bound());
-                                }
-
-                            } else {
-                                assert(("Currently support only non-diagonal guards", false));
                             }
 
-                        }
-
-
-                        std::string do_str;
-                        for (const auto& r : e.reset()) {
-                    
-                            if (!do_str.empty()) {
-                                do_str += ", ";
-                            }
-
-                            do_str += "x_" + std::to_string(id) + "_" + std::to_string(r - 1) + " = 0";
-
-                        }
+                            std::string do_str;
+                            for (const auto& r : e.reset()) {
                         
-                        xml << "\t\t<transition>\n";
-                        xml << "\t\t\t<source ref=\"id0\"/>\n";
-                        xml << "\t\t\t<target ref=\"id0\"/>\n";
+                                if (!do_str.empty()) {
+                                    do_str += "; ";
+                                }
+
+                                do_str += "x_" + std::to_string(id) + "_" + std::to_string(r - 1) + " = 0";
+
+                            }
 
 
-                        xml << "\t\t\t<label kind=\"guard\" x=\"-357\" y=\"-68\">"
-                            << "g == 0 &amp;&amp; turn == " << components_counter
-                            << " &amp;&amp; " << "loc == " << e.from()
-                            << (p_constraint.str().size() ? " &amp;&amp; " + p_constraint.str() : "")
-                            << (provided_str.empty() ? std::string{} : " &amp;&amp; " + provided_str)
-                            << "</label>\n";
+                            tck << "edge:" << name << ":ell_" << e.from() << ":ell_" << e.to() << ":a{provided: g == 0 && turn == " << components_counter
+                                           << (p_constraint.str().size() ? " && " + p_constraint.str() : std::string{})
+                                           << (provided_str.empty() ? std::string{} : " && " + provided_str);
 
-                        xml << "\t\t\t<label kind=\"assignment\" x=\"-246\" y=\"-34\">"
-                            << "turn = " << components_counter + 1
-                            << ", " << "loc = " << e.to()
-                            << ", " << "acc = " << (acc_set.count(e.to()) ? 1 : 0)
-                            << (p_assignments.str().size() ? ", " + p_assignments.str() : "")
-                            << (do_str.empty() ? std::string{} : ", " + do_str)
-                            << "</label>\n";
+                            tck << " : do: turn = " << components_counter + 1 << (p_assignments.str().size() ?  "; " + p_assignments.str() : std::string{})
+                                << (do_str.empty() ? std::string{} : "; " + do_str)
+                                << "}" << std::endl;
 
-                        xml << "\t\t\t<nail x=\"-102\" y=\"34\"/>\n";
-                        xml << "\t\t\t<nail x=\"-102\" y=\"-34\"/>\n";
-                        xml << "\t\t</transition>\n";
+                            std::stringstream().swap(p_constraint);
+                            std::stringstream().swap(p_assignments);
 
-                        std::stringstream().swap(p_constraint);
-                        std::stringstream().swap(p_assignments);
+                        }
+
+                        sat_paths.clear();
 
                     }
 
-                    sat_paths.clear();
+                }
+
+                out_s << tck.str();
+
+
+            } else {        // xml
+
+                std::stringstream xml;
+
+                xml << "\t<template>" << std::endl;
+                xml << "\t\t<name>" << name << "</name>" << std::endl;
+
+                xml << "\t\t<declaration>" << std::endl;
+
+
+                monitaal::location_id_t largest_loc = 0;
+                std::set<size_t> acc_set;
+                for (const auto& [k, v] : ta.locations()) {
+                    if (k > largest_loc) {
+                        largest_loc = k;
+                    }
+                    if (v.is_accept()) {
+                        acc_set.insert(k);
+                    }
+                }
+
+                xml << "\t\t\tint[0, " << largest_loc << "] loc = " << ta.initial_location() << ";" << std::endl;
+                xml << "\t\t\tint[0, 1] acc = 0;" << std::endl;
+
+
+                xml << "\t\t</declaration>" << std::endl;
+
+                xml << "\t\t<location id=\"id0\" x=\"0\" y=\"0\">" << std::endl;
+                xml << "\t\t</location>" << std::endl;
+                xml << "\t\t<init ref=\"id0\"/>" << std::endl;
+
+                for (const auto& [k, v] : ta.locations()) {
+
+                    for (const auto& e : ta.bdd_edges_from(k)) {
+
+                        bdd_allsat(e.bdd_label(), *allsat_print_handler);
+
+                        std::stringstream p_constraint;
+                        std::stringstream p_assignments;
+
+                        for (auto i = 0; i < sat_paths.size(); ++i) {
+
+                            int largest = 0;
+                            for (auto j = 1; j < sat_paths[i].size(); ++j) {
+                                if (sat_paths[i][j] != 'X' && j > largest) {
+                                    largest = j;
+                                }
+                            }
+                            for (auto j = 1; j < sat_paths[i].size(); ++j) {
+                                if (sat_paths[i][j] != 'X') {
+                                    if (sat_paths[i][j] == '0') {
+                                        p_constraint << "(p_" << j << " == 2" << " || " << "p_" << j << " == 0)";
+                                    } else {
+                                        p_constraint << "p_" << j << " &gt;= 1";
+                                    }
+                                    p_assignments << "p_" << j << (sat_paths[i][j] == '0' ? " = 0" : " = 1");
+                                    if (j != largest) {
+                                        p_constraint << " &amp;&amp; ";
+                                        p_assignments << ", ";
+                                    }
+                                }
+                            }
+
+                            std::string provided_str;
+                            for (const auto& g : e.guard()) {
+
+                                if (!provided_str.empty()) {
+                                    provided_str += " &amp;&amp; ";
+                                }
+
+                                if (g._i == 0) {
+
+                                    assert(g._j != 0);
+
+                                    if (g._bound.is_strict()) {
+                                        provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._j - 1) + " &gt; " + std::to_string(-1 * g._bound.get_bound());
+                                    } else {
+                                        provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._j - 1) + " &gt;= " + std::to_string(-1 * g._bound.get_bound());
+                                    }
+
+                                } else if (g._j == 0) {
+
+                                    assert(g._i != 0);
+
+                                    if (g._bound.is_strict()) {
+                                        provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._i - 1) + " &lt; " + std::to_string(g._bound.get_bound());
+                                    } else {
+                                        provided_str += "x_" + std::to_string(id) + "_" + std::to_string(g._i - 1) + " &lt;= " + std::to_string(g._bound.get_bound());
+                                    }
+
+                                } else {
+                                    assert(("Currently support only non-diagonal guards", false));
+                                }
+
+                            }
+
+
+                            std::string do_str;
+                            for (const auto& r : e.reset()) {
+                        
+                                if (!do_str.empty()) {
+                                    do_str += ", ";
+                                }
+
+                                do_str += "x_" + std::to_string(id) + "_" + std::to_string(r - 1) + " = 0";
+
+                            }
+                            
+                            xml << "\t\t<transition>\n";
+                            xml << "\t\t\t<source ref=\"id0\"/>\n";
+                            xml << "\t\t\t<target ref=\"id0\"/>\n";
+
+
+                            xml << "\t\t\t<label kind=\"guard\" x=\"-357\" y=\"-68\">"
+                                << "g == 0 &amp;&amp; turn == " << components_counter
+                                << " &amp;&amp; " << "loc == " << e.from()
+                                << (p_constraint.str().size() ? " &amp;&amp; " + p_constraint.str() : "")
+                                << (provided_str.empty() ? std::string{} : " &amp;&amp; " + provided_str)
+                                << "</label>\n";
+
+                            xml << "\t\t\t<label kind=\"assignment\" x=\"-246\" y=\"-34\">"
+                                << "turn = " << components_counter + 1
+                                << ", " << "loc = " << e.to()
+                                << ", " << "acc = " << (acc_set.count(e.to()) ? 1 : 0)
+                                << (p_assignments.str().size() ? ", " + p_assignments.str() : "")
+                                << (do_str.empty() ? std::string{} : ", " + do_str)
+                                << "</label>\n";
+
+                            xml << "\t\t\t<nail x=\"-102\" y=\"34\"/>\n";
+                            xml << "\t\t\t<nail x=\"-102\" y=\"-34\"/>\n";
+                            xml << "\t\t</transition>\n";
+
+                            std::stringstream().swap(p_constraint);
+                            std::stringstream().swap(p_assignments);
+
+                        }
+
+                        sat_paths.clear();
+
+                    }
 
                 }
 
+                xml << "\t</template>" << std::endl << std::endl;
+
+                out_s << xml.str();
+
             }
-
-            xml << "\t</template>" << std::endl << std::endl;
-
-            out_s << xml.str();
 
         }
 
@@ -485,10 +493,18 @@ namespace mightypplcpp {
         if (reset == 1) {
             reset_clocks.push_back(1);
         } else if (reset == 2) {
-            reset_clocks.push_back(2);
+            if (!single) {
+                reset_clocks.push_back(2);
+            } else {
+                reset_clocks.push_back(1);
+            }
         } else if (reset == 3) {
-            reset_clocks.push_back(1);
-            reset_clocks.push_back(2);
+            if (!single) {
+                reset_clocks.push_back(1);
+                reset_clocks.push_back(2);
+            } else {
+                reset_clocks.push_back(1);
+            }
         } else {
             assert(reset == 0);
         }
@@ -553,22 +569,38 @@ namespace mightypplcpp {
 
             if (comp_operator == "<=") {
 
-                guard_constraints.push_back(monitaal::constraint_t::upper_non_strict(2, c));
+                if (!single) {
+                    guard_constraints.push_back(monitaal::constraint_t::upper_non_strict(2, c));
+                } else {
+                    guard_constraints.push_back(monitaal::constraint_t::upper_non_strict(1, c));
+                }
                 escaped_guard_y = std::string("&lt;=") + " " + constant;
 
             } else if (comp_operator == "<") {
 
-                guard_constraints.push_back(monitaal::constraint_t::upper_strict(2, c));
+                if (!single) {
+                    guard_constraints.push_back(monitaal::constraint_t::upper_strict(2, c));
+                } else {
+                    guard_constraints.push_back(monitaal::constraint_t::upper_strict(1, c));
+                }
                 escaped_guard_y = std::string("&lt;") + " " + constant;
 
             } else if (comp_operator == ">=") {
 
-                guard_constraints.push_back(monitaal::constraint_t::lower_non_strict(2, c));
+                if (!single) {
+                    guard_constraints.push_back(monitaal::constraint_t::lower_non_strict(2, c));
+                } else {
+                    guard_constraints.push_back(monitaal::constraint_t::lower_non_strict(1, c));
+                }
                 escaped_guard_y = std::string("&gt;=") + " " + constant;
 
             } else { // comp_operator == ">"
 
-                guard_constraints.push_back(monitaal::constraint_t::lower_strict(2, c));
+                if (!single) {
+                    guard_constraints.push_back(monitaal::constraint_t::lower_strict(2, c));
+                } else {
+                    guard_constraints.push_back(monitaal::constraint_t::lower_strict(1, c));
+                }
                 escaped_guard_y = std::string("&gt;") + " " + constant;
 
             }
@@ -608,15 +640,15 @@ namespace mightypplcpp {
                     s += std::string("edge:") + "TA_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + ":ell_" + std::to_string(name_id_map.at(source)) + ":ell_" + std::to_string(name_id_map.at(target)) + ":a{provided: g == 0 && turn == " + std::to_string(components_counter)
                                         + (p_constraint.str().size() ? " && " + p_constraint.str() : std::string{})
                                         + (guard_x.size() ? " && x_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + guard_x : std::string{})
-                                        + (guard_y.size() ? " && y_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + guard_y : std::string{});
+                                        + (guard_y.size() ? std::string(" && ") + (!single? "y_" : "x_") + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + guard_y : std::string{});
                     std::string reset_clocks_str;
 
                     if (reset == 1) {
                         reset_clocks_str = " : do: turn = " + std::to_string(components_counter + 1) + (p_assignments.str().size() ?  "; " + p_assignments.str() + "; " : "; ") + "x_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " = 0}";
                     } else if (reset == 2) {
-                        reset_clocks_str = " : do: turn = " + std::to_string(components_counter + 1) + (p_assignments.str().size() ?  "; " + p_assignments.str() + "; " : "; ") + "y_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " = 0}";
+                        reset_clocks_str = " : do: turn = " + std::to_string(components_counter + 1) + (p_assignments.str().size() ?  "; " + p_assignments.str() + "; " : "; ") + (!single? "y_" : "x_") + std::to_string(base_id) + "_" + std::to_string(offset_id) + " = 0}";
                     } else if (reset == 3) {
-                        reset_clocks_str = " : do: turn = " + std::to_string(components_counter + 1) + (p_assignments.str().size() ?  "; " + p_assignments.str() + "; " : "; ") + "x_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " = 0; " + "y_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " = 0}";
+                        reset_clocks_str = " : do: turn = " + std::to_string(components_counter + 1) + (p_assignments.str().size() ?  "; " + p_assignments.str() + "; " : "; ") + "x_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " = 0; " + (!single? "y_" : "x_") + std::to_string(base_id) + "_" + std::to_string(offset_id) + " = 0}";
                     } else {
                         assert(reset == 0);
                         reset_clocks_str = " : do: turn = " + std::to_string(components_counter + 1) + (p_assignments.str().size() ?  "; " + p_assignments.str() + "}" : "}");
@@ -663,16 +695,16 @@ namespace mightypplcpp {
                     }
 
                     p_constraint << (guard_x.size() ? (p_constraint.str().size() ? " &amp;&amp; " : std::string{}) + "x_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + escaped_guard_x : std::string{})
-                                 << (guard_y.size() ? (p_constraint.str().size() ? " &amp;&amp; " : std::string{}) + "y_" + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + escaped_guard_y : std::string{});
+                                 << (guard_y.size() ? (p_constraint.str().size() ? " &amp;&amp; " : std::string{}) + (!single? "y_" : "x_") + std::to_string(base_id) + "_" + std::to_string(offset_id) + " " + escaped_guard_y : std::string{});
 
 
                     if (reset == 1) {
                         p_assignments << (p_assignments.str().size() ? ", " : "") << "x_" << base_id << "_" << offset_id << " = 0";
                     } else if (reset == 2) {
-                        p_assignments << (p_assignments.str().size() ? ", " : "") << "y_" << base_id << "_" << offset_id << " = 0";
+                        p_assignments << (p_assignments.str().size() ? ", " : "") << (!single? "y_" : "x_") << base_id << "_" << offset_id << " = 0";
                     } else if (reset == 3) {
                         p_assignments << (p_assignments.str().size() ? ", " : "") << "x_" << base_id << "_" << offset_id << " = 0"
-                                      << ", y_" << base_id << "_" << offset_id << " = 0";
+                                      << ", " << (!single? "y_" : "x_") << base_id << "_" << offset_id << " = 0";
                     } else {
                         assert(reset == 0);
                     }
@@ -877,9 +909,20 @@ namespace mightypplcpp {
         std::set<MitlParser::AtomContext*, atom_cmp> temporal_atoms = std::any_cast<decltype(temporal_atoms)>(collect_temporal_visitor.visitMain(nnf_formula));
         for (auto it = temporal_atoms.rbegin(); it != temporal_atoms.rend(); ++it) {
 
-            std::cout << (*it)->id << ": " << (*it)->getText() << std::endl;
+            std::cout << (*it)->id
+                      << ((*it)->top && (*it)->existential ? " (TE)" :
+                                                             (*it)->top ? assert(("Impossible to be top but not existential", false)), "" :
+                                                                          ((*it)->existential ? " ( E)" :
+                                                                                                " (  )")
+                         )
+                      << ": "
+                      << (*it)->getText() << std::endl;
             assert(nnf_formula->temporals.count((*it)->getText()));
             assert(nnf_formula->temporals[(*it)->getText()] == (*it)->id);
+            if (nnf_formula->repeats.count((*it)->id)) {
+                (*it)->top = false;         // TODO: allow top repeated temporals
+                (*it)->existential = false;
+            }
 
         }
 
@@ -925,6 +968,11 @@ namespace mightypplcpp {
             std::cout << "\nSee collected atoms above\n";
             std::cout << "\nPress any key to continue . . .\n";
             std::cin.get();
+        }
+
+
+        for (const auto& [k, v] : nnf_formula->props) {
+            props_to_keep.insert(v);
         }
 
         std::cout << "\nGenerating BDDs for labels...\n";
@@ -1294,7 +1342,14 @@ namespace mightypplcpp {
 
         for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
 
-            std::cout << (*it)->id << ": " << (*it)->getText() << std::endl;
+            std::cout << (*it)->id
+                      << ((*it)->top && (*it)->existential ? " (TE)" :
+                                                             (*it)->top ? assert(("Impossible to be top but not existential", false)), "" :
+                                                                          ((*it)->existential ? " ( E)" :
+                                                                                                " (  )")
+                         )
+                      << ": "
+                      << (*it)->getText() << std::endl;
 
             antlr4::tree::ParseTree* left;
             antlr4::tree::ParseTree* right;
@@ -1512,17 +1567,17 @@ namespace mightypplcpp {
                 // TODO: need change if we add options to disable seq
 
                 if ((*it)->type == PNUELIFN) {
-                    components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : ((MitlParser::AtomFnContext*)(*it))->atoms.size() + 2);
+                    components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : ((*it)->existential ? 1 : ((MitlParser::AtomFnContext*)(*it))->atoms.size() + 2));
                 } else if ((*it)->type == PNUELION) {
-                    components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : ((MitlParser::AtomOnContext*)(*it))->atoms.size() + 2);
+                    components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : ((*it)->existential ? 1 : ((MitlParser::AtomOnContext*)(*it))->atoms.size() + 2));
                 } else if ((*it)->type == PNUELIGN) {
-                    components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : ((MitlParser::AtomGnContext*)(*it))->atoms.size() + 2);
+                    components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : ((*it)->existential ? 1 : ((MitlParser::AtomGnContext*)(*it))->atoms.size() + 2));
                 } else if ((*it)->type == PNUELIHN) {
-                    components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : ((MitlParser::AtomHnContext*)(*it))->atoms.size() + 2);
+                    components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : ((*it)->existential ? 1 : ((MitlParser::AtomHnContext*)(*it))->atoms.size() + 2));
                 }
 
             } else if ((*it)->type == COUNTFN || (*it)->type == COUNTON || (*it)->type == COUNTGN || (*it)->type == COUNTHN) {
-                components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : (*it)->num_pairs + 3);     // TODO: need change if we add options to disable seq
+                components_counter = components_counter + ((out_flatten || comp_flatten) ? 1 : ((*it)->existential ? 1 : (*it)->num_pairs + 3));     // TODO: need change if we add options to disable seq
             } else {
                 components_counter = components_counter + 1;
             }
@@ -1547,8 +1602,9 @@ namespace mightypplcpp {
                 out_str << "event:a" << std::endl << std::endl << std::endl;
 
                 out_str << "clock:1:g" << std::endl;
-		out_str << "clock:1:x" << std::endl;        // for timed lamp
-		out_str << "clock:1:y" << std::endl;
+        		out_str << "clock:1:x" << std::endl;        // for timed lamp
+         		out_str << "clock:1:y" << std::endl;
+
 
                 for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
 
@@ -1594,30 +1650,30 @@ namespace mightypplcpp {
                         }
                     } else if ((*it)->type == PNUELIFN) {
                         MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)(*it);
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
+                        for (auto i = 0; i < phi->atoms.size() && (i == 0 || !phi->existential); ++i) {
                             out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
                         }
                     } else if ((*it)->type == PNUELION) {
                         MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)(*it);
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
+                        for (auto i = 0; i < phi->atoms.size() && (i == 0 || !phi->existential); ++i) {
                             out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
                         }
                     } else if ((*it)->type == PNUELIGN) {
                         MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
+                        for (auto i = 0; i < phi->atoms.size() && (i == 0 || !phi->existential); ++i) {
                             out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
                         }
                     } else if ((*it)->type == PNUELIHN) {
                         MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
+                        for (auto i = 0; i < phi->atoms.size() && (i == 0 || !phi->existential); ++i) {
                             out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
                         }
                     } else if ((*it)->type == COUNTFN) {
                         MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
 
-                        if (comp_flatten) {
+                        if (comp_flatten || phi->existential) {
 
-                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                            for (auto i = 0; i < (phi->existential ? 1 : 2 * phi->num_pairs + 1); ++i) {
                                 out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
                             }
 
@@ -1627,14 +1683,16 @@ namespace mightypplcpp {
                                 out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
                                 out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
                             }
+
                             out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
 
                         }
                     } else if ((*it)->type == COUNTON) {
                         MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
-                        if (comp_flatten) {
 
-                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                        if (comp_flatten || phi->existential) {
+
+                            for (auto i = 0; i < (phi->existential ? 1 : 2 * phi->num_pairs + 1); ++i) {
                                 out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
                             }
 
@@ -1644,14 +1702,16 @@ namespace mightypplcpp {
                                 out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
                                 out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
                             }
+
                             out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
 
                         }
                     } else if ((*it)->type == COUNTGN) {
                         MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
-                        if (comp_flatten) {
 
-                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                        if (comp_flatten || phi->existential) {
+
+                            for (auto i = 0; i < (phi->existential ? 1 : 2 * phi->num_pairs + 1); ++i) {
                                 out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
                             }
 
@@ -1661,14 +1721,16 @@ namespace mightypplcpp {
                                 out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
                                 out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
                             }
+
                             out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
 
                         }
                     } else if ((*it)->type == COUNTHN) {
                         MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
-                        if (comp_flatten) {
 
-                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                        if (comp_flatten || phi->existential) {
+
+                            for (auto i = 0; i < (phi->existential ? 2 : 2 * phi->num_pairs + 1); ++i) {
                                 out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
                             }
 
@@ -1678,6 +1740,7 @@ namespace mightypplcpp {
                                 out_str << "clock:1:x_" << phi->id << "_" << i << std::endl;
                                 out_str << "clock:1:y_" << phi->id << "_" << i << std::endl;
                             }
+
                             out_str << "clock:1:x_" << phi->id << "_" << phi->num_pairs << std::endl;
 
                         }
@@ -1692,7 +1755,9 @@ namespace mightypplcpp {
 
 
                 for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "int:1:0:2:2:p_" << i + 1 << std::endl;
+                    if (props_to_keep.count(i + 1)) {
+                        out_str << "int:1:0:2:2:p_" << i + 1 << std::endl;
+                    }
                 }
 
                 out_str << "int:1:0:" << components_count - 1 << ":0:turn" << std::endl;
@@ -1758,30 +1823,30 @@ namespace mightypplcpp {
                         // lose the structure (e.g., x_i_0 is not necessarily the one used by the first
                         // component TA
 
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
+                        for (auto i = 0; i < phi->atoms.size() && (i == 0 || !phi->existential); ++i) {
                             out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
                         }
                     } else if ((*it)->type == PNUELION) {
                         MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)(*it);
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
+                        for (auto i = 0; i < phi->atoms.size() && (i == 0 || !phi->existential); ++i) {
                             out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
                         }
                     } else if ((*it)->type == PNUELIGN) {
                         MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
+                        for (auto i = 0; i < phi->atoms.size() && (i == 0 || !phi->existential); ++i) {
                             out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
                         }
                     } else if ((*it)->type == PNUELIHN) {
                         MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
-                        for (auto i = 0; i < phi->atoms.size(); ++i) {
+                        for (auto i = 0; i < phi->atoms.size() && (i == 0 || !phi->existential); ++i) {
                             out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
                         }
                     } else if ((*it)->type == COUNTFN) {
                         MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
                         
-                        if (comp_flatten) {
+                        if (comp_flatten || phi->existential) {
 
-                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                            for (auto i = 0; i < (phi->existential ? 1 : 2 * phi->num_pairs + 1); ++i) {
                                 out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
                             }
 
@@ -1791,15 +1856,16 @@ namespace mightypplcpp {
                                 out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
                                 out_str << "\t\tclock y_" << phi->id << "_" << i << ";" << std::endl;
                             }
+
                             out_str << "\t\tclock x_" << phi->id << "_" << phi->num_pairs << ";" << std::endl;
 
                         }
                     } else if ((*it)->type == COUNTON) {
                         MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
 
-                        if (comp_flatten) {
+                        if (comp_flatten || phi->existential) {
 
-                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                            for (auto i = 0; i < (phi->existential ? 1 : 2 * phi->num_pairs + 1); ++i) {
                                 out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
                             }
 
@@ -1809,15 +1875,16 @@ namespace mightypplcpp {
                                 out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
                                 out_str << "\t\tclock y_" << phi->id << "_" << i << ";" << std::endl;
                             }
+
                             out_str << "\t\tclock x_" << phi->id << "_" << phi->num_pairs << ";" << std::endl;
 
                         }
                     } else if ((*it)->type == COUNTGN) {
                         MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
 
-                        if (comp_flatten) {
+                        if (comp_flatten || phi->existential) {
 
-                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                            for (auto i = 0; i < (phi->existential ? 1 : 2 * phi->num_pairs + 1); ++i) {
                                 out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
                             }
 
@@ -1827,15 +1894,16 @@ namespace mightypplcpp {
                                 out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
                                 out_str << "\t\tclock y_" << phi->id << "_" << i << ";" << std::endl;
                             }
+                            
                             out_str << "\t\tclock x_" << phi->id << "_" << phi->num_pairs << ";" << std::endl;
 
                         }
                     } else if ((*it)->type == COUNTHN) {
                         MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
 
-                        if (comp_flatten) {
+                        if (comp_flatten || phi->existential) {
 
-                            for (auto i = 0; i < 2 * phi->num_pairs + 1; ++i) {
+                            for (auto i = 0; i < (phi->existential ? 2 : 2 * phi->num_pairs + 1); ++i) {
                                 out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
                             }
 
@@ -1845,6 +1913,7 @@ namespace mightypplcpp {
                                 out_str << "\t\tclock x_" << phi->id << "_" << i << ";" << std::endl;
                                 out_str << "\t\tclock y_" << phi->id << "_" << i << ";" << std::endl;
                             }
+
                             out_str << "\t\tclock x_" << phi->id << "_" << phi->num_pairs << ";" << std::endl;
 
                         }
@@ -1859,7 +1928,9 @@ namespace mightypplcpp {
 
 
                 for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "\t\tint[0, 2] p_" << i + 1 << " = 2;" << std::endl;
+                    if (props_to_keep.count(i + 1)) {
+                        out_str << "\t\tint[0, 2] p_" << i + 1 << " = 2;" << std::endl;
+                    }
                 }
 
                 out_str << "\t\tint[0, " << components_count - 1 << "] turn = 0;" << std::endl;
@@ -1883,15 +1954,16 @@ namespace mightypplcpp {
 
         monitaal::constraints_t empty_invariant;
         monitaal::locations_t locations;
-        monitaal::locations_t locations_;
+//        monitaal::locations_t locations_;
 
         locations.push_back(monitaal::location_t(false, 0, "s0", empty_invariant));
         locations.push_back(monitaal::location_t(true, 1, "s1", empty_invariant));
 
-        locations_.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
-        locations_.push_back(monitaal::location_t(true, 1, "s1", empty_invariant));
+//        locations_.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
+//        locations_.push_back(monitaal::location_t(true, 1, "s1", empty_invariant));
 
         monitaal::bdd_edges_t bdd_edges;
+//        monitaal::bdd_edges_t bdd_edges_;
         monitaal::constraints_t guard;
         monitaal::clocks_t reset;
 
@@ -1901,18 +1973,26 @@ namespace mightypplcpp {
 
         bdd_edges.push_back(monitaal::bdd_edge_t(0, 1, guard, reset, label));
 
+//        // 0 -> 1, true
+//
+//        label = bdd_true();
+//
+//        bdd_edges_.push_back(monitaal::bdd_edge_t(0, 1, guard, reset, label));
+
         // 1 -> 1, *varphi
 
         label = nnf_formula->formula()->star;
 
         bdd_edges.push_back(monitaal::bdd_edge_t(1, 1, guard, reset, label));
+//        bdd_edges_.push_back(monitaal::bdd_edge_t(1, 1, guard, reset, label));
 
         varphi = monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0);   // last arg: initial location id
-        varphi_ = monitaal::TAwithBDDEdges(name, clocks, locations_, bdd_edges, 0);   // last arg: initial location id
+//        varphi_ = monitaal::TAwithBDDEdges(name + "_", clocks, locations_, bdd_edges_, 0);   // last arg: initial location id
         clocks.clear();
         locations.clear();
-        locations_.clear();
+//        locations_.clear();
         bdd_edges.clear();
+//        bdd_edges_.clear();
 
         if (out_format.has_value() && !out_flatten) {
 
@@ -2354,12 +2434,11 @@ namespace mightypplcpp {
         name = "M";
 
         clocks.insert({0, "x0"});        // clock 0 is needed anyway
-        clocks.insert({1, "x"});        // clock 0 is needed anyway
-        clocks.insert({2, "y"});        // clock 0 is needed anyway
+        clocks.insert({1, "x"});
+        clocks.insert({2, "y"});
 
         locations.push_back(monitaal::location_t(true, 0, "s0", empty_invariant));
         locations.push_back(monitaal::location_t(false, 1, "s1", empty_invariant));
-
 
         label = !bdd_ithvar(nnf_formula->props.at("push")) & !bdd_ithvar(nnf_formula->props.at("blink"));
         reset.push_back(1);
@@ -2380,7 +2459,7 @@ namespace mightypplcpp {
         reset.push_back(1);
         guard.push_back(monitaal::constraint_t::lower_non_strict(1, 1));
         guard.push_back(monitaal::constraint_t::upper_non_strict(1, 1));
-        guard.push_back(monitaal::constraint_t::upper_non_strict(2, 2));
+        guard.push_back(monitaal::constraint_t::upper_strict(2, 3));
         bdd_edges.push_back(monitaal::bdd_edge_t(1, 1, guard, reset, label));
         guard.clear();
         reset.clear();
@@ -2403,12 +2482,11 @@ namespace mightypplcpp {
         guard.clear();
         reset.clear();
 
-
+ 
         model = monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0);   // last arg: initial location id
         clocks.clear();
         locations.clear();
         bdd_edges.clear();
-
 
         if (out_format.has_value() && !out_flatten) {
 
@@ -2419,38 +2497,49 @@ namespace mightypplcpp {
                 out_str << "process:" << "M" << std::endl;
 
                 out_str << "location:" << "M" << ":ell_0{initial: : labels: accept_M}" << std::endl;
-		out_str << "location:" << "M" << ":ell_1{}" << std::endl;
+                out_str << "location:" << "M" << ":ell_1{}" << std::endl;
 
 
                 out_str << "edge:" << "M" << ":ell_0:ell_0:a{provided: g == 0 && turn == " << components_counter << " && p_" << std::to_string(nnf_formula->props.at("push")) << " % 2 == 0 && p_" << std::to_string(nnf_formula->props.at("blink")) << " % 2 == 0 && x == 1 : do: x = 0; turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
+                    if (props_to_keep.count(i + 1)) {
+                        out_str << "p_" << i + 1 << " = 2" << (i + 1 == *props_to_keep.rbegin() ? "" : "; ");
+                    }
                 }
                 out_str << "}" << std::endl;
 
                 out_str << "edge:" << "M" << ":ell_0:ell_1:a{provided: g == 0 && turn == " << components_counter << " && p_" << std::to_string(nnf_formula->props.at("push")) << " >= 1 && p_" << std::to_string(nnf_formula->props.at("blink")) << " >= 1 : do: x = 0; y = 0; turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
+                    if (props_to_keep.count(i + 1)) {
+                        out_str << "p_" << i + 1 << " = 2" << (i + 1 == *props_to_keep.rbegin() ? "" : "; ");
+                    }
                 }
                 out_str << "}" << std::endl;
 
-                out_str << "edge:" << "M" << ":ell_1:ell_1:a{provided: g == 0 && turn == " << components_counter << "&& p_" << std::to_string(nnf_formula->props.at("push")) << " % 2 == 0 && p_" << std::to_string(nnf_formula->props.at("blink")) << " >= 1 && x == 1 && y <= 2 : do: x = 0; turn = 0; ";
+                out_str << "edge:" << "M" << ":ell_1:ell_1:a{provided: g == 0 && turn == " << components_counter << "&& p_" << std::to_string(nnf_formula->props.at("push")) << " % 2 == 0 && p_" << std::to_string(nnf_formula->props.at("blink")) << " >= 1 && x == 1 && y < 3 : do: x = 0; turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
+                    if (props_to_keep.count(i + 1)) {
+                        out_str << "p_" << i + 1 << " = 2" << (i + 1 == *props_to_keep.rbegin() ? "" : "; ");
+                    }
                 }
                 out_str << "}" << std::endl;
 
                 out_str << "edge:" << "M" << ":ell_1:ell_1:a{provided: g == 0 && turn == " << components_counter << "&& p_" << std::to_string(nnf_formula->props.at("push")) << " >= 1 && p_" << std::to_string(nnf_formula->props.at("blink")) << " >= 1 : do: x = 0; y = 0; turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
+                    if (props_to_keep.count(i + 1)) {
+                        out_str << "p_" << i + 1 << " = 2" << (i + 1 == *props_to_keep.rbegin() ? "" : "; ");
+                    }
                 }
                 out_str << "}" << std::endl;
 
                 out_str << "edge:" << "M" << ":ell_1:ell_0:a{provided: g == 0 && turn == " << components_counter << "&& p_" << std::to_string(nnf_formula->props.at("push")) << " % 2 == 0 && p_" << std::to_string(nnf_formula->props.at("blink")) << " >= 1 && x == 1 && y == 3 : do: x = 0; turn = 0; ";
                 for (auto i = 0; i < num_all_props; ++i) {
-                    out_str << "p_" << i + 1 << " = 2" << (i == num_all_props - 1 ? "" : "; ");
+                    if (props_to_keep.count(i + 1)) {
+                        out_str << "p_" << i + 1 << " = 2" << (i + 1 == *props_to_keep.rbegin() ? "" : "; ");
+                    }
                 }
                 out_str << "}" << std::endl;
+
 
             } else {
 
@@ -2480,7 +2569,9 @@ namespace mightypplcpp {
                 std::string do_str;
                 do_str = "turn = 0, loc = 0, ";
                 for (auto i = 0; i < num_all_props; ++i) {
-                    do_str += "p_" + std::to_string(i + 1) + " = 2" + (i == num_all_props - 1 ? "" : ", ");
+                    if (props_to_keep.count(i + 1)) {
+                        do_str += "p_" + std::to_string(i + 1) + " = 2" + (i + 1 == *props_to_keep.rbegin() ? "" : ", ");
+                    }
                 }
 
                 out_str << "\t\t\t<label kind=\"assignment\" x=\"-246\" y=\"-34\">" + do_str + "</label>\n";
@@ -2564,113 +2655,145 @@ namespace mightypplcpp {
 
                             MitlParser::AtomFnContext* phi = (MitlParser::AtomFnContext*)(*it);
 
-                            for (auto i = 0; i < phi->atoms.size(); ++i) {
+                            for (auto i = 0; i < phi->atoms.size() && (i == 0 || !phi->existential); ++i) {
 
                                 out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
 
                             }
 
-                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+                            if (!phi->existential) {
+
+                                out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                                out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                            }
 
                         } else if ((*it)->type == PNUELION) {
 
                             MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)(*it);
 
-                            for (auto i = 0; i < phi->atoms.size(); ++i) {
+                            for (auto i = 0; i < phi->atoms.size() && (i == 0 || !phi->existential); ++i) {
 
                                 out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
 
                             }
+                            
+                            if (!phi->existential) {
 
-                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+                                out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                                out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                            }
 
                         } else if ((*it)->type == PNUELIGN) {
 
                             MitlParser::AtomGnContext* phi = (MitlParser::AtomGnContext*)(*it);
 
-                            for (auto i = 0; i < phi->atoms.size(); ++i) {
+                            for (auto i = 0; i < phi->atoms.size() && (i == 0 || !phi->existential); ++i) {
 
                                 out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
 
                             }
 
-                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+                            if (!phi->existential) {
+
+                                out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                                out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                            }
 
                         } else if ((*it)->type == PNUELIHN) {
 
                             MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
 
-                            for (auto i = 0; i < phi->atoms.size(); ++i) {
+                            for (auto i = 0; i < phi->atoms.size() && (i == 0 || !phi->existential); ++i) {
 
                                 out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
 
                             }
 
-                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+                            if (!phi->existential) {
+
+                                out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                                out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                            }
 
                         } else if ((*it)->type == COUNTFN) {
 
                             MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
 
-                            for (auto i = 0; i < (*it)->num_pairs; ++i) {
+                            for (auto i = 0; i < (*it)->num_pairs && (i == 0 || !phi->existential); ++i) {
 
                                 out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
 
                             }
 
-                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+                            if (!phi->existential) {
 
-                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
+                                out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                                out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                                out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
+
+                            }
 
                         } else if ((*it)->type == COUNTON) {
 
                             MitlParser::AtomCOnContext* phi = (MitlParser::AtomCOnContext*)(*it);
 
-                            for (auto i = 0; i < (*it)->num_pairs; ++i) {
+                            for (auto i = 0; i < (*it)->num_pairs && (i == 0 || !phi->existential); ++i) {
 
                                 out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
 
                             }
+                            
+                            if (!phi->existential) {
 
-                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+                                out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                                out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
 
-                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
+                                out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
+
+                            }
 
                         } else if ((*it)->type == COUNTGN) {
 
                             MitlParser::AtomCGnContext* phi = (MitlParser::AtomCGnContext*)(*it);
 
-                            for (auto i = 0; i < (*it)->num_pairs; ++i) {
+                            for (auto i = 0; i < (*it)->num_pairs && (i == 0 || !phi->existential); ++i) {
 
                                 out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
 
                             }
 
-                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+                            if (!phi->existential) {
 
-                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
+                                out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                                out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                                out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
+
+                            }
 
                         } else if ((*it)->type == COUNTHN) {
 
                             MitlParser::AtomCHnContext* phi = (MitlParser::AtomCHnContext*)(*it);
 
-                            for (auto i = 0; i < (*it)->num_pairs; ++i) {
+                            for (auto i = 0; i < (*it)->num_pairs && (i == 0 || !phi->existential); ++i) {
 
                                 out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << i << "@a" << std::endl;
 
                             }
 
-                            out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
-                            out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+                            if (!phi->existential) {
 
-                            out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
+                                out_str << "sync:TA_sync@a:seq_in_" << (*it)->id << "@a" << std::endl;
+                                out_str << "sync:TA_sync@a:seq_out_" << (*it)->id << "@a" << std::endl;
+
+                                out_str << "sync:TA_sync@a:TA_" << (*it)->id << "_" << (*it)->num_pairs << "@a" << std::endl;
+
+                            }
 
                         } else {
 
@@ -2730,13 +2853,12 @@ namespace mightypplcpp {
             // return product;
 
             std::set<int> props_to_remove;
-            {
-                int i = 0;
-                for (const auto& x : temporal_atoms) {
+            props_to_remove.insert(0);
 
-                    props_to_remove.insert(++i);
+            for (const auto& x : temporal_atoms) {
 
-                }
+                props_to_remove.insert(x->id);
+
             }
 
             // return TA, but not the generated output for components 
@@ -2762,7 +2884,7 @@ namespace mightypplcpp {
 
                 for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
 
-                    if (comp_flatten) {
+                    if (comp_flatten || (*it)->existential) {
 
                         out_str << "accept_" << (*it)->id << ",";
                         std::cout << "accept_" << (*it)->id << ",";
@@ -2785,6 +2907,7 @@ namespace mightypplcpp {
                             out_str << "accept_seq_out_" << (*it)->id << ",";
                             std::cout << "accept_seq_out_" << (*it)->id << ",";
 
+
                         } else if ((*it)->type == PNUELION) {
 
                             MitlParser::AtomOnContext* phi = (MitlParser::AtomOnContext*)(*it);
@@ -2800,6 +2923,7 @@ namespace mightypplcpp {
                             std::cout << "accept_seq_in_" << (*it)->id << ",";
                             out_str << "accept_seq_out_" << (*it)->id << ",";
                             std::cout << "accept_seq_out_" << (*it)->id << ",";
+
 
                         } else if ((*it)->type == PNUELIGN) {
 
@@ -2817,6 +2941,7 @@ namespace mightypplcpp {
                             out_str << "accept_seq_out_" << (*it)->id << ",";
                             std::cout << "accept_seq_out_" << (*it)->id << ",";
 
+
                         } else if ((*it)->type == PNUELIHN) {
 
                             MitlParser::AtomHnContext* phi = (MitlParser::AtomHnContext*)(*it);
@@ -2833,6 +2958,7 @@ namespace mightypplcpp {
                             out_str << "accept_seq_out_" << (*it)->id << ",";
                             std::cout << "accept_seq_out_" << (*it)->id << ",";
 
+
                         } else if ((*it)->type == COUNTFN) {
 
                             MitlParser::AtomCFnContext* phi = (MitlParser::AtomCFnContext*)(*it);
@@ -2848,8 +2974,10 @@ namespace mightypplcpp {
                             std::cout << "accept_seq_in_" << (*it)->id << ",";
                             out_str << "accept_seq_out_" << (*it)->id << ",";
                             std::cout << "accept_seq_out_" << (*it)->id << ",";
+
                             out_str << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
                             std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
+
 
                         } else if ((*it)->type == COUNTON) {
 
@@ -2866,8 +2994,10 @@ namespace mightypplcpp {
                             std::cout << "accept_seq_in_" << (*it)->id << ",";
                             out_str << "accept_seq_out_" << (*it)->id << ",";
                             std::cout << "accept_seq_out_" << (*it)->id << ",";
+
                             out_str << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
                             std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
+
 
                         } else if ((*it)->type == COUNTGN) {
 
@@ -2884,8 +3014,10 @@ namespace mightypplcpp {
                             std::cout << "accept_seq_in_" << (*it)->id << ",";
                             out_str << "accept_seq_out_" << (*it)->id << ",";
                             std::cout << "accept_seq_out_" << (*it)->id << ",";
+
                             out_str << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
                             std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
+
 
                         } else if ((*it)->type == COUNTHN) {
 
@@ -2902,8 +3034,10 @@ namespace mightypplcpp {
                             std::cout << "accept_seq_in_" << (*it)->id << ",";
                             out_str << "accept_seq_out_" << (*it)->id << ",";
                             std::cout << "accept_seq_out_" << (*it)->id << ",";
+
                             out_str << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
                             std::cout << "accept_" << (*it)->id << "_" << phi->num_pairs << ",";
+
 
                         } else {
 
