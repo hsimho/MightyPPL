@@ -1,5 +1,14 @@
---- MightyPPL_new_original.cpp	2026-04-08 18:47:00.068571710 +0100
-+++ MightyPPL_new_lamp.cpp	2026-04-09 00:37:21.453496730 +0100
+--- MightyPPL_new_original.cpp	2026-04-12 13:07:10.660024220 +0100
++++ MightyPPL_new_lamp.cpp	2026-04-12 21:53:07.115623925 +0100
+@@ -2,7 +2,7 @@
+ 
+ namespace mightypplcpp {
+ 
+-    int gcd = 0;
++    int gcd = 1;
+     bool last_intersection = false;
+ 
+     size_t num_all_props;
 @@ -1602,6 +1602,9 @@
                  out_str << "event:a" << std::endl << std::endl << std::endl;
  
@@ -10,7 +19,7 @@
  
                  for (auto it = temporal_atoms.begin(); it != temporal_atoms.end(); ++it) {
  
-@@ -2431,15 +2434,55 @@
+@@ -2435,15 +2438,55 @@
          name = "M";
  
          clocks.insert({0, "x0"});        // clock 0 is needed anyway
@@ -69,7 +78,7 @@
          model = monitaal::TAwithBDDEdges(name, clocks, locations, bdd_edges, 0);   // last arg: initial location id
          clocks.clear();
          locations.clear();
-@@ -2454,8 +2497,10 @@
+@@ -2458,8 +2501,10 @@
                  out_str << "process:" << "M" << std::endl;
  
                  out_str << "location:" << "M" << ":ell_0{initial: : labels: accept_M}" << std::endl;
@@ -81,7 +90,7 @@
                  for (auto i = 0; i < num_all_props; ++i) {
                      if (props_to_keep.count(i + 1)) {
                          out_str << "p_" << i + 1 << " = 2" << (i + 1 == *props_to_keep.rbegin() ? "" : "; ");
-@@ -2463,6 +2508,39 @@
+@@ -2467,6 +2512,39 @@
                  }
                  out_str << "}" << std::endl;
  

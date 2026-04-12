@@ -2,7 +2,7 @@
 
 namespace mightypplcpp {
 
-    int gcd = 0;
+    int gcd = 1;
     bool last_intersection = false;
 
     size_t num_all_props;
