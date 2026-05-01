@@ -2778,13 +2778,17 @@ namespace mightypplcpp {
 
             // return product;
 
+            props_to_keep.clear();
+            for (const auto& [k, v] : nnf_formula->props) {
+                props_to_keep.insert(v);
+            }
+
             std::set<int> props_to_remove;
             props_to_remove.insert(0);
-
-            for (const auto& x : temporal_atoms) {
-
-                props_to_remove.insert(x->id);
-
+            for (auto i = 0; i < num_all_props; ++i) {
+                if (!props_to_keep.count(i + 1)) {
+                    props_to_remove.insert(i + 1);
+                }
             }
 
             // return TA, but not the generated output for components 
