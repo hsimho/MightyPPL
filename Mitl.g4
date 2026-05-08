@@ -34,18 +34,19 @@ interval
 ;
 
 atom locals [size_t num_pairs = 0; size_t bits = 1; size_t id; bool uni = true; enum_atoms type = UNKNOWN; bool top = false; bool existential = false;
+             bool weak = false;
              bool negated = false; bdd overline; bdd star; bdd comp_star; bdd tilde; bdd hat; bdd comp_hat]
-    : Finally interval? atom                                                        #AtomF
-    | Once interval? atom                                                           #AtomO
+    : Finally Star? interval? atom                                                        #AtomF
+    | Once Star? interval? atom                                                           #AtomO
     
-    | Globally interval? atom                                                       #AtomG
-    | Historically interval? atom                                                   #AtomH
+    | Globally Star? interval? atom                                                       #AtomG
+    | Historically Star? interval? atom                                                   #AtomH
     
-    | atom Until interval? atom                                                     #AtomU       
-    | atom Since interval? atom                                                     #AtomS
+    | atom Until Star? interval? atom                                                     #AtomU       
+    | atom Since Star? interval? atom                                                     #AtomS
     
-    | atom Release interval? atom                                                   #AtomR   
-    | atom Trigger interval? atom                                                   #AtomT
+    | atom Release Star? interval? atom                                                   #AtomR   
+    | atom Trigger Star? interval? atom                                                   #AtomT
 
     | PnueliFn interval LParen atoms+=atom (Comma atoms+=atom)+ RParen              #AtomFn
     | PnueliOn interval LParen atoms+=atom (Comma atoms+=atom)+ RParen              #AtomOn
@@ -53,11 +54,11 @@ atom locals [size_t num_pairs = 0; size_t bits = 1; size_t id; bool uni = true; 
     | PnueliGn interval LParen atoms+=atom (Comma atoms+=atom)+ RParen              #AtomGn
     | PnueliHn interval LParen atoms+=atom (Comma atoms+=atom)+ RParen              #AtomHn
 
-    | CountFn interval LParen atom Comma atom RParen                                #AtomCFn
-    | CountOn interval LParen atom Comma atom RParen                                #AtomCOn
+    | CountFn Star? interval LParen atom Comma atom RParen                                #AtomCFn
+    | CountOn Star? interval LParen atom Comma atom RParen                                #AtomCOn
 
-    | CountGn interval LParen atom Comma atom RParen                                #AtomCGn
-    | CountHn interval LParen atom Comma atom RParen                                #AtomCHn
+    | CountGn Star? interval LParen atom Comma atom RParen                                #AtomCGn
+    | CountHn Star? interval LParen atom Comma atom RParen                                #AtomCHn
     
     | 'true'                                                                        #AtomTrue
     | 'false'                                                                       #AtomFalse
@@ -65,6 +66,8 @@ atom locals [size_t num_pairs = 0; size_t bits = 1; size_t id; bool uni = true; 
     | LParen formula RParen                                                         #AtomParen
 
 ;
+
+Star : '*' ;
 
 Comma : ',' ;
 LParen : '(' ;

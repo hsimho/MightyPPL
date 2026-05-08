@@ -114,9 +114,19 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, out_str, phi->id, 0, "0", "0", std::string{}, std::string{}, 3, in_null & out_null & phi->atom(0)->star & phi->atom(1)->star);
 
-                // 0 -> 1, in_i & out_null & *p & *q, x := 0, y := 0
+                if (!phi->weak) {
 
-                build_edge(bdd_edges, name_id_map, out_str, phi->id, 0, "0", "1", std::string{}, std::string{}, 3, in_i & out_null & phi->atom(0)->star & phi->atom(1)->star);
+                    // 0 -> 1, in_i & out_null & *p & *q, x := 0, y := 0
+
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id, 0, "0", "1", std::string{}, std::string{}, 3, in_i & out_null & phi->atom(0)->star & phi->atom(1)->star);
+
+                } else {
+
+                    // 0 -> 1, in_i & out_null & ^p & *q, x := 0, y := 0
+
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id, 0, "0", "1", std::string{}, std::string{}, 3, in_i & out_null & phi->atom(0)->hat & phi->atom(1)->star);
+
+                }
 
                 // 1 -> 1, in_null & out_null & ^p & *q, x <= b
 
@@ -410,9 +420,19 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "0", "0", std::string{}, std::string{}, 1, !in_i & phi->atom(0)->star & bdd_true() & !out_i);
 
-                // 0 -> 1, r && *p && *q, x := 0
+                if (!phi->weak) {
 
-                build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "0", "1", std::string{}, std::string{}, 1, in_i & phi->atom(0)->star & bdd_true() & !out_i);
+                    // 0 -> 1, r && *p && *q, x := 0
+
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "0", "1", std::string{}, std::string{}, 1, in_i & phi->atom(0)->star & bdd_true() & !out_i);
+
+                } else {
+
+                    // 0 -> 1, r && ^p && *q, x := 0
+
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "0", "1", std::string{}, std::string{}, 1, in_i & phi->atom(0)->hat & bdd_true() & !out_i);
+
+                }
 
                 // 1 -> 1, !r && ^p && ~q
 
@@ -430,9 +450,19 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "1", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? "< " : "<= ") + left->children[0]->getText(), std::string{}, 1, in_i & phi->atom(0)->hat & bdd_true() & !out_i);
 
-                // 1 -> 1, r && *p && ^q, x := 0, x >= a
+                if (!phi->weak) {
 
-                build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "1", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 1, in_i & phi->atom(0)->star & phi->atom(1)->hat & out_i);
+                    // 1 -> 1, r && *p && ^q, x := 0, x >= a
+
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "1", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 1, in_i & phi->atom(0)->star & phi->atom(1)->hat & out_i);
+
+                } else {
+
+                    // 1 -> 1, r && ^p && ^q, x := 0, x >= a
+
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "1", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 1, in_i & phi->atom(0)->hat & phi->atom(1)->hat & out_i);
+
+                }
 
                 // 1 -> 1, !r && ^p && ^q
 

@@ -113,9 +113,19 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, out_str, phi->id, 0, "0", "0", std::string{}, std::string{}, 3, out_null & in_null & phi->atom(0)->star & phi->atom(1)->star);
 
-                // 1 -> 0, out_i & in_null & *p & *q, x <= b, y >= a
+                if (!phi->weak) {
 
-                build_edge(bdd_edges, name_id_map, out_str, phi->id, 0, "1", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 0, out_i & in_null & phi->atom(0)->star & phi->atom(1)->star);
+                    // 1 -> 0, out_i & in_null & *p & *q, x <= b, y >= a
+
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id, 0, "1", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 0, out_i & in_null & phi->atom(0)->star & phi->atom(1)->star);
+
+                } else {
+
+                    // 1 -> 0, out_i & in_null & ^p & *q, x <= b, y >= a
+
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id, 0, "1", "0", (right_delim->getSymbol()->getType() == MitlParser::RBrack ? "<= " : "< ") + right->children[0]->getText(), (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), 0, out_i & in_null & phi->atom(0)->hat & phi->atom(1)->star);
+
+                }
 
                 // 1 -> 1, out_null & in_null & ^p & *q, x <= b
 
@@ -367,9 +377,19 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "0", "0", std::string{}, std::string{}, 1, !out_i & phi->atom(0)->star & bdd_true() & !in_i);
 
-                // 1 -> 0, r && *p && *q, x := 0, x >= a
+                if (!phi->weak) {
 
-                build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "0", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 1, out_i & phi->atom(0)->star & bdd_true() & !in_i);
+                    // 1 -> 0, r && *p && *q, x := 0, x >= a
+
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "0", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 1, out_i & phi->atom(0)->star & bdd_true() & !in_i);
+
+                } else {
+
+                    // 1 -> 0, r && ^p && *q, x := 0, x >= a
+
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "0", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 1, out_i & phi->atom(0)->hat & bdd_true() & !in_i);
+
+                }
 
                 // 1 -> 1, !r && ^p && *q
 
@@ -379,9 +399,13 @@ namespace mightypplcpp {
 
                 build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "1", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 0, out_i & phi->atom(0)->hat & bdd_true() & !in_i);
 
-                // 1 -> 1, r && ~p && ^q, x := 0, x >= a
+                if (!phi->weak) {
 
-                build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "1", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 1, out_i & phi->atom(0)->tilde & phi->atom(1)->hat & in_i);
+                    // 1 -> 1, r && ~p && ^q, x := 0, x >= a
+
+                    build_edge(bdd_edges, name_id_map, out_str, phi->id, phi->num_pairs, "1", "1", (left_delim->getSymbol()->getType() == MitlParser::LBrack ? ">= " : "> ") + left->children[0]->getText(), std::string{}, 1, out_i & phi->atom(0)->tilde & phi->atom(1)->hat & in_i);
+
+                }
 
                 // 0 -> 1, !r && *p && ^q, x := 0
 

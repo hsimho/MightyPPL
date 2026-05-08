@@ -85,6 +85,9 @@ namespace mightypplcpp {
             }
         }
         ctx->type = FINALLY;
+        if (ctx->Star() != nullptr) {
+            ctx->weak = true;
+        }
         return nullptr; 
 
     }
@@ -106,6 +109,9 @@ namespace mightypplcpp {
             }
         }
         ctx->type = ONCE;
+        if (ctx->Star() != nullptr) {
+            ctx->weak = true;
+        }
         return nullptr; 
 
     }
@@ -131,6 +137,9 @@ namespace mightypplcpp {
             }
         }
         ctx->type = GLOBALLY;
+        if (ctx->Star() != nullptr) {
+            ctx->weak = true;
+        }
         return nullptr; 
 
     }
@@ -156,6 +165,9 @@ namespace mightypplcpp {
             }
         }
         ctx->type = HISTORICALLY;
+        if (ctx->Star() != nullptr) {
+            ctx->weak = true;
+        }
         return nullptr; 
 
     }
@@ -184,6 +196,9 @@ namespace mightypplcpp {
             }
         }
         ctx->type = UNTIL;
+        if (ctx->Star() != nullptr) {
+            ctx->weak = true;
+        }
         return nullptr; 
 
     }
@@ -212,6 +227,9 @@ namespace mightypplcpp {
             }
         }
         ctx->type = SINCE;
+        if (ctx->Star() != nullptr) {
+            ctx->weak = true;
+        }
         return nullptr; 
 
     }
@@ -240,6 +258,9 @@ namespace mightypplcpp {
             }
         }
         ctx->type = RELEASE;
+        if (ctx->Star() != nullptr) {
+            ctx->weak = true;
+        }
         return nullptr; 
 
     }
@@ -268,6 +289,9 @@ namespace mightypplcpp {
             }
         }
         ctx->type = TRIGGER;
+        if (ctx->Star() != nullptr) {
+            ctx->weak = true;
+        }
         return nullptr; 
 
     }

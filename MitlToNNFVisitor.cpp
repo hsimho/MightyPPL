@@ -256,6 +256,7 @@ namespace mightypplcpp {
             ctx->atom()->negated = true;
 
             output += ctx->uni ? "G" : "CGn";
+            output += ctx->weak ? "*" : "";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
             output += ctx->uni ? " " : std::string(" (false, ");
             output += std::any_cast<std::string>(visit(ctx->atom()));
@@ -269,6 +270,7 @@ namespace mightypplcpp {
         } else {
 
             output += ctx->uni ? "F" : "CFn";
+            output += ctx->weak ? "*" : "";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
             output += ctx->uni ? " " : std::string(" (true, ");
             output += std::any_cast<std::string>(visit(ctx->atom()));
@@ -289,6 +291,7 @@ namespace mightypplcpp {
             ctx->atom()->negated = true;
 
             output += ctx->uni ? "H" : "CHn";
+            output += ctx->weak ? "*" : "";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
             output += ctx->uni ? " " : std::string(" (false, ");
             output += std::any_cast<std::string>(visit(ctx->atom()));
@@ -302,6 +305,7 @@ namespace mightypplcpp {
         } else {
 
             output += ctx->uni ? "O" : "COn";
+            output += ctx->weak ? "*" : "";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
             output += ctx->uni ? " " : std::string(" (true, ");
             output += std::any_cast<std::string>(visit(ctx->atom()));
@@ -322,6 +326,7 @@ namespace mightypplcpp {
             ctx->atom()->negated = true;
 
             output += ctx->uni ? "F" : "CFn";
+            output += ctx->weak ? "*" : "";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
             output += ctx->uni ? " " : std::string(" (true, ");
             output += std::any_cast<std::string>(visit(ctx->atom()));
@@ -335,6 +340,7 @@ namespace mightypplcpp {
         } else {
 
             output += ctx->uni ? "G" : "CGn";
+            output += ctx->weak ? "*" : "";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
             output += ctx->uni ? " " : std::string(" (false, ");
             output += std::any_cast<std::string>(visit(ctx->atom()));
@@ -355,6 +361,7 @@ namespace mightypplcpp {
             ctx->atom()->negated = true;
 
             output += ctx->uni ? "O" : "COn";
+            output += ctx->weak ? "*" : "";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
             output += ctx->uni ? " " : std::string(" (true, ");
             output += std::any_cast<std::string>(visit(ctx->atom()));
@@ -368,6 +375,7 @@ namespace mightypplcpp {
         } else {
 
             output += ctx->uni ? "H" : "CHn";
+            output += ctx->weak ? "*" : "";
             output += ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "";
             output += ctx->uni ? " " : std::string(" (false, ");
             output += std::any_cast<std::string>(visit(ctx->atom()));
@@ -414,14 +422,14 @@ namespace mightypplcpp {
 
                 output += paren ? "(" : "";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
-                output += " R" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " R" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " ";
                 output += std::any_cast<std::string>(visit(ctx->atom(1)));
                 output += paren ? ")" : "";
 
             } else {
 
-                output += "CGn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += "CGn" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " (";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
                 output += ", "; 
@@ -442,14 +450,14 @@ namespace mightypplcpp {
 
                 output += paren ? "(" : "";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
-                output += " U" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " U" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " ";
                 output += std::any_cast<std::string>(visit(ctx->atom(1)));
                 output += paren ? ")" : "";
 
             } else {
 
-                output += "CFn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += "CFn" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " (";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
                 output += ", "; 
@@ -499,14 +507,14 @@ namespace mightypplcpp {
 
                 output += paren ? "(" : "";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
-                output += " T" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " T" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " ";
                 output += std::any_cast<std::string>(visit(ctx->atom(1)));
                 output += paren ? ")" : "";
 
             } else {
 
-                output += "CHn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += "CHn" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " (";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
                 output += ", "; 
@@ -527,14 +535,14 @@ namespace mightypplcpp {
 
                 output += paren ? "(" : "";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
-                output += " S" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " S" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " ";
                 output += std::any_cast<std::string>(visit(ctx->atom(1)));
                 output += paren ? ")" : "";
 
             } else {
 
-                output += "COn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += "COn" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " (";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
                 output += ", "; 
@@ -584,14 +592,14 @@ namespace mightypplcpp {
 
                 output += paren ? "(" : "";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
-                output += " U" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " U" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " ";
                 output += std::any_cast<std::string>(visit(ctx->atom(1)));
                 output += paren ? ")" : "";
 
             } else {
 
-                output += "CFn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += "CFn" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " (";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
                 output += ", "; 
@@ -612,14 +620,14 @@ namespace mightypplcpp {
 
                 output += paren ? "(" : "";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
-                output += " R" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " R" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " ";
                 output += std::any_cast<std::string>(visit(ctx->atom(1)));
                 output += paren ? ")" : "";
 
             } else {
 
-                output += "CGn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += "CGn" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " (";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
                 output += ", "; 
@@ -669,14 +677,14 @@ namespace mightypplcpp {
 
                 output += paren ? "(" : "";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
-                output += " S" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " S" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " ";
                 output += std::any_cast<std::string>(visit(ctx->atom(1)));
                 output += paren ? ")" : "";
 
             } else {
 
-                output += "COn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += "COn" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " (";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
                 output += ", "; 
@@ -697,14 +705,14 @@ namespace mightypplcpp {
 
                 output += paren ? "(" : "";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
-                output += " T" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += " T" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " ";
                 output += std::any_cast<std::string>(visit(ctx->atom(1)));
                 output += paren ? ")" : "";
 
             } else {
 
-                output += "CHn" + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
+                output += "CHn" + std::string(ctx->weak ? "*" : "") + (ctx->interval() ? std::any_cast<std::string>(visit(ctx->interval())) : "");
                 output += " (";
                 output += std::any_cast<std::string>(visit(ctx->atom(0)));
                 output += ", "; 
