@@ -14,9 +14,15 @@ or TChecker.
 MITPPL is a very expressive timed logic that contains the full fragment of [MITL](https://dl.acm.org/doi/abs/10.1145/227595.227602) (with [both future and past modalities](https://dl.acm.org/doi/abs/10.1109/SFCS.1992.267774))
 and [Pnueli modalities](https://www.sciencedirect.com/science/article/pii/S0304397510001441)
 of the form $\mathbf{P \mkern -2mu n}_{[0, u \rangle}(\phi_1, \dots, \phi_n)$ (and their duals and past counterparts).
-**Please note that MightyPPL adopts the *strict-future* semantics for all temporal modalities---the *weak-future*
-"until" $\mathbf{U}^\textit{w}_I$ can be emulated by, for example when $0 \in I$,
-$\varphi_1 \mathbf{U}^\textit{w}_I \varphi_2 \iff \varphi_2 \lor \big(\varphi_1 \land (\varphi_1 \mathbf{U}_I \varphi_2)\big)$.**
+**Please note that MightyPPL, by default, uses the *strict* semantics for all the temporal modalities. For example,**
+<p align="center">
+$(0, \emptyset)(2, \{p\})(4, \{p\})(6, \{q\}) \models p \mathbf{U} _{[4, 8]} q$ , $(0, \{q\})(2, \{p\})(4, \{p\})(6, \{q\}) \not \models p \mathbf{U} _{[0, 3]} q$ .
+</p>
+
+**The *weak* semantics is supported via the "starred" versions of the temporal modalities, e.g.,**
+<p align="center">
+$(0, \emptyset)(2, \{p\})(4, \{p\})(6, \{q\}) \not \models p \mathbf{U}^{*} _{[4, 8]} q$ , $(0, \{q\})(2, \{p\})(4, \{p\})(6, \{q\}) \models p \mathbf{U}^{*} _{[0, 3]} q$ .
+</p>
 
 Below are some example formulae supported by MightyPPL (all unsatisfiable over infinite timed words):
 
@@ -57,6 +63,7 @@ See the grammar file `Mitl.g4` for the exact syntax of input formulae, but in sh
 - `S` (since) is the past version of `U`, and
 - `T` (trigger) is the past version of `R`.
 
+The weak versions of these modalities are `F*`, `S*`, etc.  
 Pnueli modalities (and their past and dual versions) are `Fn`, `On`, `Gn` and `Hn`.
 
 
